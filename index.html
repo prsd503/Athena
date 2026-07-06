@@ -8,70 +8,82 @@
     <title>Finder Owl</title>
     <style>
         body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
-        .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; box-shadow: 5px 5px 0px #8d6e63; }
-        h1 { color: #5d4037; font-size: 3rem; margin-bottom: 10px; }
-        input { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; }
-        button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; margin-top: 10px; font-size: 1.2rem; }
+        .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; box-shadow: 5px 5px 0px #8d6e63; max-width: 400px; margin: auto; }
+        h1 { color: #5d4037; font-size: 2.5rem; margin-bottom: 10px; }
+        input { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; }
+        button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; }
         #result { margin-top: 20px; font-size: 1.5rem; }
     </style>
 </head>
 <body>
-let currentSociety = ""; // Variable to hold the validated society name
 
-async function verifySociety() {
-  const inputName = document.getElementById("societyInput").value;
-  
-  // Query your 'societies' collection to check if it exists
-  const societyDoc = await db.collection("societies").where("name", "==", inputName).get();
-  
-  if (!societyDoc.empty) {
-    currentSociety = inputName; // Save the society name globally for this session
-    showSearchPage(); // Transition to the vehicle search UI
-  } else {
-    alert("Society not found.");
-  }
-}
-
-    async function searchVehicle() {
-  const vehicleNumber = document.getElementById("vehicleInput").value;
-  
-  // Use a 'where' clause to filter by both criteria
-  const query = db.collection("vehicles")
-    .where("societyName", "==", currentSociety) // Restrict to the saved society
-    .where("vehicleNumber", "==", vehicleNumber);
-    
-  const snapshot = await query.get();
-  
-  if (snapshot.empty) {
-    alert("No vehicle found in " + currentSociety);
-  } else {
-    // Display results...
-  }
-}
-
-    
-<!-- Step 1: Society Verification -->
-<div id="society-verification">
-  <input type="text" id="societyInput" placeholder="Enter Society Name">
-  <button onclick="verifySociety()">Proceed</button>
-</div>
-
-<!-- Step 2: Hidden Vehicle Search (shown only after verification) -->
-<div id="vehicle-search" style="display:none;">
-  <input type="text" id="vehicleInput" placeholder="Enter Vehicle Number">
-  <button onclick="searchVehicle()">Search</button>
-</div>
-    
-    
     <div class="card">
         <h1>Finder Owl 🦉</h1>
-        <input type="text" id="search" placeholder="Enter Vehicle Number...">
-        
-        <!-- This is the updated line -->
-        <button id="findBtn">Find</button>
-        
-        <div id="result"></div>
+
+        <!-- Step 1: Society Verification -->
+        <div id="society-verification">
+            <input type="text" id="societyInput" placeholder="Enter Society Name">
+            <button onclick="verifySociety()">Proceed</button>
+        </div>
+
+        <!-- Step 2: Hidden Vehicle Search (shown only after verification) -->
+        <div id="vehicle-search" style="display:none;">
+            <p>Society: <span id="displaySocietyName" style="font-weight:bold;"></span></p>
+            <input type="text" id="vehicleInput" placeholder="Enter Vehicle Number">
+            <button onclick="searchVehicle()">Search</button>
+            <div id="result"></div>
+        </div>
     </div>
-    <script type="module" src="app.js"></script>
+
+    <!-- Firebase SDKs (Ensure these match your project setup) -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    
+    <script>
+        // 1. Initialize Firebase (Replace with your actual config)
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            projectId: "YOUR_PROJECT_ID"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let currentSociety = "";
+
+        // 2. Verification Function
+        async function verifySociety() {
+            const inputName = document.getElementById("societyInput").value.trim();
+            const societyDoc = await db.collection("societies").where("name", "==", inputName).get();
+            
+            if (!societyDoc.empty) {
+                currentSociety = inputName;
+                document.getElementById("society-verification").style.display = "none";
+                document.getElementById("vehicle-search").style.display = "block";
+                document.getElementById("displaySocietyName").innerText = inputName;
+            } else {
+                alert("Society not found. Please check the name.");
+            }
+        }
+
+        // 3. Search Function
+        async function searchVehicle() {
+            const vehicleNumber = document.getElementById("vehicleInput").value.trim().toUpperCase();
+            
+            const snapshot = await db.collection("vehicles")
+                .where("societyName", "==", currentSociety)
+                .where("vehicleNumber", "==", vehicleNumber)
+                .get();
+                
+            const resultDiv = document.getElementById("result");
+            if (snapshot.empty) {
+                resultDiv.innerText = "No vehicle found in " + currentSociety;
+            } else {
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    resultDiv.innerHTML = `Found: ${data.ownerName || 'N/A'}`;
+                });
+            }
+        }
+    </script>
 </body>
 </html>
