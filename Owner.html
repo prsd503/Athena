@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Owner Dashboard</title>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs, updateDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        
+        // ... (Your firebaseConfig setup here) ...
+        const db = getFirestore(initializeApp(firebaseConfig));
+
+        window.generateFields = () => {
+            const count = document.getElementById("vehicleCount").value;
+            const container = document.getElementById("vehicleFields");
+            container.innerHTML = "";
+            for (let i = 0; i < count; i++) {
+                container.innerHTML += `<input type="text" class="v-num" placeholder="Vehicle ${i+1} Number"><br>`;
+            }
+        };
+
+        window.markRead = async (msgId) => {
+            await updateDoc(doc(db, "messages", msgId), {
+                status: "viewed",
+                viewedAt: serverTimestamp()
+            });
+            alert("Message marked as read. It will vanish in 1 hour.");
+        };
+    </script>
+</head>
+<body>
+    <h3>Register Vehicles</h3>
+    <input type="number" id="vehicleCount" min="1">
+    <button onclick="generateFields()">Generate Fields</button>
+    <div id="vehicleFields"></div>
+
+    <h3>My Messages</h3>
+    <div id="inbox"></div>
+</body>
+</html>
