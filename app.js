@@ -1,26 +1,17 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-const firebaseConfig = { /* PASTE YOUR CONFIG FROM FIREBASE CONSOLE HERE */ };
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-window.searchVehicle = async function() {
-    const qVal = document.getElementById('search').value.toUpperCase();
-    const q = query(collection(db, "vehicles"), where("vehicleNumber", "==", qVal));
-    const querySnapshot = await getDocs(q);
-    
-    let display = document.getElementById('result');
-    if (!querySnapshot.empty) {
-        querySnapshot.forEach(doc => {
-            display.innerHTML = `Found! Flat: <b>${doc.data().flatNumber}</b>`;
-        });
-    } else {
-        display.innerHTML = "Not found in our records.";
-    }
+// Use the exact values from your screen
+const firebaseConfig = {
+  apiKey: "AIzaSyBEYKHQpy_VjmgjYIwQOPjXth1bghYsf9M",
+  authDomain: "finder-owl.firebaseapp.com",
+  projectId: "finder-owl",
+  storageBucket: "finder-owl.firebasestorage.app",
+  messagingSenderId: "1011347100861",
+  appId: "1:1011347100861:web:24246f9a4eb24d812cd3d4"
 };
 
-// Register Service Worker
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js');
-}
+const app = initializeApp(firebaseConfig);
+export const db = getFirestore(app);
+export const auth = getAuth(app);
