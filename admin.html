@@ -20,20 +20,21 @@
         <input type="password" id="pass" placeholder="Password">
         <button id="loginBtn">Login</button>
     </div>
-<!-- Add this before your data-section -->
-<div class="card" id="search-section" style="display:none;">
-    <h2>Search to Edit/Delete</h2>
-    <input type="text" id="adminSearch" placeholder="Vehicle Number">
-    <button id="adminSearchBtn">Search</button>
-    <div id="admin-results"></div>
-</div>
+
+    <!-- Search Section (Visible after login) -->
+    <div class="card" id="search-section" style="display:none;">
+        <h2>Search to Edit/Delete</h2>
+        <input type="text" id="adminSearch" placeholder="Vehicle Number">
+        <button id="adminSearchBtn">Search</button>
+        <div id="admin-results"></div>
+    </div>
     
     <!-- Data Entry Section -->
     <div class="card" id="data-section" style="display:none;">
         <h2>Add Vehicle</h2>
         <input type="text" id="vNum" placeholder="Vehicle Number">
         <input type="text" id="fNum" placeholder="Flat Number">
-        <input type="text" id="sName" placeholder="Society Name">
+        <!-- Society Name input removed as it is now fixed in logic -->
         <button id="saveBtn">Save to Registry</button>
     </div>
 
