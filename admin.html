@@ -1,31 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finder Owl Admin</title>
     <style>
         body { font-family: 'Caveat', cursive; background: #fdf6e3; padding: 20px; }
-        .card { background: white; padding: 20px; border-radius: 20px; max-width: 400px; margin: auto; }
-        input { width: 90%; margin: 10px 0; padding: 10px; }
+        .card { background: white; padding: 20px; border-radius: 20px; max-width: 400px; margin: auto; margin-bottom: 20px; }
+        input { width: 90%; margin: 10px 0; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        button { background: #8d6e63; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
+
+    <!-- Login Section -->
     <div class="card" id="login-section">
         <h2>Admin Login</h2>
         <input type="email" id="email" placeholder="Email">
         <input type="password" id="pass" placeholder="Password">
-        <button onclick="login()">Login</button>
+        <button id="loginBtn">Login</button>
     </div>
-<div class="card" id="admin-dashboard" style="display:none;">
-    <h2>Manage Registry</h2>
-    <div id="vehicle-list"></div>
-</div>
-    
+
+    <!-- Data Entry Section -->
     <div class="card" id="data-section" style="display:none;">
         <h2>Add Vehicle</h2>
         <input type="text" id="vNum" placeholder="Vehicle Number">
         <input type="text" id="fNum" placeholder="Flat Number">
         <input type="text" id="sName" placeholder="Society Name">
-        <button onclick="saveData()">Save to Registry</button>
+        <button id="saveBtn">Save to Registry</button>
+    </div>
+
+    <!-- Dashboard Section -->
+    <div class="card" id="admin-dashboard" style="display:none;">
+        <h2>Manage Registry</h2>
+        <div id="vehicle-list"></div>
     </div>
 
     <script type="module" src="admin-logic.js"></script>
