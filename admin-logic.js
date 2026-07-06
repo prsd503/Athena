@@ -1,29 +1,33 @@
-import { collection, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { db } from "./app.js";
+import { auth, db } from "./app.js";
+import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// 1. Fetch and Display
-async function loadVehicles() {
-    const querySnapshot = await getDocs(collection(db, "vehicles"));
-    const list = document.getElementById('vehicle-list');
-    list.innerHTML = "";
-    
-    querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        list.innerHTML += `
-            <div style="border-bottom:1px solid #ccc; padding:10px;">
-                ${data.vehicleNumber} - ${data.flatNumber}
-                <button onclick="deleteRecord('${doc.id}')">Delete</button>
-            </div>`;
-    });
-}
+// Login Listener
+document.getElementById('loginBtn').addEventListener('click', async () => {
+    const email = document.getElementById('email').value;
+    const pass = document.getElementById('pass').value;
+    try {
+        await signInWithEmailAndPassword(auth, email, pass);
+        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('data-section').style.display = 'block';
+        document.getElementById('admin-dashboard').style.display = 'block';
+        alert("Logged in successfully!");
+    } catch (e) { alert(e.message); }
+});
 
-// 2. Delete
-window.deleteRecord = async (id) => {
-    if (confirm("Are you sure?")) {
-        await deleteDoc(doc(db, "vehicles", id));
-        loadVehicles(); // Refresh list
-    }
-};
+// Save Data Listener
+document.getElementById('saveBtn').addEventListener('click', async () => {
+    const vNum = document.getElementById('vNum').value.toUpperCase();
+    const fNum = document.getElementById('fNum').value;
+    const sName = document.getElementById('sName').value;
 
-// 3. Update (Call this after successful login)
-// Add a call to loadVehicles() inside your login function after login succeeds
+    try {
+        await addDoc(collection(db, "vehicles"), {
+            vehicleNumber: vNum,
+            flatNumber: fNum,
+            societyName: sName,
+            addedBy: auth.currentUser.uid
+        });
+        alert("Vehicle added!");
+    } catch (e) { alert("Error: " + e.message); }
+});
