@@ -2,7 +2,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// Your firebaseConfig object (from file "77dd83b6-3406-4dfb-a8c8-224d065f8548")
 const firebaseConfig = {
   apiKey: "AIzaSyBEYKHQpy_VjmgjYIwQOPjXth1bghYsf9M",
   authDomain: "finder-owl.firebaseapp.com",
@@ -13,27 +12,28 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+export const db = getFirestore(app);
+export const auth = getAuth(app);
 
-// Your logic with the event listener
-document.getElementById('findBtn').addEventListener('click', async () => {
-    const qVal = document.getElementById('search').value.trim().toUpperCase();
-    
-    if (!qVal) return;
+// Search Logic
+const findBtn = document.getElementById('findBtn');
+if (findBtn) {
+    findBtn.addEventListener('click', async () => {
+        const qVal = document.getElementById('search').value.trim().toUpperCase();
+        if (!qVal) return;
 
-    const vehiclesRef = collection(db, "vehicles");
-    const q = query(vehiclesRef, where("vehicleNumber", "==", qVal));
-    const querySnapshot = await getDocs(q);
-    
-    let display = document.getElementById('result');
-    
-    if (!querySnapshot.empty) {
-        querySnapshot.forEach(doc => {
-            const data = doc.data();
-            display.innerHTML = `Found! Flat: <b>${data.flatNumber}</b>`;
-        });
-    } else {
-        display.innerHTML = "Not found in our records.";
-    }
-});
+        const vehiclesRef = collection(db, "vehicles");
+        const q = query(vehiclesRef, where("vehicleNumber", "==", qVal));
+        const querySnapshot = await getDocs(q);
+        
+        let display = document.getElementById('result');
+        if (!querySnapshot.empty) {
+            querySnapshot.forEach(doc => {
+                const data = doc.data();
+                display.innerHTML = `Found! Flat: <b>${data.flatNumber}</b>`;
+            });
+        } else {
+            display.innerHTML = "Not found in our records.";
+        }
+    });
+}
