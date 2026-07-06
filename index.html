@@ -26,7 +26,7 @@
             <button onclick="verifySociety()">Proceed</button>
         </div>
 
-        <!-- Step 2: Hidden Vehicle Search (shown only after verification) -->
+        <!-- Step 2: Hidden Vehicle Search -->
         <div id="vehicle-search" style="display:none;">
             <p>Society: <span id="displaySocietyName" style="font-weight:bold;"></span></p>
             <input type="text" id="vehicleInput" placeholder="Enter Vehicle Number">
@@ -35,12 +35,12 @@
         </div>
     </div>
 
-    <!-- Firebase SDKs (Ensure these match your project setup) -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
     
     <script>
-        // 1. Initialize Firebase (Replace with your actual config)
+        // 1. Initialize Firebase (Ensure these values are correct from your Project Settings)
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             projectId: "YOUR_PROJECT_ID"
@@ -52,7 +52,8 @@
 
         // 2. Verification Function
         async function verifySociety() {
-            const inputName = document.getElementById("societyInput").value.trim();
+            // Convert input to uppercase to match 'AANGAN' in database
+            const inputName = document.getElementById("societyInput").value.trim().toUpperCase();
             const societyDoc = await db.collection("societies").where("name", "==", inputName).get();
             
             if (!societyDoc.empty) {
@@ -69,9 +70,10 @@
         async function searchVehicle() {
             const vehicleNumber = document.getElementById("vehicleInput").value.trim().toUpperCase();
             
+            // NOTE: Updated to match your database field name: vehicleNumber_
             const snapshot = await db.collection("vehicles")
                 .where("societyName", "==", currentSociety)
-                .where("vehicleNumber", "==", vehicleNumber)
+                .where("vehicleNumber_", "==", vehicleNumber)
                 .get();
                 
             const resultDiv = document.getElementById("result");
@@ -80,7 +82,7 @@
             } else {
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    resultDiv.innerHTML = `Found: ${data.ownerName || 'N/A'}`;
+                    resultDiv.innerHTML = `Found: Flat ${data.flatNumber || 'N/A'}`;
                 });
             }
         }
