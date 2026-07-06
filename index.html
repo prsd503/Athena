@@ -10,7 +10,7 @@
         body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
         .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; box-shadow: 5px 5px 0px #8d6e63; max-width: 400px; margin: auto; }
         h1 { color: #5d4037; font-size: 2.5rem; margin-bottom: 10px; }
-        /* Forces text to appear uppercase as the user types */
+        /* Forces visual uppercase while typing */
         input { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; text-transform: uppercase; }
         button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; }
         #result { margin-top: 20px; font-size: 1.5rem; }
@@ -36,27 +36,34 @@
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
-    
-    <script>
-        // Initialize Firebase
+    <!-- Firebase Modular SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+
+        // Your specific Firebase configuration
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            projectId: "YOUR_PROJECT_ID"
+            apiKey: "AIzaSyBEYKHQpy_VjmgjYIwQOPjXth1bghYsf9M",
+            authDomain: "finder-owl.firebaseapp.com",
+            projectId: "finder-owl",
+            storageBucket: "finder-owl.firebasestorage.app",
+            messagingSenderId: "1011347100861",
+            appId: "1:1011347100861:web:24246f9a4eb24d812cd3d4",
+            measurementId: "G-6FWCNYMK8C"
         };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
         let currentSociety = "";
 
-        // Verification Function
-        async function verifySociety() {
+        // Attach functions to window so the HTML onclick buttons can reach them
+        window.verifySociety = async function() {
             const inputName = document.getElementById("societyInput").value.trim().toUpperCase();
-            const societyDoc = await db.collection("societies").where("name", "==", inputName).get();
+            const q = query(collection(db, "societies"), where("name", "==", inputName));
+            const querySnapshot = await getDocs(q);
             
-            if (!societyDoc.empty) {
+            if (!querySnapshot.empty) {
                 currentSociety = inputName;
                 document.getElementById("society-verification").style.display = "none";
                 document.getElementById("vehicle-search").style.display = "block";
@@ -64,28 +71,26 @@
             } else {
                 alert("Society not found. Please check the name.");
             }
-        }
+        };
 
-        // Search Function
-        async function searchVehicle() {
+        window.searchVehicle = async function() {
             const vehicleNumber = document.getElementById("vehicleInput").value.trim().toUpperCase();
+            const q = query(collection(db, "vehicles"), 
+                where("societyName", "==", currentSociety), 
+                where("vehicleNumber_", "==", vehicleNumber)
+            );
+            const querySnapshot = await getDocs(q);
             
-            // Querying using the exact field name found in your database
-            const snapshot = await db.collection("vehicles")
-                .where("societyName", "==", currentSociety)
-                .where("vehicleNumber_", "==", vehicleNumber)
-                .get();
-                
             const resultDiv = document.getElementById("result");
-            if (snapshot.empty) {
-                resultDiv.innerText = "No vehicle found in " + currentSociety;
+            if (querySnapshot.empty) {
+                resultDiv.innerText = "No vehicle found.";
             } else {
-                snapshot.forEach(doc => {
+                querySnapshot.forEach((doc) => {
                     const data = doc.data();
                     resultDiv.innerHTML = `Found: Flat ${data.flatNumber || 'N/A'}`;
                 });
             }
-        }
+        };
     </script>
 </body>
 </html>
