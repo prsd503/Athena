@@ -2,6 +2,9 @@ import { auth, db } from "./app.js";
 import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// Set your fixed society name here
+const FIXED_SOCIETY_NAME = "My Society Name"; 
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // Login Listener
@@ -35,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 container.innerHTML += `
                     <div style="margin:10px 0; border:1px solid #8d6e63; padding:10px;">
                         <p>Flat: <input id="f-${docSnap.id}" value="${data.flatNumber}"></p>
+                        <p>Society: <b>${data.societyName || FIXED_SOCIETY_NAME}</b></p>
                         <button onclick="window.updateData('${docSnap.id}')">Update</button>
                         <button onclick="window.deleteData('${docSnap.id}')" style="background:red; color:white;">Delete</button>
                     </div>`;
@@ -42,16 +46,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Save Data Listener
+    // Save Data Listener (Now uses fixed society name)
     const saveBtn = document.getElementById('saveBtn');
     if (saveBtn) {
         saveBtn.addEventListener('click', async () => {
             const vNum = document.getElementById('vNum').value.trim().toUpperCase();
             const fNum = document.getElementById('fNum').value;
-            const sName = document.getElementById('sName').value;
+            
             try {
-                await addDoc(collection(db, "vehicles"), { vehicleNumber: vNum, flatNumber: fNum, societyName: sName });
-                alert("Vehicle added!");
+                await addDoc(collection(db, "vehicles"), { 
+                    vehicleNumber: vNum, 
+                    flatNumber: fNum, 
+                    societyName: FIXED_SOCIETY_NAME 
+                });
+                alert("Vehicle added to " + FIXED_SOCIETY_NAME);
             } catch (e) { alert(e.message); }
         });
     }
