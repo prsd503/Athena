@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Owner Dashboard</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .message-card { border: 1px solid #ccc; padding: 10px; margin: 10px 0; border-radius: 8px; }
+    </style>
+</head>
+<body>
+
+    <h3>Register Your Vehicles</h3>
+    <input type="number" id="vehicleCount" placeholder="Number of vehicles" min="1">
+    <button onclick="generateFields()">Generate Fields</button>
+    <div id="vehicleFields"></div>
+    <button id="saveBtn" style="display:none;" onclick="saveVehicles()">Save Vehicles</button>
+
+    <h3>My Inbox</h3>
+    <div id="inbox"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs, updateDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Replace with your actual config
+        const firebaseConfig = { /* ... */ };
+        const db = getFirestore(initializeApp(firebaseConfig));
+
+        // 1. Generate Input Fields
+        window.generateFields = () => {
+            const count = document.getElementById("vehicleCount").value;
+            const container = document.getElementById("vehicleFields");
+            container.innerHTML = "";
+            for (let i = 0; i < count; i++) {
+                container.innerHTML += `<input type="text" class="v-num" placeholder="Vehicle ${i+1} Number"><br>`;
+            }
+            document.getElementById("saveBtn").style.display = "block";
+        };
+
+        // 2. Fetch and Filter Messages
+        window.loadMessages = async (myVehicles) => {
+            const inbox = document.getElementById("inbox");
+            inbox.innerHTML = "";
+            
+            const q = query(collection(db, "messages"), where("vehicleNumber", "in", myVehicles));
+            const snapshot = await getDocs(q);
+
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                const oneHour = 3600000;
+                
+                // Logic to hide messages read > 1 hour ago
+                if (data.status === "viewed" && data.viewedAt) {
+                    const viewedTime = data.viewedAt.toDate().getTime();
+                    if (Date.now() - viewedTime > oneHour) return;
+                }
+
+                // Render Message
+                const div = document.createElement("div");
+                div.className = "message-card";
+                div.innerHTML = `
+                    <p>Vehicle: ${data.vehicleNumber}</p>
+                    <p>Message: ${data.messageText}</p>
+                    ${data.status === "unread" ? `<button onclick="markRead('${docSnap.id}')">I Read</button>` : '<span>Viewed</span>'}
+                `;
+                inbox.appendChild(div);
+            });
+        };
+
+        // 3. Mark Message as Read
+        window.markRead = async (msgId) => {
+            await updateDoc(doc(db, "messages", msgId), {
+                status: "viewed",
+                viewedAt: serverTimestamp()
+            });
+            alert("Message marked as read. It will vanish in 1 hour.");
+            // Reload inbox to apply filtering
+            // Note: You need to pass the user's vehicle list here
+        };
+    </script>
+</body>
+</html>
