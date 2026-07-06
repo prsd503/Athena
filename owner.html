@@ -2,14 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Finder Owl - Owner</title>
-    <!-- Importing your specific font -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
+    <title>Finder Owl | Owner Portal</title>
     <style>
         body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
         .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; box-shadow: 5px 5px 0px #8d6e63; max-width: 400px; margin: auto; }
-        h1 { color: #5d4037; font-size: 2.5rem; }
-        /* Matching your search bar style */
+        h1 { color: #5d4037; font-size: 2.5rem; margin-bottom: 10px; }
         input { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; }
         button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; margin-top: 10px; }
         .message-card { border: 2px solid #8d6e63; padding: 10px; margin: 10px 0; border-radius: 10px; background: #fff; }
@@ -18,32 +17,74 @@
 <body>
 
 <div class="card">
-    <h1>Owner Portal 🦉</h1>
+    <h1>Finder Owl 🦉</h1>
+    <h3>Owner Portal</h3>
     
-    <input type="number" id="vehicleCount" placeholder="How many vehicles?" min="1">
+    <input type="number" id="vehicleCount" placeholder="Number of vehicles you own" min="1">
     <button onclick="generateFields()">Generate Fields</button>
     
     <div id="vehicleFields" style="margin-top:20px;"></div>
-    <button id="saveBtn" style="display:none;">Save All</button>
+    <button id="saveBtn" style="display:none;">Save All Vehicles</button>
 
     <hr style="border: 1px solid #8d6e63; margin: 20px 0;">
     <h3>My Inbox</h3>
     <div id="inbox"></div>
 </div>
 
-<script>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, query, where, getDocs, updateDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // Initialize Firebase (Add your config here)
+    const firebaseConfig = { /* ... */ };
+    const db = getFirestore(initializeApp(firebaseConfig));
+
     window.generateFields = () => {
         const count = document.getElementById("vehicleCount").value;
         const container = document.getElementById("vehicleFields");
-        container.innerHTML = ""; // Clear previous
-
-        if (count > 0) {
-            for (let i = 0; i < count; i++) {
-                // Creating the inputs with the same style class
-                container.innerHTML += `<input type="text" class="v-num" placeholder="Vehicle ${i+1} Number"><br>`;
-            }
-            document.getElementById("saveBtn").style.display = "inline-block";
+        container.innerHTML = "";
+        for (let i = 0; i < count; i++) {
+            container.innerHTML += `<input type="text" class="v-num" placeholder="Vehicle ${i+1} Number"><br>`;
         }
+        document.getElementById("saveBtn").style.display = "inline-block";
+    };
+
+    // Example function to load messages
+    window.loadMessages = async (myVehicles) => {
+        const inbox = document.getElementById("inbox");
+        inbox.innerHTML = "";
+        
+        const q = query(collection(db, "messages"), where("vehicleNumber", "in", myVehicles));
+        const snapshot = await getDocs(q);
+
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            const oneHour = 3600000;
+            
+            // Filter: Hide messages read > 1 hour ago
+            if (data.status === "viewed" && data.viewedAt) {
+                const viewedTime = data.viewedAt.toDate().getTime();
+                if (Date.now() - viewedTime > oneHour) return;
+            }
+
+            const div = document.createElement("div");
+            div.className = "message-card";
+            div.innerHTML = `
+                <p><b>Vehicle:</b> ${data.vehicleNumber}</p>
+                <p>${data.messageText}</p>
+                ${data.status === "unread" ? `<button onclick="markRead('${docSnap.id}')">I Read</button>` : '<span>Viewed</span>'}
+            `;
+            inbox.appendChild(div);
+        });
+    };
+
+    window.markRead = async (msgId) => {
+        await updateDoc(doc(db, "messages", msgId), {
+            status: "viewed",
+            viewedAt: serverTimestamp()
+        });
+        alert("Message marked as read. It will vanish in 1 hour.");
+        // Re-load to refresh view
     };
 </script>
 
