@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Finder Owl Admin</title>
+    <style>
+        body { font-family: 'Caveat', cursive; background: #fdf6e3; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 20px; max-width: 400px; margin: auto; }
+        input { width: 90%; margin: 10px 0; padding: 10px; }
+    </style>
+</head>
+<body>
+    <div class="card" id="login-section">
+        <h2>Admin Login</h2>
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="pass" placeholder="Password">
+        <button onclick="login()">Login</button>
+    </div>
+
+    <div class="card" id="data-section" style="display:none;">
+        <h2>Add Vehicle</h2>
+        <input type="text" id="vNum" placeholder="Vehicle Number">
+        <input type="text" id="fNum" placeholder="Flat Number">
+        <input type="text" id="sName" placeholder="Society Name">
+        <button onclick="saveData()">Save to Registry</button>
+    </div>
+
+    <script type="module" src="admin-logic.js"></script>
+</body>
+</html>
