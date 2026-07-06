@@ -2,7 +2,7 @@ import { auth, db } from "./app.js";
 import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Login Listener
+// Handle Login
 document.getElementById('loginBtn').addEventListener('click', async () => {
     const email = document.getElementById('email').value;
     const pass = document.getElementById('pass').value;
@@ -10,12 +10,11 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
         await signInWithEmailAndPassword(auth, email, pass);
         document.getElementById('login-section').style.display = 'none';
         document.getElementById('data-section').style.display = 'block';
-        document.getElementById('admin-dashboard').style.display = 'block';
         alert("Logged in successfully!");
     } catch (e) { alert(e.message); }
 });
 
-// Save Data Listener
+// Save Data
 document.getElementById('saveBtn').addEventListener('click', async () => {
     const vNum = document.getElementById('vNum').value.toUpperCase();
     const fNum = document.getElementById('fNum').value;
