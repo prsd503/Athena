@@ -16,34 +16,51 @@
     </style>
 </head>
 <body>
-<!DOCTYPE html>
-<html>
-<body>
+let currentSociety = ""; // Variable to hold the validated society name
 
-    <!-- Your new HTML snippets go here -->
-    <div id="society-verification">
-      <input type="text" id="societyInput" placeholder="Enter Society Name">
-      <button onclick="verifySociety()">Proceed</button>
-    </div>
+async function verifySociety() {
+  const inputName = document.getElementById("societyInput").value;
+  
+  // Query your 'societies' collection to check if it exists
+  const societyDoc = await db.collection("societies").where("name", "==", inputName).get();
+  
+  if (!societyDoc.empty) {
+    currentSociety = inputName; // Save the society name globally for this session
+    showSearchPage(); // Transition to the vehicle search UI
+  } else {
+    alert("Society not found.");
+  }
+}
 
-    <div id="vehicle-search" style="display:none;">
-      <input type="text" id="vehicleInput" placeholder="Enter Vehicle Number">
-      <button onclick="searchVehicle()">Search</button>
-    </div>
+    async function searchVehicle() {
+  const vehicleNumber = document.getElementById("vehicleInput").value;
+  
+  // Use a 'where' clause to filter by both criteria
+  const query = db.collection("vehicles")
+    .where("societyName", "==", currentSociety) // Restrict to the saved society
+    .where("vehicleNumber", "==", vehicleNumber);
+    
+  const snapshot = await query.get();
+  
+  if (snapshot.empty) {
+    alert("No vehicle found in " + currentSociety);
+  } else {
+    // Display results...
+  }
+}
 
-    <!-- The JavaScript functions must be included for the buttons to do anything -->
-    <script>
-        function verifySociety() {
-            // Your logic to check if society exists
-        }
+    
+<!-- Step 1: Society Verification -->
+<div id="society-verification">
+  <input type="text" id="societyInput" placeholder="Enter Society Name">
+  <button onclick="verifySociety()">Proceed</button>
+</div>
 
-        function searchVehicle() {
-            // Your logic to search within that society
-        }
-    </script>
-
-</body>
-</html>
+<!-- Step 2: Hidden Vehicle Search (shown only after verification) -->
+<div id="vehicle-search" style="display:none;">
+  <input type="text" id="vehicleInput" placeholder="Enter Vehicle Number">
+  <button onclick="searchVehicle()">Search</button>
+</div>
     
     
     <div class="card">
