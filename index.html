@@ -10,7 +10,6 @@
         body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
         .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; box-shadow: 5px 5px 0px #8d6e63; max-width: 400px; margin: auto; }
         h1 { color: #5d4037; font-size: 2.5rem; margin-bottom: 10px; }
-        /* Forces visual uppercase while typing */
         input { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; text-transform: uppercase; }
         button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; }
         #result { margin-top: 20px; font-size: 1.5rem; }
@@ -21,13 +20,11 @@
     <div class="card">
         <h1>Finder Owl 🦉</h1>
 
-        <!-- Step 1: Society Verification -->
         <div id="society-verification">
             <input type="text" id="societyInput" placeholder="Enter Society Name">
             <button onclick="verifySociety()">Proceed</button>
         </div>
 
-        <!-- Step 2: Hidden Vehicle Search -->
         <div id="vehicle-search" style="display:none;">
             <p>Society: <span id="displaySocietyName" style="font-weight:bold;"></span></p>
             <input type="text" id="vehicleInput" placeholder="Enter Vehicle Number">
@@ -36,12 +33,10 @@
         </div>
     </div>
 
-    <!-- Firebase Modular SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
         import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
 
-        // Your specific Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBEYKHQpy_VjmgjYIwQOPjXth1bghYsf9M",
             authDomain: "finder-owl.firebaseapp.com",
@@ -57,9 +52,9 @@
 
         let currentSociety = "";
 
-        // Attach functions to window so the HTML onclick buttons can reach them
         window.verifySociety = async function() {
-            const inputName = document.getElementById("societyInput").value.trim().toUpperCase();
+            // Matches "Aangan" exactly as it appears in your DB
+            const inputName = document.getElementById("societyInput").value.trim();
             const q = query(collection(db, "societies"), where("name", "==", inputName));
             const querySnapshot = await getDocs(q);
             
@@ -69,15 +64,17 @@
                 document.getElementById("vehicle-search").style.display = "block";
                 document.getElementById("displaySocietyName").innerText = inputName;
             } else {
-                alert("Society not found. Please check the name.");
+                alert("Society not found. Please type 'Aangan' exactly as shown.");
             }
         };
 
         window.searchVehicle = async function() {
-            const vehicleNumber = document.getElementById("vehicleInput").value.trim().toUpperCase();
+            const vehicleInput = document.getElementById("vehicleInput").value.trim();
+            
+            // Query matches your DB fields: societyName and vehicleNumber
             const q = query(collection(db, "vehicles"), 
                 where("societyName", "==", currentSociety), 
-                where("vehicleNumber_", "==", vehicleNumber)
+                where("vehicleNumber", "==", vehicleInput)
             );
             const querySnapshot = await getDocs(q);
             
