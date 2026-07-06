@@ -15,7 +15,7 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 
-// Search Logic
+// Public Search Listener
 const findBtn = document.getElementById('findBtn');
 if (findBtn) {
     findBtn.addEventListener('click', async () => {
@@ -27,10 +27,16 @@ if (findBtn) {
         const querySnapshot = await getDocs(q);
         
         let display = document.getElementById('result');
+        
         if (!querySnapshot.empty) {
             querySnapshot.forEach(doc => {
                 const data = doc.data();
-                display.innerHTML = `Found! Flat: <b>${data.flatNumber}</b>`;
+                // Updated to include the society name from the database
+                display.innerHTML = `
+                    Found!<br>
+                    Flat: <b>${data.flatNumber}</b><br>
+                    Society: <b>${data.societyName || "N/A"}</b>
+                `;
             });
         } else {
             display.innerHTML = "Not found in our records.";
