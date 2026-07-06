@@ -1,6 +1,6 @@
 import { auth, db } from "./app.js";
 import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, and } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const SOCIETY_MAP = {
     "brink2wink@gmail.com": "Aangan",
@@ -40,7 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const userEmail = auth.currentUser ? auth.currentUser.email : "";
             const assignedSociety = SOCIETY_MAP[userEmail] || "My Society Name";
 
-            // Filter by BOTH vehicleNumber AND the logged-in user's society
             const q = query(
                 collection(db, "vehicles"), 
                 where("vehicleNumber", "==", qVal),
@@ -53,12 +52,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             snapshot.forEach((docSnap) => {
                 const data = docSnap.data();
+                // Updated styling to match Finder Owl Portal design
                 container.innerHTML += `
-                    <div style="margin:10px 0; border:1px solid #8d6e63; padding:10px;">
-                        <p>Flat: <input id="f-${docSnap.id}" value="${data.flatNumber}"></p>
-                        <p>Society: <b>${data.societyName}</b></p>
-                        <button onclick="window.updateData('${docSnap.id}')">Update</button>
-                        <button onclick="window.deleteData('${docSnap.id}')" style="background:red; color:white;">Delete</button>
+                    <div style="margin:15px 0; border:2px solid #8d6e63; padding:15px; border-radius:15px; background:#fff; text-align:left;">
+                        <p style="margin:5px 0;"><b>Flat:</b> <input id="f-${docSnap.id}" value="${data.flatNumber}" style="width:60%;"></p>
+                        <p style="margin:5px 0;"><b>Society:</b> ${data.societyName}</p>
+                        <button onclick="window.updateData('${docSnap.id}')" style="padding:5px 10px; font-size:1rem;">Update</button>
+                        <button onclick="window.deleteData('${docSnap.id}')" style="padding:5px 10px; font-size:1rem; background:#d32f2f;">Delete</button>
                     </div>`;
             });
         });
@@ -83,3 +83,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+window.updateData = async (id) => {
+    const newFlat = document.getElementById(`f-${id}`).value;
+    await updateDoc(doc(db, "vehicles", id), { flatNumber: newFlat });
+    showModal("Updated successfully!");
+};
+
+window.deleteData = async (id) => {
+    if (confirm("Delete this record?")) {
+        await deleteDoc(doc(db, "vehicles", id));
+        showModal("Deleted successfully!");
+        document.getElementById('admin-results').innerHTML = "";
+    }
+};
