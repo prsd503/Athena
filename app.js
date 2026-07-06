@@ -1,12 +1,12 @@
-window.searchVehicle = async function() {
+// Remove "window." and wrap the logic in a listener
+document.getElementById('findBtn').addEventListener('click', async () => {
     const qVal = document.getElementById('search').value.trim().toUpperCase();
     
-    // Reference the 'vehicles' collection
+    // Check if input is empty
+    if (!qVal) return;
+
     const vehiclesRef = collection(db, "vehicles");
-    
-    // Create the query
     const q = query(vehiclesRef, where("vehicleNumber", "==", qVal));
-    
     const querySnapshot = await getDocs(q);
     
     let display = document.getElementById('result');
@@ -19,4 +19,4 @@ window.searchVehicle = async function() {
     } else {
         display.innerHTML = "Not found in our records.";
     }
-};
+});
