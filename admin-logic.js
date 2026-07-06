@@ -3,7 +3,8 @@ import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/1
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const SOCIETY_MAP = {
-    "brink2wink@gmail.com": "My Society Name"
+    "brink2wink@gmail.com": "Aangan",
+    "rkom@gmail.com": "Indra"
 };
 
 // --- Modal Functions ---
