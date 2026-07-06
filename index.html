@@ -10,7 +10,8 @@
         body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
         .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; box-shadow: 5px 5px 0px #8d6e63; max-width: 400px; margin: auto; }
         h1 { color: #5d4037; font-size: 2.5rem; margin-bottom: 10px; }
-        input { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; text-transform: uppercase; }
+        /* Removed 'text-transform: uppercase' so typing is normal */
+        input { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; }
         button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; }
         #result { margin-top: 20px; font-size: 1.5rem; }
     </style>
@@ -35,16 +36,12 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBEYKHQpy_VjmgjYIwQOPjXth1bghYsf9M",
-            authDomain: "finder-owl.firebaseapp.com",
             projectId: "finder-owl",
-            storageBucket: "finder-owl.firebasestorage.app",
-            messagingSenderId: "1011347100861",
-            appId: "1:1011347100861:web:24246f9a4eb24d812cd3d4",
-            measurementId: "G-6FWCNYMK8C"
+            // ... (rest of your config remains the same)
         };
 
         const app = initializeApp(firebaseConfig);
@@ -52,40 +49,40 @@
 
         let currentSociety = "";
 
+        // Verification Function (Case-Insensitive)
         window.verifySociety = async function() {
-            // Matches "Aangan" exactly as it appears in your DB
-            const inputName = document.getElementById("societyInput").value.trim();
-            const q = query(collection(db, "societies"), where("name", "==", inputName));
-            const querySnapshot = await getDocs(q);
+            const inputName = document.getElementById("societyInput").value.trim().toLowerCase();
+            const querySnapshot = await getDocs(collection(db, "societies"));
             
-            if (!querySnapshot.empty) {
-                currentSociety = inputName;
+            const match = querySnapshot.docs.find(doc => 
+                doc.data().name.toLowerCase() === inputName
+            );
+            
+            if (match) {
+                currentSociety = match.data().name;
                 document.getElementById("society-verification").style.display = "none";
                 document.getElementById("vehicle-search").style.display = "block";
-                document.getElementById("displaySocietyName").innerText = inputName;
+                document.getElementById("displaySocietyName").innerText = currentSociety;
             } else {
-                alert("Society not found. Please type 'Aangan' exactly as shown.");
+                alert("Society not found.");
             }
         };
 
+        // Search Function (Case-Insensitive)
         window.searchVehicle = async function() {
-            const vehicleInput = document.getElementById("vehicleInput").value.trim();
+            const vehicleInput = document.getElementById("vehicleInput").value.trim().toLowerCase();
+            const querySnapshot = await getDocs(collection(db, "vehicles"));
             
-            // Query matches your DB fields: societyName and vehicleNumber
-            const q = query(collection(db, "vehicles"), 
-                where("societyName", "==", currentSociety), 
-                where("vehicleNumber", "==", vehicleInput)
+            const match = querySnapshot.docs.find(doc => 
+                doc.data().societyName.toLowerCase() === currentSociety.toLowerCase() &&
+                doc.data().vehicleNumber.toLowerCase() === vehicleInput
             );
-            const querySnapshot = await getDocs(q);
             
             const resultDiv = document.getElementById("result");
-            if (querySnapshot.empty) {
-                resultDiv.innerText = "No vehicle found.";
+            if (match) {
+                resultDiv.innerHTML = `Found: Flat ${match.data().flatNumber || 'N/A'}`;
             } else {
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    resultDiv.innerHTML = `Found: Flat ${data.flatNumber || 'N/A'}`;
-                });
+                resultDiv.innerText = "No vehicle found.";
             }
         };
     </script>
