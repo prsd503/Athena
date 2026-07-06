@@ -2,15 +2,22 @@ import { auth, db } from "./app.js";
 import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Define which email belongs to which society
 const SOCIETY_MAP = {
-    "brink2wink@gmail.com": "AANGAN"
-    // Add more emails and societies here as needed
+    "brink2wink@gmail.com": "My Society Name"
+};
+
+// --- Modal Functions ---
+window.showModal = (msg) => {
+    document.getElementById('modalMessage').innerText = msg;
+    document.getElementById('customModal').style.display = 'block';
+};
+
+window.closeModal = () => {
+    document.getElementById('customModal').style.display = 'none';
 };
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    // Login Listener
     const loginBtn = document.getElementById('loginBtn');
     if (loginBtn) {
         loginBtn.addEventListener('click', async () => {
@@ -21,12 +28,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('login-section').style.display = 'none';
                 document.getElementById('data-section').style.display = 'block';
                 document.getElementById('search-section').style.display = 'block';
-                alert("Logged in successfully!");
-            } catch (e) { alert("Login failed: " + e.message); }
+                showModal("Logged in successfully!");
+            } catch (e) { showModal("Login failed: " + e.message); }
         });
     }
 
-    // Search to Edit/Delete Listener
     const searchBtn = document.getElementById('adminSearchBtn');
     if (searchBtn) {
         searchBtn.addEventListener('click', async () => {
@@ -49,14 +55,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Save Data Listener
     const saveBtn = document.getElementById('saveBtn');
     if (saveBtn) {
         saveBtn.addEventListener('click', async () => {
             const vNum = document.getElementById('vNum').value.trim().toUpperCase();
             const fNum = document.getElementById('fNum').value;
-            
-            // Determine society based on current user email
             const userEmail = auth.currentUser ? auth.currentUser.email : "";
             const assignedSociety = SOCIETY_MAP[userEmail] || "My Society Name";
 
@@ -66,23 +69,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     flatNumber: fNum, 
                     societyName: assignedSociety 
                 });
-                alert("Vehicle added to " + assignedSociety);
-            } catch (e) { alert("Error: " + e.message); }
+                showModal("Vehicle added to " + assignedSociety);
+            } catch (e) { showModal("Error: " + e.message); }
         });
     }
 });
 
-// Global functions for the dynamically created buttons
 window.updateData = async (id) => {
     const newFlat = document.getElementById(`f-${id}`).value;
     await updateDoc(doc(db, "vehicles", id), { flatNumber: newFlat });
-    alert("Updated successfully!");
+    showModal("Updated successfully!");
 };
 
 window.deleteData = async (id) => {
     if (confirm("Delete this record?")) {
         await deleteDoc(doc(db, "vehicles", id));
-        alert("Deleted successfully!");
+        showModal("Deleted successfully!");
         document.getElementById('admin-results').innerHTML = "";
     }
 };
