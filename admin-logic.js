@@ -1,13 +1,12 @@
 import { auth, db } from "./app.js";
 import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, and } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const SOCIETY_MAP = {
     "brink2wink@gmail.com": "Aangan",
     "rkom@gmail.com": "Indra"
 };
 
-// --- Modal Functions ---
 window.showModal = (msg) => {
     document.getElementById('modalMessage').innerText = msg;
     document.getElementById('customModal').style.display = 'block';
@@ -29,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('login-section').style.display = 'none';
                 document.getElementById('data-section').style.display = 'block';
                 document.getElementById('search-section').style.display = 'block';
-                showModal("Logged in successfully!");
+                showModal("Logged in as: " + (SOCIETY_MAP[email] || "Default"));
             } catch (e) { showModal("Login failed: " + e.message); }
         });
     }
@@ -38,7 +37,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (searchBtn) {
         searchBtn.addEventListener('click', async () => {
             const qVal = document.getElementById('adminSearch').value.trim().toUpperCase();
-            const q = query(collection(db, "vehicles"), where("vehicleNumber", "==", qVal));
+            const userEmail = auth.currentUser ? auth.currentUser.email : "";
+            const assignedSociety = SOCIETY_MAP[userEmail] || "My Society Name";
+
+            // Filter by BOTH vehicleNumber AND the logged-in user's society
+            const q = query(
+                collection(db, "vehicles"), 
+                where("vehicleNumber", "==", qVal),
+                where("societyName", "==", assignedSociety)
+            );
+            
             const snapshot = await getDocs(q);
             const container = document.getElementById('admin-results');
             container.innerHTML = "";
@@ -48,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 container.innerHTML += `
                     <div style="margin:10px 0; border:1px solid #8d6e63; padding:10px;">
                         <p>Flat: <input id="f-${docSnap.id}" value="${data.flatNumber}"></p>
-                        <p>Society: <b>${data.societyName || "Unknown"}</b></p>
+                        <p>Society: <b>${data.societyName}</b></p>
                         <button onclick="window.updateData('${docSnap.id}')">Update</button>
                         <button onclick="window.deleteData('${docSnap.id}')" style="background:red; color:white;">Delete</button>
                     </div>`;
@@ -75,17 +83,3 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
-
-window.updateData = async (id) => {
-    const newFlat = document.getElementById(`f-${id}`).value;
-    await updateDoc(doc(db, "vehicles", id), { flatNumber: newFlat });
-    showModal("Updated successfully!");
-};
-
-window.deleteData = async (id) => {
-    if (confirm("Delete this record?")) {
-        await deleteDoc(doc(db, "vehicles", id));
-        showModal("Deleted successfully!");
-        document.getElementById('admin-results').innerHTML = "";
-    }
-};
