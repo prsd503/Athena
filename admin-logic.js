@@ -1,32 +1,37 @@
 import { auth, db } from "./app.js";
-import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, query, where, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Handle Login
-document.getElementById('loginBtn').addEventListener('click', async () => {
-    const email = document.getElementById('email').value;
-    const pass = document.getElementById('pass').value;
-    try {
-        await signInWithEmailAndPassword(auth, email, pass);
-        document.getElementById('login-section').style.display = 'none';
-        document.getElementById('data-section').style.display = 'block';
-        alert("Logged in successfully!");
-    } catch (e) { alert(e.message); }
+// 1. Search Logic
+document.getElementById('adminSearchBtn').addEventListener('click', async () => {
+    const qVal = document.getElementById('adminSearch').value.trim().toUpperCase();
+    const q = query(collection(db, "vehicles"), where("vehicleNumber", "==", qVal));
+    const snapshot = await getDocs(q);
+    const container = document.getElementById('admin-results');
+    container.innerHTML = "";
+
+    snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        container.innerHTML += `
+            <div style="margin-top:10px; border:1px solid #8d6e63; padding:10px;">
+                <p>Flat: <input id="f-${docSnap.id}" value="${data.flatNumber}"></p>
+                <button onclick="updateData('${docSnap.id}')">Update</button>
+                <button onclick="deleteData('${docSnap.id}')" style="background:red;">Delete</button>
+            </div>`;
+    });
 });
 
-// Save Data
-document.getElementById('saveBtn').addEventListener('click', async () => {
-    const vNum = document.getElementById('vNum').value.toUpperCase();
-    const fNum = document.getElementById('fNum').value;
-    const sName = document.getElementById('sName').value;
+// 2. Update Function
+window.updateData = async (id) => {
+    const newFlat = document.getElementById(`f-${id}`).value;
+    await updateDoc(doc(db, "vehicles", id), { flatNumber: newFlat });
+    alert("Updated!");
+};
 
-    try {
-        await addDoc(collection(db, "vehicles"), {
-            vehicleNumber: vNum,
-            flatNumber: fNum,
-            societyName: sName,
-            addedBy: auth.currentUser.uid
-        });
-        alert("Vehicle added!");
-    } catch (e) { alert("Error: " + e.message); }
-});
+// 3. Delete Function
+window.deleteData = async (id) => {
+    if (confirm("Delete this record?")) {
+        await deleteDoc(doc(db, "vehicles", id));
+        alert("Deleted!");
+        document.getElementById('admin-results').innerHTML = "";
+    }
+};
