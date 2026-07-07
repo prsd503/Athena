@@ -20,6 +20,31 @@ window.openMessageModal = (mobile, vNum) => {
     document.getElementById('customModal').style.display = 'block';
 };
 
+// Add these to your admin-logic.js file
+
+window.closeModal = () => {
+    document.getElementById('customModal').style.display = 'none';
+};
+
+window.openMessageModal = (mobile, vNum) => {
+    window.currentMobile = mobile;
+    window.currentVNum = vNum;
+    document.getElementById('modalMessage').innerText = "Message to " + vNum;
+    document.getElementById('customModal').style.display = 'block';
+};
+
+window.sendWhatsAppFinal = () => {
+    const msg = document.getElementById('waMessage').value;
+    const url = `https://wa.me/${window.currentMobile}?text=${encodeURIComponent("Finder-Owl Admin: " + msg)}`;
+    window.open(url, '_blank');
+    window.closeModal();
+};
+
+// --- In your search results loop ---
+// Ensure your code generating results includes this button:
+// <button onclick="window.openMessageModal('${data.mobileNumber}', '${data.vehicleNumber}')" style="background:#25D366;">Message Owner</button>
+
+
 // Final WhatsApp Redirect
 window.sendWhatsAppFinal = () => {
     const msg = document.getElementById('waMessage').value;
