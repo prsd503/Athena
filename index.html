@@ -5,15 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="manifest" href="manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
-    <title>Finder Owl</title>
+    <title>Finder Owl | Home</title>
     <style>
         body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
         .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; box-shadow: 5px 5px 0px #8d6e63; max-width: 400px; margin: auto; }
         h1 { color: #5d4037; font-size: 2.5rem; margin-bottom: 10px; }
-        /* Removed 'text-transform: uppercase' so typing is normal */
         input { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; }
         button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; }
-        #result { margin-top: 20px; font-size: 1.5rem; }
+        #result { margin-top: 20px; font-size: 1.5rem; color: #5d4037; }
     </style>
 </head>
 <body>
@@ -35,31 +34,23 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBEYKHQpy_VjmgjYIwQOPjXth1bghYsf9M",
-            projectId: "finder-owl",
-            // ... (rest of your config remains the same)
-        };
-
+        const firebaseConfig = { /* Add your config here */ };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
         let currentSociety = "";
 
-        // Verification Function (Case-Insensitive)
+        // Verification Function
         window.verifySociety = async function() {
-            const inputName = document.getElementById("societyInput").value.trim().toLowerCase();
-            const querySnapshot = await getDocs(collection(db, "societies"));
+            const inputName = document.getElementById("societyInput").value.trim();
+            const q = query(collection(db, "societies"), where("name", "==", inputName));
+            const querySnapshot = await getDocs(q);
             
-            const match = querySnapshot.docs.find(doc => 
-                doc.data().name.toLowerCase() === inputName
-            );
-            
-            if (match) {
-                currentSociety = match.data().name;
+            if (!querySnapshot.empty) {
+                currentSociety = inputName;
                 document.getElementById("society-verification").style.display = "none";
                 document.getElementById("vehicle-search").style.display = "block";
                 document.getElementById("displaySocietyName").innerText = currentSociety;
@@ -68,21 +59,23 @@
             }
         };
 
-        // Search Function (Case-Insensitive)
+        // Search Function (Simplified for Privacy)
         window.searchVehicle = async function() {
-            const vehicleInput = document.getElementById("vehicleInput").value.trim().toLowerCase();
-            const querySnapshot = await getDocs(collection(db, "vehicles"));
-            
-            const match = querySnapshot.docs.find(doc => 
-                doc.data().societyName.toLowerCase() === currentSociety.toLowerCase() &&
-                doc.data().vehicleNumber.toLowerCase() === vehicleInput
+            const vNum = document.getElementById("vehicleInput").value.trim().toUpperCase();
+            const q = query(
+                collection(db, "vehicles"), 
+                where("vehicleNumber", "==", vNum),
+                where("societyName", "==", currentSociety)
             );
             
+            const snapshot = await getDocs(q);
             const resultDiv = document.getElementById("result");
-            if (match) {
-                resultDiv.innerHTML = `Found: Flat ${match.data().flatNumber || 'N/A'}`;
+            
+            if (!snapshot.empty) {
+                // Only confirming existence, protecting owner details
+                resultDiv.innerHTML = `<p>✅ Vehicle ${vNum} is registered in our records.</p>`;
             } else {
-                resultDiv.innerText = "No vehicle found.";
+                resultDiv.innerHTML = `<p>❌ Vehicle ${vNum} not found in ${currentSociety}.</p>`;
             }
         };
     </script>
