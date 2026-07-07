@@ -7,6 +7,7 @@ const SOCIETY_MAP = {
     "rkom@gmail.com": "Indra"
 };
 
+// --- Modal Helper Functions ---
 window.showModal = (msg) => {
     document.getElementById('modalMessage').innerText = msg;
     document.getElementById('customModal').style.display = 'block';
@@ -16,18 +17,26 @@ window.closeModal = () => {
     document.getElementById('customModal').style.display = 'none';
 };
 
-// WhatsApp Integration Function
+// --- WhatsApp Integration Function (Updated Format) ---
 window.sendWhatsApp = (mobile, vNum) => {
+    if (!mobile || mobile === "undefined") {
+        alert("No mobile number found for this record.");
+        return;
+    }
     const msg = prompt("Enter your message to the owner:");
     if (!msg) return;
     
-    // Redirects to WhatsApp using the wa.me approach
-    const url = `https://wa.me/${mobile}?text=${encodeURIComponent("Message from Admin regarding vehicle " + vNum + ": " + msg)}`;
+    // Exact format required:
+    // Message from Finder-Owl Admin regarding vehicle number [vNum]: [msg]
+    const fullMessage = `Message from Finder-Owl Admin regarding vehicle number ${vNum}: ${msg}`;
+    
+    const url = `https://wa.me/${mobile}?text=${encodeURIComponent(fullMessage)}`;
     window.open(url, '_blank');
 };
 
 document.addEventListener('DOMContentLoaded', () => {
 
+    // --- Login Logic ---
     const loginBtn = document.getElementById('loginBtn');
     if (loginBtn) {
         loginBtn.addEventListener('click', async () => {
@@ -43,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- Search Logic ---
     const searchBtn = document.getElementById('adminSearchBtn');
     if (searchBtn) {
         searchBtn.addEventListener('click', async () => {
@@ -67,14 +77,17 @@ document.addEventListener('DOMContentLoaded', () => {
                         <p style="margin:5px 0;"><b>Vehicle:</b> ${data.vehicleNumber}</p>
                         <p style="margin:5px 0;"><b>Flat:</b> <input id="f-${docSnap.id}" value="${data.flatNumber}" style="width:60%;"></p>
                         <p style="margin:5px 0;"><b>Mobile:</b> ${data.mobileNumber || "Not provided"}</p>
-                        <button onclick="window.updateData('${docSnap.id}')" style="padding:5px 10px;">Update</button>
-                        <button onclick="window.deleteData('${docSnap.id}')" style="padding:5px 10px; background:#d32f2f;">Delete</button>
-                        <button onclick="window.sendWhatsApp('${data.mobileNumber}', '${data.vehicleNumber}')" style="padding:5px 10px; background:#25D366; color:white;">Message Owner</button>
+                        <div style="margin-top:10px;">
+                            <button onclick="window.updateData('${docSnap.id}')" style="padding:5px 10px; cursor:pointer;">Update</button>
+                            <button onclick="window.deleteData('${docSnap.id}')" style="padding:5px 10px; background:#d32f2f; color:white; border:none; cursor:pointer;">Delete</button>
+                            <button onclick="window.sendWhatsApp('${data.mobileNumber}', '${data.vehicleNumber}')" style="padding:5px 10px; background:#25D366; color:white; border:none; cursor:pointer;">Message Owner</button>
+                        </div>
                     </div>`;
             });
         });
     }
 
+    // --- Save Logic ---
     const saveBtn = document.getElementById('saveBtn');
     if (saveBtn) {
         saveBtn.addEventListener('click', async () => {
@@ -84,6 +97,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const userEmail = auth.currentUser ? auth.currentUser.email : "";
             const assignedSociety = SOCIETY_MAP[userEmail] || "My Society Name";
 
+            if (!vNum || !mobile) {
+                showModal("Please fill in both Vehicle and Mobile fields.");
+                return;
+            }
+
             try {
                 await addDoc(collection(db, "vehicles"), { 
                     vehicleNumber: vNum, 
@@ -91,12 +109,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     mobileNumber: mobile,
                     societyName: assignedSociety 
                 });
-                showModal("Vehicle registered with mobile: " + mobile);
+                showModal("Vehicle registered to " + assignedSociety);
+                document.getElementById('vNum').value = "";
+                document.getElementById('fNum').value = "";
+                document.getElementById('mobileNum').value = "";
             } catch (e) { showModal("Error: " + e.message); }
         });
     }
 });
 
+// --- CRUD Helper Functions ---
 window.updateData = async (id) => {
     const newFlat = document.getElementById(`f-${id}`).value;
     await updateDoc(doc(db, "vehicles", id), { flatNumber: newFlat });
