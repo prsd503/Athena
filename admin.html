@@ -1,59 +1,125 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
-    <title>Finder Owl | Admin Portal</title>
-    <style>
-        body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
-        .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; box-shadow: 5px 5px 0px #8d6e63; max-width: 400px; margin: auto; margin-bottom: 20px; }
-        h1 { color: #5d4037; font-size: 2.5rem; margin-bottom: 10px; }
-        h2 { color: #5d4037; margin-top: 0; }
-        input { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; }
-        button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; margin-top: 10px; }
-    </style>
-</head>
-<body>
+// Import auth and db from your centralized config file
+import { auth, db } from "./app.js"; 
+import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    <div class="card">
-        <h1>Finder Owl 🦉</h1>
-        <h3>Admin Portal</h3>
-    </div>
+const SOCIETY_MAP = {
+    "brink2wink@gmail.com": "Aangan",
+    "rkom@gmail.com": "Indra"
+};
 
-    <div class="card" id="login-section">
-        <h2>Admin Login</h2>
-        <input type="email" id="email" placeholder="Email">
-        <input type="password" id="pass" placeholder="Password">
-        <button id="loginBtn">Login</button>
-    </div>
+// Global Context
+let pendingOwnerMobile = "";
+let pendingVNum = "";
 
-    <div class="card" id="search-section" style="display:none;">
-        <h2>Search to Edit/Delete</h2>
-        <input type="text" id="adminSearch" placeholder="Enter Vehicle Number">
-        <button id="adminSearchBtn">Search</button>
-        <div id="admin-results" style="margin-top:20px; text-align:left;"></div>
-    </div>
+// --- Modal Controls ---
+window.showModal = (msg, showInput = false) => {
+    document.getElementById('modalMessage').innerText = msg;
+    document.getElementById('modalMsgInput').style.display = showInput ? 'block' : 'none';
+    document.getElementById('modalActionBtn').style.display = showInput ? 'block' : 'none';
+    document.getElementById('customModal').style.display = 'block';
+};
+
+window.closeModal = () => {
+    document.getElementById('customModal').style.display = 'none';
+};
+
+// --- WhatsApp Messaging ---
+window.sendWhatsApp = (mobile, vNum) => {
+    if (!mobile) return alert("No owner mobile number found.");
+    pendingOwnerMobile = mobile;
+    pendingVNum = vNum;
+    window.showModal("Message for vehicle " + vNum, true);
+};
+
+window.handleModalAction = () => {
+    const msg = document.getElementById('modalMsgInput').value;
+    if (!msg) return alert("Please enter a message!");
     
-    <div class="card" id="data-section" style="display:none;">
-        <h2>Add New Vehicle</h2>
-        <input type="text" id="vNum" placeholder="Vehicle Number">
-        <input type="text" id="fNum" placeholder="Flat Number">
-        <input type="text" id="mobileNum" placeholder="Owner Mobile (e.g., 91XXXXXXXXXX)">
-        <button id="saveBtn">Save to Registry</button>
-    </div>
+    const url = `https://wa.me/${pendingOwnerMobile}?text=${encodeURIComponent("Finder-Owl Admin Message regarding " + pendingVNum + ": " + msg)}`;
+    window.open(url, '_blank');
+    document.getElementById('modalMsgInput').value = "";
+    window.closeModal();
+};
 
-    <div id="customModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; backdrop-filter: blur(5px);">
-        <div style="background:white; margin: 20% auto; padding:20px; width:80%; max-width:300px; border-radius:15px; text-align:center; border: 2px solid #8d6e63;">
-            <p id="modalMessage" style="font-size: 1.2rem; color: #5d4037;"></p>
-            <input type="text" id="modalMsgInput" placeholder="Type message..." style="width:90%; display:none; margin: 10px auto;">
-            <div style="display:flex; justify-content:center; gap:10px;">
-                <button id="modalActionBtn" style="display:none;">Send</button>
-                <button onclick="window.closeModal()">Close</button>
-            </div>
-        </div>
-    </div>
+document.addEventListener('DOMContentLoaded', () => {
+    // Attach modal action button event
+    document.getElementById('modalActionBtn')?.addEventListener('click', window.handleModalAction);
 
-    <script type="module" src="admin-logic.js"></script>
-</body>
-</html>
+    // --- Login Logic ---
+    document.getElementById('loginBtn')?.addEventListener('click', async () => {
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('pass').value;
+        try {
+            await signInWithEmailAndPassword(auth, email, pass);
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('data-section').style.display = 'block';
+            document.getElementById('search-section').style.display = 'block';
+            window.showModal("Logged in as: " + (SOCIETY_MAP[email] || "Admin"));
+        } catch (e) { window.showModal("Login failed: " + e.message); }
+    });
+
+    // --- Search Logic ---
+    document.getElementById('adminSearchBtn')?.addEventListener('click', async () => {
+        const qVal = document.getElementById('adminSearch').value.trim().toUpperCase();
+        const userEmail = auth.currentUser?.email;
+        const assignedSociety = SOCIETY_MAP[userEmail] || "Default";
+        
+        const q = query(
+            collection(db, "vehicles"), 
+            where("vehicleNumber", "==", qVal),
+            where("societyName", "==", assignedSociety)
+        );
+        
+        const snapshot = await getDocs(q);
+        const container = document.getElementById('admin-results');
+        container.innerHTML = snapshot.empty ? "No records found." : "";
+        
+        snapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            container.innerHTML += `
+                <div style="margin:15px 0; border:2px solid #8d6e63; padding:15px; border-radius:15px; background:#fff;">
+                    <p><b>Vehicle:</b> ${data.vehicleNumber}</p>
+                    <p><b>Flat:</b> <input id="f-${docSnap.id}" value="${data.flatNumber}"></p>
+                    <button onclick="window.updateData('${docSnap.id}')">Update</button>
+                    <button onclick="window.deleteData('${docSnap.id}')" style="background:#d32f2f;">Delete</button>
+                    <button onclick="window.sendWhatsApp('${data.mobileNumber}', '${data.vehicleNumber}')" style="background:#25D366;">Message</button>
+                </div>`;
+        });
+    });
+
+    // --- Save Logic ---
+    document.getElementById('saveBtn')?.addEventListener('click', async () => {
+        const vNum = document.getElementById('vNum').value.trim().toUpperCase();
+        const fNum = document.getElementById('fNum').value;
+        const mobile = document.getElementById('mobileNum').value.trim();
+        const userEmail = auth.currentUser?.email;
+        const society = SOCIETY_MAP[userEmail] || "Default";
+        
+        if (!vNum || !mobile) return window.showModal("Please fill in both Vehicle and Mobile fields.");
+        
+        try {
+            await addDoc(collection(db, "vehicles"), { 
+                vehicleNumber: vNum, 
+                flatNumber: fNum, 
+                mobileNumber: mobile, 
+                societyName: society 
+            });
+            window.showModal("Vehicle Saved successfully!");
+        } catch (e) { window.showModal("Error: " + e.message); }
+    });
+});
+
+// --- CRUD Operations ---
+window.updateData = async (id) => {
+    await updateDoc(doc(db, "vehicles", id), { flatNumber: document.getElementById(`f-${id}`).value });
+    window.showModal("Updated successfully!");
+};
+
+window.deleteData = async (id) => {
+    if (confirm("Delete this record?")) {
+        await deleteDoc(doc(db, "vehicles", id));
+        window.showModal("Deleted successfully!");
+        document.getElementById('admin-results').innerHTML = "";
+    }
+};
