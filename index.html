@@ -10,7 +10,8 @@
         .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; box-shadow: 5px 5px 0px #8d6e63; max-width: 400px; margin: auto; }
         input { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; }
         button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; margin-top:10px; }
-        #result { margin-top: 20px; font-size: 1.5rem; color: #5d4037; }
+        #result { margin-top: 20px; font-size: 1.2rem; color: #5d4037; }
+        .btn-msg { background: #25D366; display: inline-block; margin-top: 10px; padding: 10px; color: white; text-decoration: none; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -45,44 +46,45 @@
         const db = getFirestore(app);
         let currentSociety = "";
 
-        // Verify Society Logic
         document.getElementById("verifyBtn").addEventListener("click", async () => {
             const input = document.getElementById("societyInput").value.trim().toLowerCase();
-            console.log("Searching for society:", input);
-            try {
-                const snap = await getDocs(collection(db, "societies"));
-                const match = snap.docs.find(d => d.data().name.toLowerCase() === input);
-                
-                if (match) {
-                    currentSociety = match.data().name;
-                    document.getElementById("society-verification").style.display = "none";
-                    document.getElementById("vehicle-search").style.display = "block";
-                    document.getElementById("displaySocietyName").innerText = currentSociety;
-                } else {
-                    alert("Society not found. Ensure the name matches exactly.");
-                }
-            } catch (error) {
-                console.error("Database connection error:", error);
-                alert("Database connection failed. Please check your Firestore Rules.");
+            const snap = await getDocs(collection(db, "societies"));
+            const match = snap.docs.find(d => d.data().name.toLowerCase() === input);
+            
+            if (match) {
+                currentSociety = match.data().name;
+                document.getElementById("society-verification").style.display = "none";
+                document.getElementById("vehicle-search").style.display = "block";
+                document.getElementById("displaySocietyName").innerText = currentSociety;
+            } else {
+                alert("Society not found.");
             }
         });
 
-        // Search Vehicle Logic
         document.getElementById("searchBtn").addEventListener("click", async () => {
             const vNum = document.getElementById("vehicleInput").value.trim().toUpperCase();
-            console.log("Searching for vehicle:", vNum, "in", currentSociety);
-            try {
-                const snap = await getDocs(collection(db, "vehicles"));
-                const found = snap.docs.find(d => {
-                    const data = d.data();
-                    return data.societyName.toLowerCase() === currentSociety.toLowerCase() && 
-                           data.vehicleNumber.toUpperCase() === vNum;
-                });
+            const snap = await getDocs(collection(db, "vehicles"));
+            const found = snap.docs.find(d => {
+                const data = d.data();
+                return data.societyName.toLowerCase() === currentSociety.toLowerCase() && 
+                       data.vehicleNumber.toUpperCase() === vNum;
+            });
+            
+            const display = document.getElementById("result");
+            if (found) {
+                const data = found.data();
+                const adminPhone = data.mobileNumber || "919033406816";
+                const msg = encodeURIComponent("Hello, I have a query about my vehicle.");
                 
-                document.getElementById("result").innerHTML = found ? "✅ Vehicle registered." : "❌ Not found.";
-            } catch (error) {
-                console.error("Search error:", error);
-                alert("Could not reach database. Check your connection.");
+                display.innerHTML = `
+                    ✅ Vehicle registered.<br>
+                    Flat: <b>${data.flatNumber || "N/A"}</b><br>
+                    <a href="https://wa.me/${adminPhone}?text=${msg}" target="_blank" class="btn-msg">
+                        💬 Message Admin
+                    </a>
+                `;
+            } else {
+                display.innerHTML = "❌ Not found.";
             }
         });
     </script>
