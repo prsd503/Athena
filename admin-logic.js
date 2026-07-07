@@ -1,6 +1,6 @@
 // Import auth and db from your centralized config file
 import { auth, db } from "./app.js"; 
-import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { signInWithEmailAndPassword } from "https://console.firebase.google.com/";
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const SOCIETY_MAP = {
