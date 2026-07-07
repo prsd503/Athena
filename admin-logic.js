@@ -1,85 +1,78 @@
-import { auth, db } from "./app.js";
-import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, and } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, query, where, getDocs, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-const SOCIETY_MAP = {
-    "brink2wink@gmail.com": "Aangan",
-    "rkom@gmail.com": "Indra"
-};
+const firebaseConfig = { /* Your Config */ };
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-window.showModal = (msg) => {
-    document.getElementById('modalMessage').innerText = msg;
-    document.getElementById('customModal').style.display = 'block';
-};
+let linkedSociety = "";
 
-window.closeModal = () => {
-    document.getElementById('customModal').style.display = 'none';
-};
+// Login and Link Society
+document.getElementById("loginBtn").addEventListener("click", async () => {
+    const email = document.getElementById("email").value;
+    const pass = document.getElementById("pass").value;
+    
+    try {
+        await signInWithEmailAndPassword(auth, email, pass);
+        
+        // Lookup society linked to this admin email
+        const q = query(collection(db, "admins"), where("email", "==", email));
+        const snap = await getDocs(q);
+        
+        if (!snap.empty) {
+            linkedSociety = snap.docs[0].data().societyName;
+            document.getElementById("login-section").style.display = "none";
+            document.getElementById("search-section").style.display = "block";
+            document.getElementById("data-section").style.display = "block";
+            document.getElementById("admin-dashboard").style.display = "block";
+        } else {
+            alert("This email is not registered as an Admin.");
+        }
+    } catch (e) { alert("Login Error: " + e.message); }
+});
 
-document.addEventListener('DOMContentLoaded', () => {
+// Add Vehicle to Linked Society
+document.getElementById("saveBtn").addEventListener("click", async () => {
+    const vNum = document.getElementById("vNum").value.trim().toUpperCase();
+    const fNum = document.getElementById("fNum").value.trim();
+    
+    if (!vNum || !fNum) return alert("All fields required");
 
-    const loginBtn = document.getElementById('loginBtn');
-    if (loginBtn) {
-        loginBtn.addEventListener('click', async () => {
-            const email = document.getElementById('email').value;
-            const pass = document.getElementById('pass').value;
-            try {
-                await signInWithEmailAndPassword(auth, email, pass);
-                document.getElementById('login-section').style.display = 'none';
-                document.getElementById('data-section').style.display = 'block';
-                document.getElementById('search-section').style.display = 'block';
-                showModal("Logged in as: " + (SOCIETY_MAP[email] || "Default"));
-            } catch (e) { showModal("Login failed: " + e.message); }
-        });
-    }
+    await addDoc(collection(db, "vehicles"), {
+        vehicleNumber: vNum,
+        flatNumber: fNum,
+        societyName: linkedSociety
+    });
+    alert("Vehicle added to " + linkedSociety);
+});
 
-    const searchBtn = document.getElementById('adminSearchBtn');
-    if (searchBtn) {
-        searchBtn.addEventListener('click', async () => {
-            const qVal = document.getElementById('adminSearch').value.trim().toUpperCase();
-            const userEmail = auth.currentUser ? auth.currentUser.email : "";
-            const assignedSociety = SOCIETY_MAP[userEmail] || "My Society Name";
+// Search and WhatsApp Action
+document.getElementById("adminSearchBtn").addEventListener("click", async () => {
+    const vNum = document.getElementById("adminSearch").value.trim().toUpperCase();
+    const q = query(collection(db, "vehicles"), where("societyName", "==", linkedSociety));
+    const snap = await getDocs(q);
+    const match = snap.docs.find(d => d.data().vehicleNumber === vNum);
 
-            // Filter by BOTH vehicleNumber AND the logged-in user's society
-            const q = query(
-                collection(db, "vehicles"), 
-                where("vehicleNumber", "==", qVal),
-                where("societyName", "==", assignedSociety)
-            );
-            
-            const snapshot = await getDocs(q);
-            const container = document.getElementById('admin-results');
-            container.innerHTML = "";
-
-            snapshot.forEach((docSnap) => {
-                const data = docSnap.data();
-                container.innerHTML += `
-                    <div style="margin:10px 0; border:1px solid #8d6e63; padding:10px;">
-                        <p>Flat: <input id="f-${docSnap.id}" value="${data.flatNumber}"></p>
-                        <p>Society: <b>${data.societyName}</b></p>
-                        <button onclick="window.updateData('${docSnap.id}')">Update</button>
-                        <button onclick="window.deleteData('${docSnap.id}')" style="background:red; color:white;">Delete</button>
-                    </div>`;
-            });
-        });
-    }
-
-    const saveBtn = document.getElementById('saveBtn');
-    if (saveBtn) {
-        saveBtn.addEventListener('click', async () => {
-            const vNum = document.getElementById('vNum').value.trim().toUpperCase();
-            const fNum = document.getElementById('fNum').value;
-            const userEmail = auth.currentUser ? auth.currentUser.email : "";
-            const assignedSociety = SOCIETY_MAP[userEmail] || "My Society Name";
-
-            try {
-                await addDoc(collection(db, "vehicles"), { 
-                    vehicleNumber: vNum, 
-                    flatNumber: fNum, 
-                    societyName: assignedSociety 
-                });
-                showModal("Vehicle added to " + assignedSociety);
-            } catch (e) { showModal("Error: " + e.message); }
-        });
+    const display = document.getElementById("admin-results");
+    if (match) {
+        const data = match.data();
+        display.innerHTML = `
+            <p>Flat: ${data.flatNumber}</p>
+            <a href="https://wa.me/${data.mobileNumber}?text=Hello, query regarding your vehicle ${vNum}" target="_blank">
+                <button>Message Owner on WhatsApp</button>
+            </a>
+            <button onclick="deleteVehicle('${match.id}')" style="background:red;">Delete Entry</button>
+        `;
+    } else {
+        display.innerHTML = "No vehicle found in this society.";
     }
 });
+
+window.deleteVehicle = async (id) => {
+    if(confirm("Confirm deletion?")) {
+        await deleteDoc(doc(db, "vehicles", id));
+        alert("Removed.");
+    }
+};
