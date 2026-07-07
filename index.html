@@ -11,9 +11,9 @@
         .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; box-shadow: 5px 5px 0px #8d6e63; max-width: 400px; margin: auto; }
         h1 { color: #5d4037; font-size: 2.5rem; margin-bottom: 10px; }
         input { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; }
-        button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; }
+        button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; margin-top: 10px; }
         #result { margin-top: 20px; font-size: 1.5rem; color: #5d4037; }
-        .contact-btn { background: #25D366; margin-top: 20px; display: none; }
+        .contact-btn { background: #25D366; display: none; }
     </style>
 </head>
 <body>
@@ -37,11 +37,11 @@
 
     <div id="contactModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; backdrop-filter: blur(5px);">
         <div style="background:white; margin: 20% auto; padding:20px; width:80%; max-width:300px; border-radius:15px; text-align:center; border: 2px solid #8d6e63;">
-            <p style="font-size: 1.2rem;">Send message to Admin:</p>
+            <p style="font-size: 1.2rem;">Message Admin:</p>
             <input type="text" id="userMsgInput" placeholder="Type your message..." style="width:90%;">
             <br>
-            <button onclick="sendToAdmin()" style="background:#25D366; margin-top:10px;">Send</button>
-            <button onclick="document.getElementById('contactModal').style.display='none'" style="background:#d32f2f; margin-top:10px;">Close</button>
+            <button onclick="sendToAdmin()" style="background:#25D366;">Send</button>
+            <button onclick="document.getElementById('contactModal').style.display='none'" style="background:#d32f2f;">Close</button>
         </div>
     </div>
 
@@ -49,59 +49,54 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = { /* Your Config */ };
+        const firebaseConfig = { /* Add your config here */ };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
         let currentSociety = "";
 
-        // FIXED: Verification Function (Case-Insensitive)
+        // Verification Function (Case-Insensitive)
         window.verifySociety = async function() {
             const inputName = document.getElementById("societyInput").value.trim().toLowerCase();
             const querySnapshot = await getDocs(collection(db, "societies"));
-            
-            // Find the society by converting both the input and DB value to lowercase
-            const match = querySnapshot.docs.find(doc => 
-                doc.data().name.toLowerCase() === inputName
-            );
+            const match = querySnapshot.docs.find(doc => doc.data().name.toLowerCase() === inputName);
             
             if (match) {
-                currentSociety = match.data().name; // Use original casing from DB
+                currentSociety = match.data().name;
                 document.getElementById("society-verification").style.display = "none";
                 document.getElementById("vehicle-search").style.display = "block";
                 document.getElementById("displaySocietyName").innerText = currentSociety;
             } else {
-                alert("Society not found. Please check the spelling.");
+                alert("Society not found.");
             }
         };
 
-        // FIXED: Search Function (Case-Insensitive)
+        // Search Function (Case-Insensitive)
         window.searchVehicle = async function() {
             const vNum = document.getElementById("vehicleInput").value.trim().toLowerCase();
-            const querySnapshot = await getDocs(collection(db, "vehicles"));
+            const snapshot = await getDocs(collection(db, "vehicles"));
             
-            const match = querySnapshot.docs.find(doc => 
+            const match = snapshot.docs.find(doc => 
                 doc.data().societyName.toLowerCase() === currentSociety.toLowerCase() &&
                 doc.data().vehicleNumber.toLowerCase() === vNum
             );
             
             const resultDiv = document.getElementById("result");
             if (match) {
-                resultDiv.innerHTML = `<p>✅ Vehicle registered.</p>`;
+                resultDiv.innerHTML = `<p>✅ Vehicle ${vNum.toUpperCase()} is registered.</p>`;
                 document.getElementById("contactAdminBtn").style.display = "inline-block";
             } else {
-                resultDiv.innerHTML = `<p>❌ Vehicle not found.</p>`;
+                resultDiv.innerHTML = `<p>❌ Vehicle ${vNum.toUpperCase()} not found.</p>`;
                 document.getElementById("contactAdminBtn").style.display = "none";
             }
         };
 
-        window.openContactModal = () => {
-            document.getElementById('contactModal').style.display = 'block';
-        };
+        // Modal Controls
+        window.openContactModal = () => document.getElementById('contactModal').style.display = 'block';
 
         window.sendToAdmin = () => {
             const msg = document.getElementById("userMsgInput").value;
-            const adminWhatsApp = "919999999999"; 
+            const adminWhatsApp = "919999999999"; // REPLACE WITH ADMIN NUMBER
             if (!msg) return alert("Please type a message.");
             const url = `https://wa.me/${adminWhatsApp}?text=${encodeURIComponent("Finder Owl Inquiry: " + msg)}`;
             window.open(url, '_blank');
