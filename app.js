@@ -2,7 +2,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyBEYKHQpy_VjmgjYiWQOPjXth1bghYsf9M",
   authDomain: "finder-owl.firebaseapp.com",
@@ -12,12 +11,10 @@ const firebaseConfig = {
   appId: "1:1011347100861:web:24246f9a4eb24d812cd3d4"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 
-// Public Search Listener
 const findBtn = document.getElementById('findBtn');
 if (findBtn) {
     findBtn.addEventListener('click', async () => {
@@ -34,28 +31,32 @@ if (findBtn) {
 
         try {
             const vehiclesRef = collection(db, "vehicles");
-            // Query for the specific vehicle number
             const q = query(vehiclesRef, where("vehicleNumber", "==", qVal));
             const querySnapshot = await getDocs(q);
             
             if (!querySnapshot.empty) {
-                let resultsHtml = "Found!<br>";
                 querySnapshot.forEach(doc => {
                     const data = doc.data();
-                    resultsHtml += `
-                        <div style="margin-top:10px; border-top:1px solid #ccc; padding-top:5px;">
-                            Flat: <b>${data.flatNumber || "N/A"}</b><br>
-                            Society: <b>${data.societyName || "N/A"}</b>
-                        </div>
+                    
+                    // Default admin phone if not in database
+                    const adminPhone = data.mobileNumber || "919033406816"; 
+                    const message = encodeURIComponent("Hello Admin, I have a query regarding my vehicle.");
+                    const whatsappLink = `https://wa.me/${adminPhone}?text=${message}`;
+
+                    display.innerHTML = `
+                        ✅ Vehicle registered.<br>
+                        Flat Number: <b>${data.flatNumber || "N/A"}</b><br>
+                        <a href="${whatsappLink}" target="_blank" style="display:inline-block; margin-top:10px; padding:10px; background:#25D366; color:white; text-decoration:none; border-radius:5px;">
+                            💬 Message Society Admin
+                        </a>
                     `;
                 });
-                display.innerHTML = resultsHtml;
             } else {
                 display.innerHTML = "Not found in our records.";
             }
         } catch (error) {
             console.error("Firestore Error:", error);
-            display.innerHTML = "Error connecting to database. Please check your console.";
+            display.innerHTML = "Error connecting to database. Please check console.";
         }
     });
 }
