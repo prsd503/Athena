@@ -3,105 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="manifest" href="manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
     <title>Finder Owl | Home</title>
     <style>
         body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
         .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; box-shadow: 5px 5px 0px #8d6e63; max-width: 400px; margin: auto; }
-        h1 { color: #5d4037; font-size: 2.5rem; margin-bottom: 10px; }
         input { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; }
-        button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; margin-top: 10px; }
-        #result { margin-top: 20px; font-size: 1.5rem; color: #5d4037; }
-        .contact-btn { background: #25D366; display: none; }
+        button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; margin-top:10px; }
     </style>
 </head>
 <body>
-
     <div class="card">
         <h1>Finder Owl 🦉</h1>
-
-        <div id="society-verification">
-            <input type="text" id="societyInput" placeholder="Enter Society Name">
-            <button onclick="verifySociety()">Proceed</button>
-        </div>
-
+        <div id="society-verification"><input type="text" id="societyInput" placeholder="Society Name"><button onclick="verifySociety()">Proceed</button></div>
         <div id="vehicle-search" style="display:none;">
             <p>Society: <span id="displaySocietyName" style="font-weight:bold;"></span></p>
-            <input type="text" id="vehicleInput" placeholder="Enter Vehicle Number">
-            <button onclick="searchVehicle()">Search</button>
+            <input type="text" id="vehicleInput" placeholder="Vehicle Number"><button onclick="searchVehicle()">Search</button>
             <div id="result"></div>
-            <button id="contactAdminBtn" class="contact-btn" onclick="openContactModal()">Contact Admin</button>
+            <button id="contactAdminBtn" style="background:#25D366; display:none;" onclick="openContactModal()">Contact Admin</button>
         </div>
     </div>
-
-    <div id="contactModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; backdrop-filter: blur(5px);">
-        <div style="background:white; margin: 20% auto; padding:20px; width:80%; max-width:300px; border-radius:15px; text-align:center; border: 2px solid #8d6e63;">
-            <p style="font-size: 1.2rem;">Message Admin:</p>
-            <input type="text" id="userMsgInput" placeholder="Type your message..." style="width:90%;">
-            <br>
-            <button onclick="sendToAdmin()" style="background:#25D366;">Send</button>
-            <button onclick="document.getElementById('contactModal').style.display='none'" style="background:#d32f2f;">Close</button>
+    <div id="contactModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(5px);">
+        <div style="background:white; margin: 20% auto; padding:20px; width:80%; max-width:300px; border-radius:15px; border: 2px solid #8d6e63;">
+            <input type="text" id="userMsgInput" placeholder="Type message...">
+            <button onclick="sendToAdmin()">Send</button><button onclick="document.getElementById('contactModal').style.display='none'">Close</button>
         </div>
     </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        const db = getFirestore(initializeApp({ /* Add Config */ }));
+        let currentSociety = "", adminPhone = "";
 
-        const firebaseConfig = { /* Add your config here */ };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        let currentSociety = "";
-
-        // Verification Function (Case-Insensitive)
-        window.verifySociety = async function() {
-            const inputName = document.getElementById("societyInput").value.trim().toLowerCase();
-            const querySnapshot = await getDocs(collection(db, "societies"));
-            const match = querySnapshot.docs.find(doc => doc.data().name.toLowerCase() === inputName);
-            
+        window.verifySociety = async () => {
+            const snap = await getDocs(collection(db, "societies"));
+            const match = snap.docs.find(d => d.data().name.toLowerCase() === document.getElementById("societyInput").value.trim().toLowerCase());
             if (match) {
                 currentSociety = match.data().name;
+                // Fetch admin phone
+                const adminSnap = await getDocs(collection(db, "admins"));
+                const admin = adminSnap.docs.find(d => d.data().society === currentSociety);
+                if (admin) adminPhone = admin.data().phone;
                 document.getElementById("society-verification").style.display = "none";
                 document.getElementById("vehicle-search").style.display = "block";
                 document.getElementById("displaySocietyName").innerText = currentSociety;
-            } else {
-                alert("Society not found.");
-            }
+            } else alert("Society not found.");
         };
 
-        // Search Function (Case-Insensitive)
-        window.searchVehicle = async function() {
-            const vNum = document.getElementById("vehicleInput").value.trim().toLowerCase();
-            const snapshot = await getDocs(collection(db, "vehicles"));
-            
-            const match = snapshot.docs.find(doc => 
-                doc.data().societyName.toLowerCase() === currentSociety.toLowerCase() &&
-                doc.data().vehicleNumber.toLowerCase() === vNum
-            );
-            
-            const resultDiv = document.getElementById("result");
-            if (match) {
-                resultDiv.innerHTML = `<p>✅ Vehicle ${vNum.toUpperCase()} is registered.</p>`;
+        window.searchVehicle = async () => {
+            const vNum = document.getElementById("vehicleInput").value.trim().toUpperCase();
+            const snap = await getDocs(collection(db, "vehicles"));
+            if (snap.docs.find(d => d.data().societyName === currentSociety && d.data().vehicleNumber === vNum)) {
+                document.getElementById("result").innerHTML = "✅ Vehicle registered.";
                 document.getElementById("contactAdminBtn").style.display = "inline-block";
-            } else {
-                resultDiv.innerHTML = `<p>❌ Vehicle ${vNum.toUpperCase()} not found.</p>`;
-                document.getElementById("contactAdminBtn").style.display = "none";
-            }
+            } else document.getElementById("result").innerHTML = "❌ Not found.";
         };
 
-        // Modal Controls
         window.openContactModal = () => document.getElementById('contactModal').style.display = 'block';
-
         window.sendToAdmin = () => {
             const msg = document.getElementById("userMsgInput").value;
-            const adminWhatsApp = "919999999999"; // REPLACE WITH ADMIN NUMBER
-            if (!msg) return alert("Please type a message.");
-            const url = `https://wa.me/${adminWhatsApp}?text=${encodeURIComponent("Finder Owl Inquiry: " + msg)}`;
-            window.open(url, '_blank');
-            document.getElementById("userMsgInput").value = "";
-            document.getElementById('contactModal').style.display = 'none';
+            if(!adminPhone) return alert("Admin contact not set.");
+            window.open(`https://wa.me/${adminPhone}?text=${encodeURIComponent("Finder Owl Inquiry: " + msg)}`, '_blank');
         };
     </script>
 </body>
