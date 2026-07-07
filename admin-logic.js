@@ -1,4 +1,4 @@
-import { auth } from "./app.js"; 
+import { auth } from "/app.js"; 
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const loginSection = document.getElementById('login-section');
