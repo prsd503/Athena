@@ -3,24 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <title>Finder Owl | Admin Portal</title>
+    <title>Finder Owl Admin</title>
     <style>
-        body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
-        .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; box-shadow: 5px 5px 0px #8d6e63; max-width: 400px; margin: auto; margin-bottom: 20px; }
-        h1 { color: #5d4037; font-size: 2.5rem; margin-bottom: 10px; }
-        h2 { color: #5d4037; margin-top: 0; }
-        input { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; }
-        button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; margin-top: 10px; }
+        body { font-family: 'Caveat', cursive; background: #fdf6e3; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 20px; max-width: 400px; margin: auto; margin-bottom: 20px; }
+        input { width: 90%; margin: 10px 0; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        button { background: #8d6e63; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h1>Finder Owl 🦉</h1>
-        <h3>Admin Portal</h3>
-    </div>
-
+    <!-- Login Section -->
     <div class="card" id="login-section">
         <h2>Admin Login</h2>
         <input type="email" id="email" placeholder="Email">
@@ -28,32 +21,39 @@
         <button id="loginBtn">Login</button>
     </div>
 
+    <!-- Search Section (Visible after login) -->
     <div class="card" id="search-section" style="display:none;">
         <h2>Search to Edit/Delete</h2>
-        <input type="text" id="adminSearch" placeholder="Enter Vehicle Number">
+        <input type="text" id="adminSearch" placeholder="Vehicle Number">
         <button id="adminSearchBtn">Search</button>
-        <div id="admin-results" style="margin-top:20px; text-align:left;"></div>
+        <div id="admin-results"></div>
     </div>
     
+    <!-- Data Entry Section -->
     <div class="card" id="data-section" style="display:none;">
-        <h2>Add New Vehicle</h2>
+        <h2>Add Vehicle</h2>
         <input type="text" id="vNum" placeholder="Vehicle Number">
         <input type="text" id="fNum" placeholder="Flat Number">
-        <input type="text" id="mobileNum" placeholder="Owner Mobile (e.g., 91XXXXXXXXXX)">
+        <!-- Society Name input removed as it is now fixed in logic -->
         <button id="saveBtn">Save to Registry</button>
     </div>
 
-    <div id="customModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; backdrop-filter: blur(5px);">
-        <div style="background:white; margin: 20% auto; padding:20px; width:80%; max-width:300px; border-radius:15px; text-align:center; border: 2px solid #8d6e63;">
-            <p id="modalMessage" style="font-size: 1.2rem; color: #5d4037;"></p>
-            <input type="text" id="modalMsgInput" placeholder="Type message..." style="width:90%; display:none; margin: 10px auto;">
-            <div style="display:flex; justify-content:center; gap:10px;">
-                <button id="modalActionBtn" style="display:none;">Send</button>
-                <button onclick="window.closeModal()">Close</button>
-            </div>
+    <!-- Dashboard Section -->
+    <div class="card" id="admin-dashboard" style="display:none;">
+        <h2>Manage Registry</h2>
+        <div id="vehicle-list"></div>
+    </div>
+
+
+    <!-- Custom Modal -->
+    <div id="customModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
+        <div style="background:white; margin: 20% auto; padding:20px; width:80%; max-width:300px; border-radius:10px; text-align:center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <p id="modalMessage" style="font-size: 1.2rem;"></p>
+            <button onclick="closeModal()">OK</button>
         </div>
     </div>
 
     <script type="module" src="admin-logic.js"></script>
 </body>
 </html>
+
