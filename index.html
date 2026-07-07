@@ -31,81 +31,80 @@
             <input type="text" id="vehicleInput" placeholder="Enter Vehicle Number">
             <button onclick="searchVehicle()">Search</button>
             <div id="result"></div>
-            <!-- Contact Admin Button -->
             <button id="contactAdminBtn" class="contact-btn" onclick="openContactModal()">Contact Admin</button>
         </div>
     </div>
 
-    <!-- Contact Modal -->
     <div id="contactModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; backdrop-filter: blur(5px);">
         <div style="background:white; margin: 20% auto; padding:20px; width:80%; max-width:300px; border-radius:15px; text-align:center; border: 2px solid #8d6e63;">
             <p style="font-size: 1.2rem;">Send message to Admin:</p>
             <input type="text" id="userMsgInput" placeholder="Type your message..." style="width:90%;">
             <br>
-            <button onclick="sendToAdmin()" style="background:#25D366;">Send</button>
-            <button onclick="document.getElementById('contactModal').style.display='none'" style="background:#d32f2f;">Close</button>
+            <button onclick="sendToAdmin()" style="background:#25D366; margin-top:10px;">Send</button>
+            <button onclick="document.getElementById('contactModal').style.display='none'" style="background:#d32f2f; margin-top:10px;">Close</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = { /* Add your config here */ };
+        const firebaseConfig = { /* Your Config */ };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
         let currentSociety = "";
 
+        // FIXED: Verification Function (Case-Insensitive)
         window.verifySociety = async function() {
-            const inputName = document.getElementById("societyInput").value.trim();
-            const q = query(collection(db, "societies"), where("name", "==", inputName));
-            const querySnapshot = await getDocs(q);
+            const inputName = document.getElementById("societyInput").value.trim().toLowerCase();
+            const querySnapshot = await getDocs(collection(db, "societies"));
             
-            if (!querySnapshot.empty) {
-                currentSociety = inputName;
+            // Find the society by converting both the input and DB value to lowercase
+            const match = querySnapshot.docs.find(doc => 
+                doc.data().name.toLowerCase() === inputName
+            );
+            
+            if (match) {
+                currentSociety = match.data().name; // Use original casing from DB
                 document.getElementById("society-verification").style.display = "none";
                 document.getElementById("vehicle-search").style.display = "block";
                 document.getElementById("displaySocietyName").innerText = currentSociety;
             } else {
-                alert("Society not found.");
+                alert("Society not found. Please check the spelling.");
             }
         };
 
+        // FIXED: Search Function (Case-Insensitive)
         window.searchVehicle = async function() {
-            const vNum = document.getElementById("vehicleInput").value.trim().toUpperCase();
-            const q = query(
-                collection(db, "vehicles"), 
-                where("vehicleNumber", "==", vNum),
-                where("societyName", "==", currentSociety)
+            const vNum = document.getElementById("vehicleInput").value.trim().toLowerCase();
+            const querySnapshot = await getDocs(collection(db, "vehicles"));
+            
+            const match = querySnapshot.docs.find(doc => 
+                doc.data().societyName.toLowerCase() === currentSociety.toLowerCase() &&
+                doc.data().vehicleNumber.toLowerCase() === vNum
             );
             
-            const snapshot = await getDocs(q);
             const resultDiv = document.getElementById("result");
-            
-            if (!snapshot.empty) {
-                resultDiv.innerHTML = `<p>✅ Vehicle ${vNum} is registered.</p>`;
+            if (match) {
+                resultDiv.innerHTML = `<p>✅ Vehicle registered.</p>`;
                 document.getElementById("contactAdminBtn").style.display = "inline-block";
             } else {
-                resultDiv.innerHTML = `<p>❌ Vehicle ${vNum} not found.</p>`;
+                resultDiv.innerHTML = `<p>❌ Vehicle not found.</p>`;
                 document.getElementById("contactAdminBtn").style.display = "none";
             }
         };
 
-        // Modal Logic
         window.openContactModal = () => {
             document.getElementById('contactModal').style.display = 'block';
         };
 
         window.sendToAdmin = () => {
             const msg = document.getElementById("userMsgInput").value;
-            const adminWhatsApp = "919999999999"; // REPLACE WITH ACTUAL NUMBER
-            
+            const adminWhatsApp = "919999999999"; 
             if (!msg) return alert("Please type a message.");
-            
             const url = `https://wa.me/${adminWhatsApp}?text=${encodeURIComponent("Finder Owl Inquiry: " + msg)}`;
             window.open(url, '_blank');
-            
             document.getElementById("userMsgInput").value = "";
             document.getElementById('contactModal').style.display = 'none';
         };
