@@ -1,37 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>Finder Owl Admin</title>
     <style>
-        body { font-family: 'Caveat', cursive; padding: 20px; background: #f4f4f9; }
-        .hidden { display: none; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        body { font-family: 'Caveat', cursive; color: #5D4037; background: #fdf5e6; }
+        .container { max-width: 800px; margin: auto; padding: 20px; }
+        .card { border: 2px solid #5D4037; padding: 20px; border-radius: 15px; }
         input, button { display: block; width: 100%; margin: 10px 0; padding: 10px; }
+        button { background: #5D4037; color: white; border: none; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div id="login-section" class="card">
-        <h2>Admin Login</h2>
-        <input type="email" id="email" placeholder="Email">
-        <input type="password" id="pass" placeholder="Password">
-        <button id="loginBtn">Login</button>
+    <div class="container" id="login-view">
+        <div class="card">
+            <h1>Finder Owl 🦉</h1>
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="password" placeholder="Password">
+            <button onclick="handleLogin()">Login</button>
+        </div>
     </div>
 
-    <div id="data-section" class="hidden">
-        <div class="card">
-            <h2>Add New Vehicle</h2>
-            <input id="vNumber" placeholder="Vehicle Number">
-            <input id="mNumber" placeholder="Mobile Number">
-            <input id="flatNum" placeholder="Flat Number">
-            <button id="saveBtn">Save Vehicle</button>
-        </div>
-        <div class="card">
-            <h2>Search Vehicles</h2>
-            <input id="searchQuery" placeholder="Enter Vehicle Number">
-            <button id="searchBtn">Search</button>
-            <div id="results"></div>
-        </div>
+    <div class="container" id="admin-view" style="display:none;">
+        <h2>Society Dashboard: <span id="society-name"></span></h2>
+        
+        <h3>Add New Vehicle</h3>
+        <input type="text" id="v-num" placeholder="Vehicle Number">
+        <input type="text" id="f-num" placeholder="Flat Number">
+        <input type="text" id="m-num" placeholder="Mobile Number">
+        <button onclick="addVehicle()">Add Entry</button>
+
+        <h3>Manage Vehicles</h3>
+        <input type="text" id="search" placeholder="Search by Vehicle Number..." onkeyup="searchVehicles()">
+        <div id="vehicle-list"></div>
     </div>
+    <script type="module" src="app.js"></script>
     <script type="module" src="admin-logic.js"></script>
 </body>
 </html>
