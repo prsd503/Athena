@@ -46,12 +46,17 @@
 
 
     <!-- Custom Modal -->
-    <div id="customModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
-        <div style="background:white; margin: 20% auto; padding:20px; width:80%; max-width:300px; border-radius:10px; text-align:center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-            <p id="modalMessage" style="font-size: 1.2rem;"></p>
-            <button onclick="closeModal()">OK</button>
+    <div id="customModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; backdrop-filter: blur(5px);">
+    <div style="background:white; margin: 20% auto; padding:20px; width:80%; max-width:300px; border-radius:15px; text-align:center; border: 2px solid #8d6e63;">
+        <p id="modalMessage"></p>
+        <input type="text" id="waMessage" placeholder="Type message..." style="display:none; width:90%;">
+        <div style="display:flex; justify-content:center; gap:10px;">
+            <button id="modalActionBtn" style="display:none;" onclick="sendWhatsAppFinal()">Send</button>
+            <button onclick="closeModal()">Close</button>
         </div>
     </div>
+</div>
+
 
     <script type="module" src="admin-logic.js"></script>
 </body>
