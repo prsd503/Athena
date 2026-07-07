@@ -1,42 +1,39 @@
-import { auth, db } from "./app.js";
-import { signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { auth, db } from './app.js';
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { collection, query, where, getDocs, addDoc, deleteDoc, doc } from "firebase/firestore";
 
-let userSociety = "";
+let currentSociety = "";
 
-onAuthStateChanged(auth, async (user) => {
-    if (user) {
-        document.getElementById('login-section').classList.add('hidden');
-        document.getElementById('data-section').classList.remove('hidden');
-        // Fetch society linked to admin email
-        const q = query(collection(db, "admins"), where("email", "==", user.email));
-        const snap = await getDocs(q);
-        snap.forEach(doc => userSociety = doc.data().society);
-    }
-});
+window.handleLogin = async () => {
+    const email = document.getElementById('email').value;
+    const pass = document.getElementById('password').value;
+    
+    try {
+        const userCred = await signInWithEmailAndPassword(auth, email, pass);
+        const adminRef = query(collection(db, "admins"), where("email", "==", email));
+        const snap = await getDocs(adminRef);
+        
+        if (!snap.empty) {
+            currentSociety = snap.docs[0].data().society;
+            document.getElementById('society-name').innerText = currentSociety;
+            document.getElementById('login-view').style.display = 'none';
+            document.getElementById('admin-view').style.display = 'block';
+        }
+    } catch (e) { alert("Login failed"); }
+};
 
-document.getElementById('saveBtn').addEventListener('click', async () => {
+window.addVehicle = async () => {
     await addDoc(collection(db, "vehicles"), {
-        vNumber: document.getElementById('vNumber').value,
-        mNumber: document.getElementById('mNumber').value,
-        flatNum: document.getElementById('flatNum').value,
-        society: userSociety
+        vehicleNum: document.getElementById('v-num').value,
+        flat: document.getElementById('f-num').value,
+        mobile: document.getElementById('m-num').value,
+        society: currentSociety
     });
-    alert("Saved!");
-});
+    alert("Vehicle Added!");
+};
 
-document.getElementById('searchBtn').addEventListener('click', async () => {
-    const val = document.getElementById('searchQuery').value;
-    const q = query(collection(db, "vehicles"), where("vNumber", "==", val), where("society", "==", userSociety));
-    const snap = await getDocs(q);
-    const results = document.getElementById('results');
-    results.innerHTML = "";
-    snap.forEach(doc => {
-        const data = doc.data();
-        results.innerHTML += `<div>
-            <p>${data.vNumber} | Flat: ${data.flatNum}</p>
-            <a href="https://wa.me/${data.mNumber}" target="_blank">Message Owner</a>
-            <button onclick="deleteVehicle('${doc.id}')">Delete</button>
-        </div>`;
-    });
-});
+window.sendMessage = (mobile) => {
+    window.open(`https://wa.me/${mobile}`, '_blank');
+};
+
+// Add functions for searchVehicles and delete/edit logic similarly using Firestore queries.
