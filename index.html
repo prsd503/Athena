@@ -11,7 +11,6 @@
         input { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; }
         button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; margin-top:10px; }
         #result { margin-top: 20px; font-size: 1.5rem; color: #5d4037; }
-        .contact-btn { background: #25D366; display: none; }
     </style>
 </head>
 <body>
@@ -26,7 +25,6 @@
             <input type="text" id="vehicleInput" placeholder="Enter Vehicle Number">
             <button id="searchBtn">Search</button>
             <div id="result"></div>
-            <button id="contactAdminBtn" class="contact-btn">Contact Admin</button>
         </div>
     </div>
 
@@ -34,7 +32,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // Firebase Config updated from your console screenshot
+        // Your Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBEYKHQpy_VjmgjYiWQOPjXth1bghYsf9M",
             authDomain: "finder-owl.firebaseapp.com",
@@ -46,7 +44,7 @@
         
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        let currentSociety = "", adminPhone = "";
+        let currentSociety = "";
 
         // Verify Society Logic
         document.getElementById("verifyBtn").addEventListener("click", async () => {
@@ -57,11 +55,6 @@
                 
                 if (match) {
                     currentSociety = match.data().name;
-                    // Fetch admin phone from 'admins' collection
-                    const adminSnap = await getDocs(collection(db, "admins"));
-                    const admin = adminSnap.docs.find(d => d.data().society === currentSociety);
-                    if (admin) adminPhone = admin.data().phone;
-                    
                     document.getElementById("society-verification").style.display = "none";
                     document.getElementById("vehicle-search").style.display = "block";
                     document.getElementById("displaySocietyName").innerText = currentSociety;
@@ -70,7 +63,7 @@
                 }
             } catch (error) {
                 console.error("Error fetching data:", error);
-                alert("Database error. Check your rules or connection.");
+                alert("Database error. Check your rules.");
             }
         });
 
@@ -83,21 +76,12 @@
                 
                 if (found) {
                     document.getElementById("result").innerHTML = "✅ Vehicle registered.";
-                    document.getElementById("contactAdminBtn").style.display = "inline-block";
                 } else {
                     document.getElementById("result").innerHTML = "❌ Not found.";
-                    document.getElementById("contactAdminBtn").style.display = "none";
                 }
             } catch (error) {
                 console.error("Search error:", error);
             }
-        });
-
-        // Contact Admin Click
-        document.getElementById("contactAdminBtn").addEventListener("click", () => {
-            if(!adminPhone) return alert("Admin contact number not configured in database.");
-            const url = `https://wa.me/${adminPhone}?text=${encodeURIComponent("Hello, I am inquiring about my vehicle.")}`;
-            window.open(url, '_blank');
         });
     </script>
 </body>
