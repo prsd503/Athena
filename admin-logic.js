@@ -1,25 +1,23 @@
 import { auth, db } from './app.js';
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { collection, query, where, getDocs, addDoc, deleteDoc, doc } from "firebase/firestore";
+import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+import { collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
 let currentSociety = "";
 
 window.handleLogin = async () => {
     const email = document.getElementById('email').value;
     const pass = document.getElementById('password').value;
-    
     try {
         const userCred = await signInWithEmailAndPassword(auth, email, pass);
-        const adminRef = query(collection(db, "admins"), where("email", "==", email));
-        const snap = await getDocs(adminRef);
-        
+        const q = query(collection(db, "admins"), where("email", "==", email));
+        const snap = await getDocs(q);
         if (!snap.empty) {
             currentSociety = snap.docs[0].data().society;
             document.getElementById('society-name').innerText = currentSociety;
             document.getElementById('login-view').style.display = 'none';
             document.getElementById('admin-view').style.display = 'block';
         }
-    } catch (e) { alert("Login failed"); }
+    } catch (e) { alert("Login Error: " + e.message); }
 };
 
 window.addVehicle = async () => {
@@ -29,11 +27,12 @@ window.addVehicle = async () => {
         mobile: document.getElementById('m-num').value,
         society: currentSociety
     });
-    alert("Vehicle Added!");
+    alert("Vehicle added to " + currentSociety);
 };
 
-window.sendMessage = (mobile) => {
-    window.open(`https://wa.me/${mobile}`, '_blank');
+window.searchVehicles = async () => {
+    // Logic for search and wa.me integration
+    const search = document.getElementById('search').value;
+    console.log("Searching for:", search);
+    // Use window.open(`https://wa.me/${mobile}`, '_blank'); for messaging
 };
-
-// Add functions for searchVehicles and delete/edit logic similarly using Firestore queries.
