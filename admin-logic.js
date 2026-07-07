@@ -16,6 +16,16 @@ window.closeModal = () => {
     document.getElementById('customModal').style.display = 'none';
 };
 
+// WhatsApp Integration Function
+window.sendWhatsApp = (mobile, vNum) => {
+    const msg = prompt("Enter your message to the owner:");
+    if (!msg) return;
+    
+    // Redirects to WhatsApp using the wa.me approach
+    const url = `https://wa.me/${mobile}?text=${encodeURIComponent("Message from Admin regarding vehicle " + vNum + ": " + msg)}`;
+    window.open(url, '_blank');
+};
+
 document.addEventListener('DOMContentLoaded', () => {
 
     const loginBtn = document.getElementById('loginBtn');
@@ -52,13 +62,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             snapshot.forEach((docSnap) => {
                 const data = docSnap.data();
-                // Updated styling to match Finder Owl Portal design
                 container.innerHTML += `
                     <div style="margin:15px 0; border:2px solid #8d6e63; padding:15px; border-radius:15px; background:#fff; text-align:left;">
+                        <p style="margin:5px 0;"><b>Vehicle:</b> ${data.vehicleNumber}</p>
                         <p style="margin:5px 0;"><b>Flat:</b> <input id="f-${docSnap.id}" value="${data.flatNumber}" style="width:60%;"></p>
-                        <p style="margin:5px 0;"><b>Society:</b> ${data.societyName}</p>
-                        <button onclick="window.updateData('${docSnap.id}')" style="padding:5px 10px; font-size:1rem;">Update</button>
-                        <button onclick="window.deleteData('${docSnap.id}')" style="padding:5px 10px; font-size:1rem; background:#d32f2f;">Delete</button>
+                        <p style="margin:5px 0;"><b>Mobile:</b> ${data.mobileNumber || "Not provided"}</p>
+                        <button onclick="window.updateData('${docSnap.id}')" style="padding:5px 10px;">Update</button>
+                        <button onclick="window.deleteData('${docSnap.id}')" style="padding:5px 10px; background:#d32f2f;">Delete</button>
+                        <button onclick="window.sendWhatsApp('${data.mobileNumber}', '${data.vehicleNumber}')" style="padding:5px 10px; background:#25D366; color:white;">Message Owner</button>
                     </div>`;
             });
         });
@@ -69,6 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
         saveBtn.addEventListener('click', async () => {
             const vNum = document.getElementById('vNum').value.trim().toUpperCase();
             const fNum = document.getElementById('fNum').value;
+            const mobile = document.getElementById('mobileNum').value.trim();
             const userEmail = auth.currentUser ? auth.currentUser.email : "";
             const assignedSociety = SOCIETY_MAP[userEmail] || "My Society Name";
 
@@ -76,9 +88,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 await addDoc(collection(db, "vehicles"), { 
                     vehicleNumber: vNum, 
                     flatNumber: fNum, 
+                    mobileNumber: mobile,
                     societyName: assignedSociety 
                 });
-                showModal("Vehicle added to " + assignedSociety);
+                showModal("Vehicle registered with mobile: " + mobile);
             } catch (e) { showModal("Error: " + e.message); }
         });
     }
