@@ -13,11 +13,11 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// EXPORTS: These allow admin-logic.js and other files to use these objects
+// CRITICAL: These exports make 'db' and 'auth' available to other files (like admin-logic.js)
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 
-// Public Search Listener
+// Public Search Logic for index.html
 const findBtn = document.getElementById('findBtn');
 if (findBtn) {
     findBtn.addEventListener('click', async () => {
@@ -38,9 +38,9 @@ if (findBtn) {
             const querySnapshot = await getDocs(q);
             
             if (!querySnapshot.empty) {
-                // Use the first result found
-                const doc = querySnapshot.docs[0];
-                const data = doc.data();
+                // Get the first result
+                const docSnap = querySnapshot.docs[0];
+                const data = docSnap.data();
                 
                 const adminPhone = data.mobileNumber || "919033406816"; 
                 const message = encodeURIComponent("Hello Admin, I have a query regarding my vehicle.");
