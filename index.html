@@ -13,6 +13,7 @@
         input { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; }
         button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; }
         #result { margin-top: 20px; font-size: 1.5rem; color: #5d4037; }
+        .contact-btn { background: #25D366; margin-top: 20px; display: none; }
     </style>
 </head>
 <body>
@@ -30,6 +31,19 @@
             <input type="text" id="vehicleInput" placeholder="Enter Vehicle Number">
             <button onclick="searchVehicle()">Search</button>
             <div id="result"></div>
+            <!-- Contact Admin Button -->
+            <button id="contactAdminBtn" class="contact-btn" onclick="openContactModal()">Contact Admin</button>
+        </div>
+    </div>
+
+    <!-- Contact Modal -->
+    <div id="contactModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; backdrop-filter: blur(5px);">
+        <div style="background:white; margin: 20% auto; padding:20px; width:80%; max-width:300px; border-radius:15px; text-align:center; border: 2px solid #8d6e63;">
+            <p style="font-size: 1.2rem;">Send message to Admin:</p>
+            <input type="text" id="userMsgInput" placeholder="Type your message..." style="width:90%;">
+            <br>
+            <button onclick="sendToAdmin()" style="background:#25D366;">Send</button>
+            <button onclick="document.getElementById('contactModal').style.display='none'" style="background:#d32f2f;">Close</button>
         </div>
     </div>
 
@@ -43,7 +57,6 @@
 
         let currentSociety = "";
 
-        // Verification Function
         window.verifySociety = async function() {
             const inputName = document.getElementById("societyInput").value.trim();
             const q = query(collection(db, "societies"), where("name", "==", inputName));
@@ -59,7 +72,6 @@
             }
         };
 
-        // Search Function (Simplified for Privacy)
         window.searchVehicle = async function() {
             const vNum = document.getElementById("vehicleInput").value.trim().toUpperCase();
             const q = query(
@@ -72,11 +84,30 @@
             const resultDiv = document.getElementById("result");
             
             if (!snapshot.empty) {
-                // Only confirming existence, protecting owner details
-                resultDiv.innerHTML = `<p>✅ Vehicle ${vNum} is registered in our records.</p>`;
+                resultDiv.innerHTML = `<p>✅ Vehicle ${vNum} is registered.</p>`;
+                document.getElementById("contactAdminBtn").style.display = "inline-block";
             } else {
-                resultDiv.innerHTML = `<p>❌ Vehicle ${vNum} not found in ${currentSociety}.</p>`;
+                resultDiv.innerHTML = `<p>❌ Vehicle ${vNum} not found.</p>`;
+                document.getElementById("contactAdminBtn").style.display = "none";
             }
+        };
+
+        // Modal Logic
+        window.openContactModal = () => {
+            document.getElementById('contactModal').style.display = 'block';
+        };
+
+        window.sendToAdmin = () => {
+            const msg = document.getElementById("userMsgInput").value;
+            const adminWhatsApp = "919999999999"; // REPLACE WITH ACTUAL NUMBER
+            
+            if (!msg) return alert("Please type a message.");
+            
+            const url = `https://wa.me/${adminWhatsApp}?text=${encodeURIComponent("Finder Owl Inquiry: " + msg)}`;
+            window.open(url, '_blank');
+            
+            document.getElementById("userMsgInput").value = "";
+            document.getElementById('contactModal').style.display = 'none';
         };
     </script>
 </body>
