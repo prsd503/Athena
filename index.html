@@ -30,41 +30,25 @@
         </div>
     </div>
 
-    <div id="contactModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; backdrop-filter:blur(5px);">
-        <div style="background:white; margin: 20% auto; padding:20px; width:80%; max-width:300px; border-radius:15px; border: 2px solid #8d6e63;">
-            <p>Send message to Admin:</p>
-            <input type="text" id="userMsgInput" placeholder="Type message...">
-            <br>
-            <button id="sendMsgBtn" style="background:#25D366;">Send</button>
-            <button id="closeModalBtn" style="background:#d32f2f;">Close</button>
-        </div>
-    </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // !!! YOU MUST COPY THIS FROM FIREBASE CONSOLE !!!
+        // Firebase Config updated from your console screenshot
         const firebaseConfig = {
-            apiKey: "AIza...",
-            authDomain: "...",
-            projectId: "...",
-            storageBucket: "...",
-            messagingSenderId: "...",
-            appId: "..."
+            apiKey: "AIzaSyBEYKHQpy_VjmgjYiWQOPjXth1bghYsf9M",
+            authDomain: "finder-owl.firebaseapp.com",
+            projectId: "finder-owl",
+            storageBucket: "finder-owl.firebasestorage.app",
+            messagingSenderId: "1011347100861",
+            appId: "1:1011347100861:web:24246f9a4eb24d812cd3d4"
         };
         
-        let app, db;
-        try {
-            app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-        } catch (e) {
-            console.error("Firebase Initialization Error:", e);
-        }
-
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
         let currentSociety = "", adminPhone = "";
 
-        // Verify Society
+        // Verify Society Logic
         document.getElementById("verifyBtn").addEventListener("click", async () => {
             const input = document.getElementById("societyInput").value.trim().toLowerCase();
             try {
@@ -73,6 +57,7 @@
                 
                 if (match) {
                     currentSociety = match.data().name;
+                    // Fetch admin phone from 'admins' collection
                     const adminSnap = await getDocs(collection(db, "admins"));
                     const admin = adminSnap.docs.find(d => d.data().society === currentSociety);
                     if (admin) adminPhone = admin.data().phone;
@@ -80,33 +65,39 @@
                     document.getElementById("society-verification").style.display = "none";
                     document.getElementById("vehicle-search").style.display = "block";
                     document.getElementById("displaySocietyName").innerText = currentSociety;
-                } else alert("Society not found.");
-            } catch (err) { console.error("Database error:", err); alert("Database unreachable."); }
+                } else {
+                    alert("Society not found.");
+                }
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                alert("Database error. Check your rules or connection.");
+            }
         });
 
-        // Search Vehicle
+        // Search Vehicle Logic
         document.getElementById("searchBtn").addEventListener("click", async () => {
             const vNum = document.getElementById("vehicleInput").value.trim().toUpperCase();
             try {
                 const snap = await getDocs(collection(db, "vehicles"));
-                if (snap.docs.find(d => d.data().societyName === currentSociety && d.data().vehicleNumber === vNum)) {
+                const found = snap.docs.find(d => d.data().societyName === currentSociety && d.data().vehicleNumber === vNum);
+                
+                if (found) {
                     document.getElementById("result").innerHTML = "✅ Vehicle registered.";
                     document.getElementById("contactAdminBtn").style.display = "inline-block";
                 } else {
                     document.getElementById("result").innerHTML = "❌ Not found.";
                     document.getElementById("contactAdminBtn").style.display = "none";
                 }
-            } catch (err) { console.error("Search error:", err); }
+            } catch (error) {
+                console.error("Search error:", error);
+            }
         });
 
-        // Modal Logic
-        document.getElementById("contactAdminBtn").addEventListener("click", () => document.getElementById("contactModal").style.display = "block");
-        document.getElementById("closeModalBtn").addEventListener("click", () => document.getElementById("contactModal").style.display = "none");
-        document.getElementById("sendMsgBtn").addEventListener("click", () => {
-            const msg = document.getElementById("userMsgInput").value;
-            if(!adminPhone) return alert("Admin contact not set in DB.");
-            window.open(`https://wa.me/${adminPhone}?text=${encodeURIComponent("Finder Owl Inquiry: " + msg)}`, '_blank');
-            document.getElementById("contactModal").style.display = "none";
+        // Contact Admin Click
+        document.getElementById("contactAdminBtn").addEventListener("click", () => {
+            if(!adminPhone) return alert("Admin contact number not configured in database.");
+            const url = `https://wa.me/${adminPhone}?text=${encodeURIComponent("Hello, I am inquiring about my vehicle.")}`;
+            window.open(url, '_blank');
         });
     </script>
 </body>
