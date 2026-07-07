@@ -4,7 +4,7 @@ import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase
 
 const firebaseConfig = {
     apiKey: "AIzaSyBEYKHQpy_VjmgjYiWQQPjXth1bghYsf9M",
-    authDomain: "finder-owl.firebaseapp.com",
+    authDomain: "https://console.firebase.google.com/",
     projectId: "finder-owl",
     storageBucket: "finder-owl.appspot.com",
     appId: "1:1011347100861:web:24246f9a4eb24d812cd3d4"
