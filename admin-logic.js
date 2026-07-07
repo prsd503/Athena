@@ -1,4 +1,4 @@
-import { auth, db } from "./app.js";
+import { auth, db } from "./app.js"; // Ensure your app.js exports auth and db
 import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -7,43 +7,35 @@ const SOCIETY_MAP = {
     "rkom@gmail.com": "Indra"
 };
 
-// Messaging & Admin Context
-let pendingMobile = "";
+// Global Context
+let pendingOwnerMobile = "";
 let pendingVNum = "";
-let currentAdminPhone = ""; // Stores the logged-in admin's number
 
-// --- Modal Helper Functions ---
-window.showModal = (msg) => {
+// --- Modal Controls ---
+window.showModal = (msg, showInput = false) => {
     document.getElementById('modalMessage').innerText = msg;
+    document.getElementById('modalMsgInput').style.display = showInput ? 'block' : 'none';
+    document.getElementById('modalActionBtn').style.display = showInput ? 'block' : 'none';
     document.getElementById('customModal').style.display = 'block';
 };
 
 window.closeModal = () => {
     document.getElementById('customModal').style.display = 'none';
-    document.getElementById('modalMsgInput').style.display = 'none';
-    document.getElementById('modalActionBtn').style.display = 'none';
 };
 
-// --- WhatsApp Messaging Logic ---
+// --- WhatsApp Messaging ---
 window.sendWhatsApp = (mobile, vNum) => {
     if (!mobile) return alert("No owner mobile number found.");
-    pendingMobile = mobile;
+    pendingOwnerMobile = mobile;
     pendingVNum = vNum;
-    
-    document.getElementById('modalMessage').innerText = "Message for vehicle " + vNum;
-    document.getElementById('modalMsgInput').style.display = 'block';
-    document.getElementById('modalActionBtn').style.display = 'inline-block';
-    document.getElementById('customModal').style.display = 'block';
+    showModal("Message for vehicle " + vNum, true);
 };
 
 window.handleModalAction = () => {
     const msg = document.getElementById('modalMsgInput').value;
     if (!msg) return alert("Please enter a message!");
     
-    // Uses the format: "Message from Finder-Owl Admin regarding vehicle number [vNum]: [msg]"
-    const fullMessage = `Message from Finder-Owl Admin regarding vehicle number ${pendingVNum}: ${msg}`;
-    const url = `https://wa.me/${pendingMobile}?text=${encodeURIComponent(fullMessage)}`;
-    
+    const url = `https://wa.me/${pendingOwnerMobile}?text=${encodeURIComponent("Finder-Owl Admin Message regarding " + pendingVNum + ": " + msg)}`;
     window.open(url, '_blank');
     document.getElementById('modalMsgInput').value = "";
     closeModal();
@@ -51,19 +43,17 @@ window.handleModalAction = () => {
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- Login Logic with Admin Phone Retrieval ---
+    // --- Login Logic ---
     document.getElementById('loginBtn')?.addEventListener('click', async () => {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('pass').value;
         try {
             await signInWithEmailAndPassword(auth, email, pass);
             
-            // Retrieve admin phone number from 'admins' collection
-            const adminDocRef = doc(db, "admins", email);
-            const adminDoc = await getDoc(adminDocRef);
+            // Retrieve admin phone number from Firestore
+            const adminDoc = await getDoc(doc(db, "admins", email));
             if (adminDoc.exists()) {
-                currentAdminPhone = adminDoc.data().phone;
-                console.log("Admin phone loaded:", currentAdminPhone);
+                console.log("Admin phone loaded:", adminDoc.data().phone);
             }
 
             document.getElementById('login-section').style.display = 'none';
