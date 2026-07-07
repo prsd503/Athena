@@ -32,7 +32,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // Your Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBEYKHQpy_VjmgjYiWQOPjXth1bghYsf9M",
             authDomain: "finder-owl.firebaseapp.com",
@@ -49,6 +48,7 @@
         // Verify Society Logic
         document.getElementById("verifyBtn").addEventListener("click", async () => {
             const input = document.getElementById("societyInput").value.trim().toLowerCase();
+            console.log("Searching for society:", input);
             try {
                 const snap = await getDocs(collection(db, "societies"));
                 const match = snap.docs.find(d => d.data().name.toLowerCase() === input);
@@ -59,28 +59,30 @@
                     document.getElementById("vehicle-search").style.display = "block";
                     document.getElementById("displaySocietyName").innerText = currentSociety;
                 } else {
-                    alert("Society not found.");
+                    alert("Society not found. Ensure the name matches exactly.");
                 }
             } catch (error) {
-                console.error("Error fetching data:", error);
-                alert("Database error. Check your rules.");
+                console.error("Database connection error:", error);
+                alert("Database connection failed. Please check your Firestore Rules.");
             }
         });
 
         // Search Vehicle Logic
         document.getElementById("searchBtn").addEventListener("click", async () => {
             const vNum = document.getElementById("vehicleInput").value.trim().toUpperCase();
+            console.log("Searching for vehicle:", vNum, "in", currentSociety);
             try {
                 const snap = await getDocs(collection(db, "vehicles"));
-                const found = snap.docs.find(d => d.data().societyName === currentSociety && d.data().vehicleNumber === vNum);
+                const found = snap.docs.find(d => {
+                    const data = d.data();
+                    return data.societyName.toLowerCase() === currentSociety.toLowerCase() && 
+                           data.vehicleNumber.toUpperCase() === vNum;
+                });
                 
-                if (found) {
-                    document.getElementById("result").innerHTML = "✅ Vehicle registered.";
-                } else {
-                    document.getElementById("result").innerHTML = "❌ Not found.";
-                }
+                document.getElementById("result").innerHTML = found ? "✅ Vehicle registered." : "❌ Not found.";
             } catch (error) {
                 console.error("Search error:", error);
+                alert("Could not reach database. Check your connection.");
             }
         });
     </script>
