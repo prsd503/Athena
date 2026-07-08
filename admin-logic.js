@@ -1,59 +1,71 @@
 import { auth, db } from "./app.js";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, getDoc, collection, query, where, getDocs, deleteDoc, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, getDoc, collection, addDoc, query, where, getDocs, deleteDoc, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let assignedSociety = "";
 
-// --- Global UI Helpers ---
 window.closeModal = () => { document.getElementById('customModal').style.display = 'none'; };
-window.showModal = (msg) => {
-    document.getElementById('modalMessage').innerText = msg;
-    document.getElementById('customModal').style.display = 'block';
+window.showModal = (msg) => { document.getElementById('modalMessage').innerText = msg; document.getElementById('customModal').style.display = 'block'; };
+
+const downloadCSV = (content, filename) => {
+    const blob = new Blob([content], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 };
 
-// --- Application Logic ---
 document.addEventListener('DOMContentLoaded', () => {
-
-    // 1. Persistent Login Listener
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            try {
-                const adminDoc = await getDoc(doc(db, "admins", user.email));
-                if (adminDoc.exists()) {
-                    assignedSociety = adminDoc.data().society;
-                    document.getElementById('login-section').style.display = 'none';
-                    document.getElementById('search-section').style.display = 'block';
-                    document.getElementById('data-section').style.display = 'block';
-                }
-            } catch (e) {
-                console.error("Auth check error:", e);
+            const adminDoc = await getDoc(doc(db, "admins", user.email));
+            if (adminDoc.exists()) {
+                assignedSociety = adminDoc.data().society;
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('search-section').style.display = 'block';
+                document.getElementById('data-section').style.display = 'block';
             }
         }
     });
 
-    // 2. Login Handler (FIXED)
     document.getElementById('loginBtn')?.addEventListener('click', async () => {
-        const email = document.getElementById('email').value.trim();
-        const pass = document.getElementById('pass').value.trim();
-        if (!email || !pass) return window.showModal("Please enter Email and Password.");
-        
         try {
-            await signInWithEmailAndPassword(auth, email, pass);
-            // No need to manually show UI here; onAuthStateChanged will handle it!
-        } catch (e) {
-            window.showModal("Login failed: " + e.message);
-        }
+            await signInWithEmailAndPassword(auth, document.getElementById('email').value.trim(), document.getElementById('pass').value.trim());
+        } catch (e) { window.showModal("Login failed: " + e.message); }
     });
 
-    // 3. Logout Handler (FIXED)
-    document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-        try {
-            await signOut(auth);
-            location.reload(); // Hard refresh to reset the state completely
-        } catch (e) {
-            window.showModal("Error: " + e.message);
-        }
+    document.getElementById('logoutBtn')?.addEventListener('click', async () => { await signOut(auth); location.reload(); });
+
+    document.getElementById('exportBtn')?.addEventListener('click', async () => {
+        const snapshot = await getDocs(query(collection(db, "vehicles"), where("societyName", "==", assignedSociety)));
+        let csv = "VehicleNumber,FlatNumber,MobileNumber\n";
+        snapshot.docs.forEach(d => { const data = d.data(); csv += `${data.vehicleNumber},${data.flatNumber},${data.mobileNumber}\n`; });
+        downloadCSV(csv, "Vehicles.csv");
     });
 
-    // ... (Keep your existing Search, Add, CSV Import/Export code here)
+    document.getElementById('downloadTemplateBtn')?.addEventListener('click', () => {
+        downloadCSV("VehicleNumber,FlatNumber,MobileNumber\n", "Template.csv");
+    });
+
+    document.getElementById('importBtn')?.addEventListener('click', () => {
+        const file = document.getElementById('excelInput').files[0];
+        if (!file) return window.showModal("Select a CSV file.");
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const rows = e.target.result.split('\n').slice(1);
+            for (let i = 0; i < rows.length; i += 500) {
+                const batch = writeBatch(db);
+                rows.slice(i, i + 500).forEach(row => {
+                    const c = row.split(',');
+                    if (c.length >= 2) batch.set(doc(collection(db, "vehicles")), { vehicleNumber: c[0].trim().toUpperCase(), flatNumber: c[1].trim(), mobileNumber: c[2]?.trim() || '', societyName: assignedSociety });
+                });
+                await batch.commit();
+            }
+            window.showModal("Import successful!");
+        };
+        reader.readAsText(file);
+    });
 });
