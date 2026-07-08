@@ -4,8 +4,12 @@ import { doc, getDoc, collection, addDoc, query, where, getDocs, deleteDoc, upda
 
 let assignedSociety = "";
 
+// --- UI Helpers ---
 window.closeModal = () => { document.getElementById('customModal').style.display = 'none'; };
-window.showModal = (msg) => { document.getElementById('modalMessage').innerText = msg; document.getElementById('customModal').style.display = 'block'; };
+window.showModal = (msg) => {
+    document.getElementById('modalMessage').innerText = msg;
+    document.getElementById('customModal').style.display = 'block';
+};
 
 const downloadCSV = (content, filename) => {
     const blob = new Blob([content], { type: 'text/csv' });
@@ -19,6 +23,8 @@ const downloadCSV = (content, filename) => {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+
+    // 1. Auth State Management
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             const adminDoc = await getDoc(doc(db, "admins", user.email));
@@ -31,40 +37,69 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // 2. Login Handler
     document.getElementById('loginBtn')?.addEventListener('click', async () => {
+        const email = document.getElementById('email').value.trim();
+        const pass = document.getElementById('pass').value.trim();
+        if (!email || !pass) return window.showModal("Enter Email and Password.");
         try {
-            await signInWithEmailAndPassword(auth, document.getElementById('email').value.trim(), document.getElementById('pass').value.trim());
+            await signInWithEmailAndPassword(auth, email, pass);
         } catch (e) { window.showModal("Login failed: " + e.message); }
     });
 
-    document.getElementById('logoutBtn')?.addEventListener('click', async () => { await signOut(auth); location.reload(); });
+    // 3. Logout Handler
+    document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+        try {
+            await signOut(auth);
+            location.reload();
+        } catch (e) { window.showModal("Error: " + e.message); }
+    });
+
+    // 4. Search Handler
+    document.getElementById('adminSearchBtn')?.addEventListener('click', async () => {
+        const qVal = document.getElementById('adminSearch').value.trim().toUpperCase();
+        if (!qVal) return window.showModal("Enter vehicle number.");
+        const q = query(collection(db, "vehicles"), where("vehicleNumber", "==", qVal), where("societyName", "==", assignedSociety));
+        const snapshot = await getDocs(q);
+        const container = document.getElementById('admin-results');
+        container.innerHTML = "";
+        
+        if (snapshot.empty) return window.showModal("No data found.");
+        snapshot.forEach((d) => {
+            const data = d.data();
+            container.innerHTML += `<div>Vehicle: ${data.vehicleNumber}<br>Flat: ${data.flatNumber}</div>`;
+        });
+    });
+
+    // 5. Save/Import/Export Handlers
+    document.getElementById('saveBtn')?.addEventListener('click', async () => {
+        const v = document.getElementById('vNum').value.trim().toUpperCase();
+        const f = document.getElementById('fNum').value.trim();
+        if (!v || !f) return window.showModal("Fill fields.");
+        await addDoc(collection(db, "vehicles"), { vehicleNumber: v, flatNumber: f, societyName: assignedSociety });
+        window.showModal("Added!");
+    });
 
     document.getElementById('exportBtn')?.addEventListener('click', async () => {
         const snapshot = await getDocs(query(collection(db, "vehicles"), where("societyName", "==", assignedSociety)));
         let csv = "VehicleNumber,FlatNumber,MobileNumber\n";
-        snapshot.docs.forEach(d => { const data = d.data(); csv += `${data.vehicleNumber},${data.flatNumber},${data.mobileNumber}\n`; });
+        snapshot.docs.forEach(d => { const dt = d.data(); csv += `${dt.vehicleNumber},${dt.flatNumber},${dt.mobileNumber}\n`; });
         downloadCSV(csv, "Vehicles.csv");
     });
-
-    document.getElementById('downloadTemplateBtn')?.addEventListener('click', () => {
-        downloadCSV("VehicleNumber,FlatNumber,MobileNumber\n", "Template.csv");
-    });
-
+    
     document.getElementById('importBtn')?.addEventListener('click', () => {
         const file = document.getElementById('excelInput').files[0];
-        if (!file) return window.showModal("Select a CSV file.");
+        if (!file) return window.showModal("Select file.");
         const reader = new FileReader();
         reader.onload = async (e) => {
             const rows = e.target.result.split('\n').slice(1);
-            for (let i = 0; i < rows.length; i += 500) {
-                const batch = writeBatch(db);
-                rows.slice(i, i + 500).forEach(row => {
-                    const c = row.split(',');
-                    if (c.length >= 2) batch.set(doc(collection(db, "vehicles")), { vehicleNumber: c[0].trim().toUpperCase(), flatNumber: c[1].trim(), mobileNumber: c[2]?.trim() || '', societyName: assignedSociety });
-                });
-                await batch.commit();
-            }
-            window.showModal("Import successful!");
+            const batch = writeBatch(db);
+            rows.forEach(row => {
+                const c = row.split(',');
+                if (c.length >= 2) batch.set(doc(collection(db, "vehicles")), { vehicleNumber: c[0].trim().toUpperCase(), flatNumber: c[1].trim(), societyName: assignedSociety });
+            });
+            await batch.commit();
+            window.showModal("Imported!");
         };
         reader.readAsText(file);
     });
