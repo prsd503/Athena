@@ -123,3 +123,9 @@ document.getElementById('adminSearchBtn')?.addEventListener('click', async () =>
         reader.readAsText(file);
     });
 });
+// Add this block to your existing admin-logic.js
+document.getElementById('downloadTemplateBtn')?.addEventListener('click', () => {
+    const templateContent = "VehicleNumber,FlatNumber,MobileNumber\n";
+    downloadCSV(templateContent, "Vehicle_Template.csv");
+});
+
