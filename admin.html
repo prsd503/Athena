@@ -48,6 +48,12 @@
             <p id="modalMessage"></p><button onclick="closeModal()">Close</button>
         </div>
     </div>
+    <div id="customModal" style="display:none;">
+    <p id="modalMessage"></p>
+    <button onclick="window.closeModal()">Cancel</button>
+    <button onclick="window.confirmDelete()" style="background:#d32f2f; color:white;">Confirm Delete</button>
+    </div>
+    
     <script type="module" src="admin-logic.js"></script>
 </body>
 </html>
