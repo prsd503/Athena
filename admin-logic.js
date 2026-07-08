@@ -99,14 +99,7 @@ document.getElementById('adminSearchBtn')?.addEventListener('click', async () =>
         window.showModal("Added!");
     });
 
-    document.getElementById('exportBtn')?.addEventListener('click', async () => {
-        const snapshot = await getDocs(query(collection(db, "vehicles"), where("societyName", "==", assignedSociety)));
-        let csv = "VehicleNumber,FlatNumber,MobileNumber\n";
-        snapshot.docs.forEach(d => { const dt = d.data(); csv += `${dt.vehicleNumber},${dt.flatNumber},${dt.mobileNumber}\n`; });
-        downloadCSV(csv, "Vehicles.csv");
-    });
-    
-    document.getElementById('importBtn')?.addEventListener('click', () => {
+document.getElementById('importBtn')?.addEventListener('click', () => {
         const file = document.getElementById('excelInput').files[0];
         if (!file) return window.showModal("Select file.");
         const reader = new FileReader();
@@ -129,3 +122,13 @@ document.getElementById('downloadTemplateBtn')?.addEventListener('click', () => 
     downloadCSV(templateContent, "Vehicle_Template.csv");
 });
 
+
+    
+    document.getElementById('exportBtn')?.addEventListener('click', async () => {
+        const snapshot = await getDocs(query(collection(db, "vehicles"), where("societyName", "==", assignedSociety)));
+        let csv = "VehicleNumber,FlatNumber,MobileNumber\n";
+        snapshot.docs.forEach(d => { const dt = d.data(); csv += `${dt.vehicleNumber},${dt.flatNumber},${dt.mobileNumber}\n`; });
+        downloadCSV(csv, "Vehicles.csv");
+    });
+    
+    
