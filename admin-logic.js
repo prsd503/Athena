@@ -65,7 +65,7 @@ document.getElementById('loginBtn')?.addEventListener('click', async () => {
         } catch (e) { window.showModal("Error: " + e.message); }
     });
 
-    // 4. Updated Search Handler ---
+    // 4.Updated Search Handler with Edit/Delete ---
 document.getElementById('adminSearchBtn')?.addEventListener('click', async () => {
     const qVal = document.getElementById('adminSearch').value.trim().toUpperCase();
     const container = document.getElementById('admin-results');
@@ -79,16 +79,36 @@ document.getElementById('adminSearchBtn')?.addEventListener('click', async () =>
     
     snapshot.forEach((d) => {
         const data = d.data();
-        // WhatsApp link construction
-        const waLink = data.mobileNumber ? `https://wa.me/${data.mobileNumber.replace(/\D/g, '')}?text=Hello, query regarding vehicle ${data.vehicleNumber}` : "#";
+        const docId = d.id; // Get the unique Firestore ID
         
-        container.innerHTML += `
-            <div style="background:#fdf6e3; padding:10px; border-radius:10px; margin-bottom:10px;">
-                <p><b>${data.vehicleNumber}</b> | Flat/Name: ${data.flatNumber}</p>
-                <a href="${waLink}" target="_blank" style="background:#25d366; color:white; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:0.9rem;">Message on WhatsApp</a>
-            </div>`;
+        const div = document.createElement('div');
+        div.style.cssText = "background:#fdf6e3; padding:10px; border-radius:10px; margin-bottom:10px;";
+        div.innerHTML = `
+            <p><b>${data.vehicleNumber}</b> | Flat: ${data.flatNumber}</p>
+            <button onclick="editEntry('${data.vehicleNumber}', '${data.flatNumber}', '${data.mobileNumber || ''}', '${docId}')">Edit</button>
+            <button onclick="deleteEntry('${docId}')" style="background:#d32f2f;">Delete</button>
+        `;
+        container.appendChild(div);
     });
 });
+
+// --- Edit/Delete Helper Functions ---
+window.editEntry = (v, f, m, id) => {
+    document.getElementById('vNum').value = v;
+    document.getElementById('fNum').value = f;
+    document.getElementById('mNum').value = m;
+    // Optional: add hidden field or global var to track ID if you want to 'update' instead of 'add'
+    window.showModal("Details loaded into 'Add Vehicle' form for editing.");
+};
+
+window.deleteEntry = async (id) => {
+    if (confirm("Are you sure you want to delete this record?")) {
+        await deleteDoc(doc(db, "vehicles", id));
+        window.showModal("Deleted successfully.");
+        document.getElementById('adminSearchBtn').click(); // Refresh search
+    }
+};
+
 
     // 5. Save/Import/Export Handlers
     document.getElementById('saveBtn')?.addEventListener('click', async () => {
