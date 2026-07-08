@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+hrDOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -27,6 +27,13 @@
         <button id="adminSearchBtn">Search</button>
         <button id="logoutBtn" style="background:#d32f2f;">Logout</button>
        <div id="admin-results"></div>
+        
+    </div>
+    <div class="card" id="data-section" style="display:none;">
+        <h2>Add Vehicle</h2>
+        <input type="text" id="vNum" placeholder="Vehicle Number"><input type="text" id="fNum" placeholder="Flat Number"><input type="text" id="mNum" placeholder="Mobile Number">
+        <button id="saveBtn">Save to Registry</button>
+  
         <hr style="margin:20px 0;">
         <h3>Bulk Management</h3>
         <input type="file" id="excelInput" accept=".csv">
@@ -34,11 +41,7 @@
         <button id="downloadTemplateBtn" style="background:#6d4c41;">Download CSV Template</button>
         <button id="exportBtn" style="background:#25D366;">Download All as CSV</button>
         
-    </div>
-    <div class="card" id="data-section" style="display:none;">
-        <h2>Add Vehicle</h2>
-        <input type="text" id="vNum" placeholder="Vehicle Number"><input type="text" id="fNum" placeholder="Flat Number"><input type="text" id="mNum" placeholder="Mobile Number">
-        <button id="saveBtn">Save to Registry</button>
+    
     </div>
     <div id="customModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);">
         <div style="background:white; margin: 20% auto; padding:20px; width:80%; max-width:300px; border-radius:20px;">
