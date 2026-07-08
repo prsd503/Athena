@@ -55,21 +55,30 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { window.showModal("Error: " + e.message); }
     });
 
-    // 4. Search Handler
-    document.getElementById('adminSearchBtn')?.addEventListener('click', async () => {
-        const qVal = document.getElementById('adminSearch').value.trim().toUpperCase();
-        if (!qVal) return window.showModal("Enter vehicle number.");
-        const q = query(collection(db, "vehicles"), where("vehicleNumber", "==", qVal), where("societyName", "==", assignedSociety));
-        const snapshot = await getDocs(q);
-        const container = document.getElementById('admin-results');
-        container.innerHTML = "";
+    // 4. Updated Search Handler ---
+document.getElementById('adminSearchBtn')?.addEventListener('click', async () => {
+    const qVal = document.getElementById('adminSearch').value.trim().toUpperCase();
+    const container = document.getElementById('admin-results');
+    container.innerHTML = "";
+    if (!qVal) return window.showModal("Enter vehicle number.");
+
+    const q = query(collection(db, "vehicles"), where("vehicleNumber", "==", qVal), where("societyName", "==", assignedSociety));
+    const snapshot = await getDocs(q);
+    
+    if (snapshot.empty) return window.showModal("No data found.");
+    
+    snapshot.forEach((d) => {
+        const data = d.data();
+        // WhatsApp link construction
+        const waLink = data.mobileNumber ? `https://wa.me/${data.mobileNumber.replace(/\D/g, '')}?text=Hello, query regarding vehicle ${data.vehicleNumber}` : "#";
         
-        if (snapshot.empty) return window.showModal("No data found.");
-        snapshot.forEach((d) => {
-            const data = d.data();
-            container.innerHTML += `<div>Vehicle: ${data.vehicleNumber}<br>Flat: ${data.flatNumber}</div>`;
-        });
+        container.innerHTML += `
+            <div style="background:#fdf6e3; padding:10px; border-radius:10px; margin-bottom:10px;">
+                <p><b>${data.vehicleNumber}</b> | Flat: ${data.flatNumber}</p>
+                <a href="${waLink}" target="_blank" style="background:#25d366; color:white; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:0.9rem;">Message on WhatsApp</a>
+            </div>`;
     });
+});
 
     // 5. Save/Import/Export Handlers
     document.getElementById('saveBtn')?.addEventListener('click', async () => {
