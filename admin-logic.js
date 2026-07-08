@@ -37,15 +37,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    
     // 2. Login Handler
-    document.getElementById('loginBtn')?.addEventListener('click', async () => {
-        const email = document.getElementById('email').value.trim();
-        const pass = document.getElementById('pass').value.trim();
-        if (!email || !pass) return window.showModal("Enter Email and Password.");
-        try {
-            await signInWithEmailAndPassword(auth, email, pass);
-        } catch (e) { window.showModal("Login failed: " + e.message); }
-    });
+document.getElementById('loginBtn')?.addEventListener('click', async () => {
+    const email = document.getElementById('email').value.trim();
+    const pass = document.getElementById('pass').value.trim();
+    
+    if (!email || !pass) return window.showModal("Please enter Email and Password.");
+    
+    try {
+        await signInWithEmailAndPassword(auth, email, pass);
+    } catch (e) {
+        // Handle specific Firebase error codes
+        if (e.code === 'auth/invalid-email' || e.code === 'auth/invalid-credential' || e.code === 'auth/user-not-found') {
+            window.showModal("Invalid login credentials.");
+        } else {
+            window.showModal("Login error: " + e.message);
+        }
+    }
+});
 
     // 3. Logout Handler
     document.getElementById('logoutBtn')?.addEventListener('click', async () => {
