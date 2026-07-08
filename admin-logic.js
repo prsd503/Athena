@@ -1,6 +1,6 @@
 import { auth, db } from "./app.js";
-import { signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, getDoc, collection, addDoc, query, where, getDocs, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, getDoc, collection, addDoc, query, where, getDocs, deleteDoc, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let assignedSociety = "";
 
@@ -35,24 +35,7 @@ window.deleteData = async (id) => {
 // --- Main Application Logic ---
 document.addEventListener('DOMContentLoaded', () => {
 
-// Add this inside document.addEventListener('DOMContentLoaded', () => { ... })
-
-document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-    try {
-        await signOut(auth);
-        assignedSociety = "";
-        document.getElementById('login-section').style.display = 'block';
-        document.getElementById('search-section').style.display = 'none';
-        document.getElementById('data-section').style.display = 'none';
-        document.getElementById('admin-results').innerHTML = "";
-        window.showModal("Logged out successfully.");
-    } catch (e) {
-        window.showModal("Error logging out: " + e.message);
-    }
-});
-
-
-    // Persistent Login State
+    // 1. Persistent Login State
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             const adminDoc = await getDoc(doc(db, "admins", user.email));
@@ -65,7 +48,7 @@ document.getElementById('logoutBtn')?.addEventListener('click', async () => {
         }
     });
 
-    // Login Handler
+    // 2. Login Handler
     document.getElementById('loginBtn')?.addEventListener('click', async () => {
         const email = document.getElementById('email').value.trim();
         const pass = document.getElementById('pass').value.trim();
@@ -75,62 +58,92 @@ document.getElementById('logoutBtn')?.addEventListener('click', async () => {
             window.showModal("Logged in successfully!");
         } catch (e) {
             let msg = "Login failed: ";
-            switch (e.code) {
-                case 'auth/invalid-email': msg += "Invalid email format."; break;
-                case 'auth/invalid-credential': msg += "Invalid Email or Password."; break;
-                default: msg += e.message;
-            }
+            if (e.code === 'auth/invalid-email') msg += "Invalid email.";
+            else if (e.code === 'auth/invalid-credential') msg += "Invalid Email or Password.";
+            else msg += e.message;
             window.showModal(msg);
         }
     });
 
-    // Search Handler (with Validation)
+    // 3. Logout Handler (FIXED)
+    document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+        try {
+            await signOut(auth);
+            assignedSociety = "";
+            document.getElementById('login-section').style.display = 'block';
+            document.getElementById('search-section').style.display = 'none';
+            document.getElementById('data-section').style.display = 'none';
+            window.showModal("Logged out successfully.");
+            location.reload(); // Refresh to clean state
+        } catch (e) {
+            window.showModal("Error logging out: " + e.message);
+        }
+    });
+
+    // 4. Search Handler (with Validation)
     document.getElementById('adminSearchBtn')?.addEventListener('click', async () => {
         const qVal = document.getElementById('adminSearch').value.trim().toUpperCase();
         const container = document.getElementById('admin-results');
         container.innerHTML = "";
+        if (!qVal) return window.showModal("Please enter a vehicle number.");
 
-        if (!qVal) {
-            window.showModal("Please enter a vehicle number to search.");
-            return;
-        }
-
-        try {
-            const q = query(collection(db, "vehicles"), where("vehicleNumber", "==", qVal), where("societyName", "==", assignedSociety));
-            const snapshot = await getDocs(q);
-
-            if (snapshot.empty) {
-                window.showModal("No data found for this vehicle number.");
-                return;
-            }
-            
-            snapshot.forEach((docSnap) => {
-                const data = docSnap.data();
-                container.innerHTML += `
-                    <div style="margin:10px 0; border:1px solid #8d6e63; padding:10px; border-radius:10px;">
-                        <p>Vehicle: <b>${data.vehicleNumber}</b></p>
-                        Flat: <input id="f-${docSnap.id}" value="${data.flatNumber}"><br>
-                        Mobile: <input id="m-${docSnap.id}" value="${data.mobileNumber || ''}"><br>
-                        <button onclick="window.updateData('${docSnap.id}')">Update</button>
-                        <button onclick="window.sendWhatsApp('${data.mobileNumber || ''}', '${data.vehicleNumber}')">WhatsApp</button>
-                        <button onclick="window.deleteData('${docSnap.id}')">Delete</button>
-                    </div>`;
-            });
-        } catch (e) {
-            window.showModal("Error searching: " + e.message);
-        }
+        const q = query(collection(db, "vehicles"), where("vehicleNumber", "==", qVal), where("societyName", "==", assignedSociety));
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) return window.showModal("No data found.");
+        
+        snapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            container.innerHTML += `
+                <div style="margin:10px 0; border:1px solid #8d6e63; padding:10px; border-radius:10px;">
+                    <p>Vehicle: <b>${data.vehicleNumber}</b></p>
+                    Flat: <input id="f-${docSnap.id}" value="${data.flatNumber}"><br>
+                    Mobile: <input id="m-${docSnap.id}" value="${data.mobileNumber || ''}"><br>
+                    <button onclick="window.updateData('${docSnap.id}')">Update</button>
+                    <button onclick="window.sendWhatsApp('${data.mobileNumber || ''}', '${data.vehicleNumber}')">WhatsApp</button>
+                    <button onclick="window.deleteData('${docSnap.id}')">Delete</button>
+                </div>`;
+        });
     });
 
-    // Save Handler (No reload)
-    document.getElementById('saveBtn')?.addEventListener('click', async () => {
-        const vNum = document.getElementById('vNum').value.trim().toUpperCase();
-        const fNum = document.getElementById('fNum').value.trim();
-        const mNum = document.getElementById('mNum').value.trim();
-        if (!vNum || !fNum) return window.showModal("Fill all fields.");
-        await addDoc(collection(db, "vehicles"), { vehicleNumber: vNum, flatNumber: fNum, mobileNumber: mNum, societyName: assignedSociety });
-        window.showModal("Vehicle added!");
-        document.getElementById('vNum').value = "";
-        document.getElementById('fNum').value = "";
-        document.getElementById('mNum').value = "";
+    // 5. Bulk Export & Import
+    document.getElementById('exportBtn')?.addEventListener('click', async () => {
+        const q = query(collection(db, "vehicles"), where("societyName", "==", assignedSociety));
+        const snapshot = await getDocs(q);
+        const dataToExport = snapshot.docs.map(doc => ({
+            VehicleNumber: doc.data().vehicleNumber,
+            FlatNumber: doc.data().flatNumber,
+            MobileNumber: doc.data().mobileNumber
+        }));
+        const ws = XLSX.utils.json_to_sheet(dataToExport);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Vehicles");
+        XLSX.writeFile(wb, `${assignedSociety}_Vehicles.xlsx`);
+    });
+
+    document.getElementById('importBtn')?.addEventListener('click', () => {
+        const file = document.getElementById('excelInput').files[0];
+        if (!file) return window.showModal("Please select a file.");
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const json = XLSX.utils.sheet_to_json(XLSX.read(new Uint8Array(e.target.result), {type: 'array'}).Sheets[0]);
+            for (let i = 0; i < json.length; i += 500) { // Batching 500 limit
+                const batch = writeBatch(db);
+                json.slice(i, i + 500).forEach(row => {
+                    batch.set(doc(collection(db, "vehicles")), {
+                        vehicleNumber: String(row.VehicleNumber || '').toUpperCase(),
+                        flatNumber: String(row.FlatNumber || ''),
+                        mobileNumber: String(row.MobileNumber || ''),
+                        societyName: assignedSociety
+                    });
+                });
+                await batch.commit();
+            }
+            window.showModal("Import complete! (Note: Processed in batches of 500).");
+        };
+        reader.readAsArrayBuffer(file);
+    });
+
+    document.getElementById('downloadTemplateBtn')?.addEventListener('click', () => {
+        XLSX.writeFile(XLSX.utils.book_append_sheet(XLSX.utils.book_new(), XLSX.utils.json_to_sheet([{VehicleNumber:"", FlatNumber:"", MobileNumber:""}]), "Template"), "Template.xlsx");
     });
 });
