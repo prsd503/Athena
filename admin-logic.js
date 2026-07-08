@@ -2,6 +2,53 @@ import { auth, db } from "./app.js";
 import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { doc, getDoc, collection, addDoc, query, where, getDocs, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// ... inside your login click listener
+try {
+    await signInWithEmailAndPassword(auth, email, pass);
+    // ... rest of your success logic
+} catch (e) {
+    let errorMessage = "An error occurred.";
+    
+    // Catch specific Firebase Auth error codes
+    if (e.code === 'auth/invalid-email') {
+        errorMessage = "Invalid email format.";
+    } else if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') {
+        errorMessage = "Invalid Email or Password.";
+    } else if (e.code === 'auth/too-many-requests') {
+        errorMessage = "Too many attempts. Try again later.";
+    }
+    
+    // Use your existing modal function
+    window.showModal(errorMessage);
+}
+
+
+// --- Updated Login Catch Block ---
+} catch (e) {
+    let errorMessage = "Login failed: ";
+    
+    // Map Firebase error codes to friendly messages
+    switch (e.code) {
+        case 'auth/invalid-email':
+            errorMessage = "Invalid email format.";
+            break;
+        case 'auth/user-not-found':
+        case 'auth/wrong-password':
+        case 'auth/invalid-credential':
+            errorMessage = "Invalid Email or Password.";
+            break;
+        case 'auth/too-many-requests':
+            errorMessage = "Too many attempts. Please try again later.";
+            break;
+        default:
+            errorMessage = "Error: " + e.message;
+    }
+    
+    // Trigger your custom modal instead of alert()
+    window.showModal(errorMessage);
+}
+
+
 // Global variable to store society linked to logged-in admin
 let assignedSociety = "";
 
