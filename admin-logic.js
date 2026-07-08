@@ -22,9 +22,24 @@ const downloadCSV = (content, filename) => {
     document.body.removeChild(link);
 };
 
+// --- Action Helpers (Global) ---
+window.editEntry = (v, f, m) => {
+    document.getElementById('vNum').value = v;
+    document.getElementById('fNum').value = f;
+    document.getElementById('mNum').value = m;
+    window.showModal("Details loaded into 'Add Vehicle' form for editing.");
+};
+
+window.deleteEntry = async (id) => {
+    if (confirm("Are you sure you want to delete this record?")) {
+        await deleteDoc(doc(db, "vehicles", id));
+        window.showModal("Record deleted.");
+        document.getElementById('adminSearchBtn').click(); // Refresh search
+    }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
 
-    // 1. Auth State Management
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             const adminDoc = await getDoc(doc(db, "admins", user.email));
@@ -37,164 +52,58 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    
-    // 2. Login Handler
-document.getElementById('loginBtn')?.addEventListener('click', async () => {
-    const email = document.getElementById('email').value.trim();
-    const pass = document.getElementById('pass').value.trim();
-    
-    if (!email || !pass) return window.showModal("Please enter Email and Password.");
-    
-    try {
-        await signInWithEmailAndPassword(auth, email, pass);
-    } catch (e) {
-        // Handle specific Firebase error codes
-        if (e.code === 'auth/invalid-email' || e.code === 'auth/invalid-credential' || e.code === 'auth/user-not-found') {
-            window.showModal("Invalid login credentials.");
-        } else {
-            window.showModal("Login error: " + e.message);
-        }
-    }
-});
-
-    // 3. Logout Handler
-    document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+    document.getElementById('loginBtn')?.addEventListener('click', async () => {
+        const email = document.getElementById('email').value.trim();
+        const pass = document.getElementById('pass').value.trim();
+        if (!email || !pass) return window.showModal("Enter Email and Password.");
         try {
-            await signOut(auth);
-            location.reload();
-        } catch (e) { window.showModal("Error: " + e.message); }
+            await signInWithEmailAndPassword(auth, email, pass);
+        } catch (e) {
+            window.showModal(e.code === 'auth/invalid-email' || e.code === 'auth/invalid-credential' ? "Invalid login credentials." : "Login error: " + e.message);
+        }
     });
 
-    // 4.Updated Search Handler with Edit/Delete ---
-document.getElementById('adminSearchBtn')?.addEventListener('click', async () => {
-    const qVal = document.getElementById('adminSearch').value.trim().toUpperCase();
-    const container = document.getElementById('admin-results');
-    container.innerHTML = "";
-    if (!qVal) return window.showModal("Enter vehicle number.");
+    document.getElementById('logoutBtn')?.addEventListener('click', async () => { await signOut(auth); location.reload(); });
 
-    const q = query(collection(db, "vehicles"), where("vehicleNumber", "==", qVal), where("societyName", "==", assignedSociety));
-    const snapshot = await getDocs(q);
-    
-    if (snapshot.empty) return window.showModal("No data found.");
-    
-    snapshot.forEach((d) => {
-        const data = d.data();
-        const docId = d.id; // Get the unique Firestore ID
+    // Correct Search Handler with WhatsApp, Edit, Delete
+    document.getElementById('adminSearchBtn')?.addEventListener('click', async () => {
+        const qVal = document.getElementById('adminSearch').value.trim().toUpperCase();
+        const container = document.getElementById('admin-results');
+        container.innerHTML = "";
+        if (!qVal) return window.showModal("Enter vehicle number.");
+
+        const q = query(collection(db, "vehicles"), where("vehicleNumber", "==", qVal), where("societyName", "==", assignedSociety));
+        const snapshot = await getDocs(q);
         
-        const div = document.createElement('div');
-        div.style.cssText = "background:#fdf6e3; padding:10px; border-radius:10px; margin-bottom:10px;";
-        div.innerHTML = `
-            <p><b>${data.vehicleNumber}</b> | Flat: ${data.flatNumber}</p>
-            <button onclick="editEntry('${data.vehicleNumber}', '${data.flatNumber}', '${data.mobileNumber || ''}', '${docId}')">Edit</button>
-            <button onclick="deleteEntry('${docId}')" style="background:#d32f2f;">Delete</button>
-        `;
-        container.appendChild(div);
-    });
-});
-
-// --- Edit/Delete Helper Functions ---
-window.editEntry = (v, f, m, id) => {
-    document.getElementById('vNum').value = v;
-    document.getElementById('fNum').value = f;
-    document.getElementById('mNum').value = m;
-    // Optional: add hidden field or global var to track ID if you want to 'update' instead of 'add'
-    window.showModal("Details loaded into 'Add Vehicle' form for editing.");
-};
-
-window.deleteEntry = async (id) => {
-    if (confirm("Are you sure you want to delete this record?")) {
-        await deleteDoc(doc(db, "vehicles", id));
-        window.showModal("Deleted successfully.");
-        document.getElementById('adminSearchBtn')?.addEventListener('click', async () => {
-    const qVal = document.getElementById('adminSearch').value.trim().toUpperCase();
-    const container = document.getElementById('admin-results');
-    container.innerHTML = "";
-    if (!qVal) return window.showModal("Enter vehicle number.");
-
-    const q = query(collection(db, "vehicles"), where("vehicleNumber", "==", qVal), where("societyName", "==", assignedSociety));
-    const snapshot = await getDocs(q);
-    
-    if (snapshot.empty) return window.showModal("No data found.");
-    
-    snapshot.forEach((d) => {
-        const data = d.data();
-        const docId = d.id;
-        const cleanPhone = data.mobileNumber ? data.mobileNumber.replace(/\D/g, '') : "";
-        const waLink = cleanPhone ? `https://wa.me/${cleanPhone}?text=Hello, query regarding vehicle ${data.vehicleNumber}` : "#";
+        if (snapshot.empty) return window.showModal("No data found.");
         
-        const div = document.createElement('div');
-        div.style.cssText = "background:#fdf6e3; padding:10px; border-radius:10px; margin-bottom:10px; text-align:left; border: 1px solid #8d6e63;";
-        div.innerHTML = `
-            <p><b>Vehicle:</b> ${data.vehicleNumber} | <b>Flat:</b> ${data.flatNumber}</p>
-            <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-                <a href="${waLink}" target="_blank" style="background:#25d366; color:white; padding:5px 8px; border-radius:5px; text-decoration:none; font-size:0.8rem;">WhatsApp</a>
-                <button onclick="editEntry('${data.vehicleNumber}', '${data.flatNumber}', '${data.mobileNumber || ''}', '${docId}')" style="background:#6d4c41; font-size:0.8rem;">Edit</button>
-                <button onclick="deleteEntry('${docId}')" style="background:#d32f2f; font-size:0.8rem;">Delete</button>
-            </div>
-        `;
-        container.appendChild(div);
+        snapshot.forEach((d) => {
+            const data = d.data();
+            const cleanPhone = data.mobileNumber ? data.mobileNumber.replace(/\D/g, '') : "";
+            const waLink = cleanPhone ? `https://wa.me/${cleanPhone}?text=Hello, query regarding vehicle ${data.vehicleNumber}` : "#";
+            
+            container.innerHTML += `
+                <div style="background:#fdf6e3; padding:10px; border-radius:10px; margin-bottom:10px; text-align:left; border: 1px solid #8d6e63;">
+                    <p><b>Vehicle:</b> ${data.vehicleNumber} | <b>Flat:</b> ${data.flatNumber}</p>
+                    <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                        <a href="${waLink}" target="_blank" style="background:#25d366; color:white; padding:5px 8px; border-radius:5px; text-decoration:none; font-size:0.8rem;">WhatsApp</a>
+                        <button onclick="editEntry('${data.vehicleNumber}', '${data.flatNumber}', '${data.mobileNumber || ''}')" style="background:#6d4c41; font-size:0.8rem;">Edit</button>
+                        <button onclick="deleteEntry('${d.id}')" style="background:#d32f2f; font-size:0.8rem;">Delete</button>
+                    </div>
+                </div>`;
+        });
     });
-});
 
-// --- Helper Functions for Actions ---
-window.editEntry = (v, f, m, id) => {
-    document.getElementById('vNum').value = v;
-    document.getElementById('fNum').value = f;
-    document.getElementById('mNum').value = m;
-    window.showModal("Details loaded into 'Add Vehicle' form. Edit and save.");
-};
-
-window.deleteEntry = async (id) => {
-    if (confirm("Are you sure you want to delete this record?")) {
-        await deleteDoc(doc(db, "vehicles", id));
-        window.showModal("Record deleted.");
-        document.getElementById('adminSearchBtn').click(); // Refresh list
-    }
-};
-
-    }
-};
-
-
-    // 5. Save/Import/Export Handlers
     document.getElementById('saveBtn')?.addEventListener('click', async () => {
         const v = document.getElementById('vNum').value.trim().toUpperCase();
         const f = document.getElementById('fNum').value.trim();
-        if (!v || !f) return window.showModal("Fill fields.");
-        await addDoc(collection(db, "vehicles"), { vehicleNumber: v, flatNumber: f, societyName: assignedSociety });
+        const m = document.getElementById('mNum').value.trim();
+        if (!v || !f) return window.showModal("Fill Vehicle and Flat fields.");
+        await addDoc(collection(db, "vehicles"), { vehicleNumber: v, flatNumber: f, mobileNumber: m, societyName: assignedSociety });
         window.showModal("Added!");
     });
 
-document.getElementById('importBtn')?.addEventListener('click', () => {
-        const file = document.getElementById('excelInput').files[0];
-        if (!file) return window.showModal("Select file.");
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const rows = e.target.result.split('\n').slice(1);
-            const batch = writeBatch(db);
-            rows.forEach(row => {
-                const c = row.split(',');
-                if (c.length >= 2) batch.set(doc(collection(db, "vehicles")), { vehicleNumber: c[0].trim().toUpperCase(), flatNumber: c[1].trim(), societyName: assignedSociety });
-            });
-            await batch.commit();
-            window.showModal("Imported!");
-        };
-        reader.readAsText(file);
+    document.getElementById('downloadTemplateBtn')?.addEventListener('click', () => {
+        downloadCSV("VehicleNumber,FlatNumber,MobileNumber\n", "Vehicle_Template.csv");
     });
 });
-// Add this block to your existing admin-logic.js
-document.getElementById('downloadTemplateBtn')?.addEventListener('click', () => {
-    const templateContent = "VehicleNumber,FlatNumber,MobileNumber\n";
-    downloadCSV(templateContent, "Vehicle_Template.csv");
-});
-
-
-    
-    document.getElementById('exportBtn')?.addEventListener('click', async () => {
-        const snapshot = await getDocs(query(collection(db, "vehicles"), where("societyName", "==", assignedSociety)));
-        let csv = "VehicleNumber,FlatNumber,MobileNumber\n";
-        snapshot.docs.forEach(d => { const dt = d.data(); csv += `${dt.vehicleNumber},${dt.flatNumber},${dt.mobileNumber}\n`; });
-        downloadCSV(csv, "Vehicles.csv");
-    });
-    
-    
