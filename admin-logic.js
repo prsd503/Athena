@@ -24,24 +24,29 @@ const downloadCSV = (content, filename) => {
 };
 
 // --- Action Helpers ---
-window.editEntry = (v, f, m, id) => {
-    editingDocId = id; // Set ID to switch Save button to Update mode
-    document.getElementById('vNum').value = v;
-    document.getElementById('fNum').value = f;
-    document.getElementById('mNum').value = m;
-    document.getElementById('saveBtn').innerText = "Update Registry";
-    window.showModal("Details loaded. Edit fields and click Update.");
+// Global variable to hold the ID of the item pending deletion
+let pendingDeleteId = null;
+
+// Modified deleteEntry to open your custom modal
+window.deleteEntry = (id) => {
+    pendingDeleteId = id; // Store ID
+    window.showModal("Are you sure you want to delete this record? Click 'Confirm Delete' below.");
+    
+    // Add a "Confirm Delete" button to your modal dynamically if it doesn't exist,
+    // or simply add an event listener to an existing button in your HTML modal.
 };
 
-window.deleteEntry = async (id) => {
-    // Using a simple check; for a fully custom modal, 
-    // you would trigger a separate 'Confirm' button in your HTML.
-    if (confirm("Are you sure you want to delete this record?")) {
-        await deleteDoc(doc(db, "vehicles", id));
-        window.showModal("Record deleted.");
-        document.getElementById('adminSearchBtn').click();
+// Add this function to be triggered by a "Confirm" button inside your modal
+window.confirmDelete = async () => {
+    if (pendingDeleteId) {
+        await deleteDoc(doc(db, "vehicles", pendingDeleteId));
+        window.closeModal();
+        window.showModal("Record deleted successfully.");
+        document.getElementById('adminSearchBtn').click(); // Refresh results
+        pendingDeleteId = null; // Reset
     }
 };
+
 
 document.addEventListener('DOMContentLoaded', () => {
 
