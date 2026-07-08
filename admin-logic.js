@@ -74,7 +74,7 @@ document.getElementById('adminSearchBtn')?.addEventListener('click', async () =>
         
         container.innerHTML += `
             <div style="background:#fdf6e3; padding:10px; border-radius:10px; margin-bottom:10px;">
-                <p><b>${data.vehicleNumber}</b> | Flat: ${data.flatNumber}</p>
+                <p><b>${data.vehicleNumber}</b> | Flat/Name: ${data.flatNumber}</p>
                 <a href="${waLink}" target="_blank" style="background:#25d366; color:white; padding:5px 10px; border-radius:5px; text-decoration:none; font-size:0.9rem;">Message on WhatsApp</a>
             </div>`;
     });
