@@ -1,5 +1,5 @@
 import { auth, db } from "./app.js";
-import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { doc, getDoc, collection, addDoc, query, where, getDocs, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let assignedSociety = "";
@@ -29,14 +29,13 @@ window.updateData = async (id) => {
 window.deleteData = async (id) => {
     await deleteDoc(doc(db, "vehicles", id));
     window.showModal("Deleted.");
-    // Instead of reload, just clear the search results
     document.getElementById('admin-results').innerHTML = "";
 };
 
 // --- Main Application Logic ---
 document.addEventListener('DOMContentLoaded', () => {
 
-    // 1. Persistent Login State: Check if user is already signed in
+    // Persistent Login State
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             const adminDoc = await getDoc(doc(db, "admins", user.email));
@@ -68,28 +67,44 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Search Handler
+    // Search Handler (with Validation)
     document.getElementById('adminSearchBtn')?.addEventListener('click', async () => {
         const qVal = document.getElementById('adminSearch').value.trim().toUpperCase();
-        const q = query(collection(db, "vehicles"), where("vehicleNumber", "==", qVal), where("societyName", "==", assignedSociety));
-        const snapshot = await getDocs(q);
         const container = document.getElementById('admin-results');
         container.innerHTML = "";
-        snapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            container.innerHTML += `
-                <div style="margin:10px 0; border:1px solid #8d6e63; padding:10px; border-radius:10px;">
-                    <p>Vehicle: <b>${data.vehicleNumber}</b></p>
-                    Flat: <input id="f-${docSnap.id}" value="${data.flatNumber}"><br>
-                    Mobile: <input id="m-${docSnap.id}" value="${data.mobileNumber || ''}"><br>
-                    <button onclick="window.updateData('${docSnap.id}')">Update</button>
-                    <button onclick="window.sendWhatsApp('${data.mobileNumber || ''}', '${data.vehicleNumber}')">WhatsApp</button>
-                    <button onclick="window.deleteData('${docSnap.id}')">Delete</button>
-                </div>`;
-        });
+
+        if (!qVal) {
+            window.showModal("Please enter a vehicle number to search.");
+            return;
+        }
+
+        try {
+            const q = query(collection(db, "vehicles"), where("vehicleNumber", "==", qVal), where("societyName", "==", assignedSociety));
+            const snapshot = await getDocs(q);
+
+            if (snapshot.empty) {
+                window.showModal("No data found for this vehicle number.");
+                return;
+            }
+            
+            snapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                container.innerHTML += `
+                    <div style="margin:10px 0; border:1px solid #8d6e63; padding:10px; border-radius:10px;">
+                        <p>Vehicle: <b>${data.vehicleNumber}</b></p>
+                        Flat: <input id="f-${docSnap.id}" value="${data.flatNumber}"><br>
+                        Mobile: <input id="m-${docSnap.id}" value="${data.mobileNumber || ''}"><br>
+                        <button onclick="window.updateData('${docSnap.id}')">Update</button>
+                        <button onclick="window.sendWhatsApp('${data.mobileNumber || ''}', '${data.vehicleNumber}')">WhatsApp</button>
+                        <button onclick="window.deleteData('${docSnap.id}')">Delete</button>
+                    </div>`;
+            });
+        } catch (e) {
+            window.showModal("Error searching: " + e.message);
+        }
     });
 
-    // 2. Save Handler (No reload)
+    // Save Handler (No reload)
     document.getElementById('saveBtn')?.addEventListener('click', async () => {
         const vNum = document.getElementById('vNum').value.trim().toUpperCase();
         const fNum = document.getElementById('fNum').value.trim();
@@ -97,7 +112,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!vNum || !fNum) return window.showModal("Fill all fields.");
         await addDoc(collection(db, "vehicles"), { vehicleNumber: vNum, flatNumber: fNum, mobileNumber: mNum, societyName: assignedSociety });
         window.showModal("Vehicle added!");
-        // Clear inputs instead of reloading
         document.getElementById('vNum').value = "";
         document.getElementById('fNum').value = "";
         document.getElementById('mNum').value = "";
