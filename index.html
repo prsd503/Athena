@@ -6,6 +6,29 @@
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
     <title> Owl Watch| Home</title>
     <style>
+        
+        .contact-btn {
+    font-family: 'Caveat', cursive;
+    display: inline-block;
+    background: #8d6e63; /* Same brown as your admin portal */
+    color: white;
+    padding: 15px 30px;
+    text-decoration: none;
+    border-radius: 15px;
+    font-size: 1.5rem;
+    border: 2px solid #5d4037;
+    box-shadow: 3px 3px 0px #5d4037;
+    transition: 0.3s;
+}
+
+.contact-btn:hover {
+    background: #5d4037;
+    transform: translateY(-2px);
+    cursor: pointer;
+}
+
+        
+        
         body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
         .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; box-shadow: 5px 5px 0px #8d6e63; max-width: 400px; margin: auto; }
         input { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; }
@@ -14,6 +37,25 @@
         .btn-msg { background: #25D366; display: inline-block; margin-top: 10px; padding: 10px; color: white; text-decoration: none; border-radius: 10px; }
         .admin-btn { display: inline-block; background: #8d6e63; color: white; padding: 10px 25px; text-decoration: none; border-radius: 10px; font-family: 'Caveat', cursive; font-size: 1.2rem; cursor: pointer; margin-top: 15px; }
         .admin-btn:hover { background: #6d4c41; }
+        
+        /* Styling for the Proceed button */
+#verifyBtn {
+    font-family: 'Caveat', cursive;
+    background: #8d6e63; /* Same brown as your portal */
+    color: white;
+    padding: 10px 20px;
+    border: 2px solid #5d4037;
+    border-radius: 10px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+#verifyBtn:hover {
+    background: #5d4037; /* Darker brown for hover */
+}
+
+        
     </style>
 </head>
 <body>
@@ -92,5 +134,14 @@
             }
         });
     </script>
+    
+    <div style="text-align: center; margin-top: 40px; padding-bottom: 30px;">
+    <a href="https://wa.me/919033406816?text=Hi! I would like to register my society/organization on Owl-Watch>." 
+       class="contact-btn" target="_blank">
+       Click here to Register Your Society/Organization.
+    </a>
+</div>
+
+    
 </body>
 </html>
