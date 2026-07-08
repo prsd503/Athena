@@ -1,5 +1,5 @@
 import { auth, db } from "./app.js";
-import { signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { doc, getDoc, collection, addDoc, query, where, getDocs, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let assignedSociety = "";
@@ -29,31 +29,34 @@ window.updateData = async (id) => {
 window.deleteData = async (id) => {
     await deleteDoc(doc(db, "vehicles", id));
     window.showModal("Deleted.");
-    location.reload();
+    // Instead of reload, just clear the search results
+    document.getElementById('admin-results').innerHTML = "";
 };
 
 // --- Main Application Logic ---
 document.addEventListener('DOMContentLoaded', () => {
 
-    document.getElementById('loginBtn')?.addEventListener('click', async () => {
-        const email = document.getElementById('email').value.trim();
-        const pass = document.getElementById('pass').value.trim();
-        
-        if (!email || !pass) return window.showModal("Please enter Email and Password.");
-
-        try {
-            await signInWithEmailAndPassword(auth, email, pass);
-            const adminDoc = await getDoc(doc(db, "admins", email));
-            
+    // 1. Persistent Login State: Check if user is already signed in
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            const adminDoc = await getDoc(doc(db, "admins", user.email));
             if (adminDoc.exists()) {
                 assignedSociety = adminDoc.data().society;
                 document.getElementById('login-section').style.display = 'none';
                 document.getElementById('search-section').style.display = 'block';
                 document.getElementById('data-section').style.display = 'block';
-                window.showModal("Logged in! Society: " + assignedSociety);
-            } else {
-                throw new Error("Admin record not found.");
             }
+        }
+    });
+
+    // Login Handler
+    document.getElementById('loginBtn')?.addEventListener('click', async () => {
+        const email = document.getElementById('email').value.trim();
+        const pass = document.getElementById('pass').value.trim();
+        if (!email || !pass) return window.showModal("Please enter Email and Password.");
+        try {
+            await signInWithEmailAndPassword(auth, email, pass);
+            window.showModal("Logged in successfully!");
         } catch (e) {
             let msg = "Login failed: ";
             switch (e.code) {
@@ -65,13 +68,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Search Handler
     document.getElementById('adminSearchBtn')?.addEventListener('click', async () => {
         const qVal = document.getElementById('adminSearch').value.trim().toUpperCase();
         const q = query(collection(db, "vehicles"), where("vehicleNumber", "==", qVal), where("societyName", "==", assignedSociety));
         const snapshot = await getDocs(q);
         const container = document.getElementById('admin-results');
         container.innerHTML = "";
-
         snapshot.forEach((docSnap) => {
             const data = docSnap.data();
             container.innerHTML += `
@@ -86,6 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // 2. Save Handler (No reload)
     document.getElementById('saveBtn')?.addEventListener('click', async () => {
         const vNum = document.getElementById('vNum').value.trim().toUpperCase();
         const fNum = document.getElementById('fNum').value.trim();
@@ -93,6 +97,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!vNum || !fNum) return window.showModal("Fill all fields.");
         await addDoc(collection(db, "vehicles"), { vehicleNumber: vNum, flatNumber: fNum, mobileNumber: mNum, societyName: assignedSociety });
         window.showModal("Vehicle added!");
-        location.reload();
+        // Clear inputs instead of reloading
+        document.getElementById('vNum').value = "";
+        document.getElementById('fNum').value = "";
+        document.getElementById('mNum').value = "";
     });
 });
