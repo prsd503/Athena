@@ -3,6 +3,7 @@ import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https:/
 import { doc, getDoc, collection, addDoc, query, where, getDocs, deleteDoc, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let assignedSociety = "";
+let editingDocId = null; // Tracks the ID for updates
 
 // --- UI Helpers ---
 window.closeModal = () => { document.getElementById('customModal').style.display = 'none'; };
@@ -22,19 +23,23 @@ const downloadCSV = (content, filename) => {
     document.body.removeChild(link);
 };
 
-// --- Action Helpers (Global) ---
-window.editEntry = (v, f, m) => {
+// --- Action Helpers ---
+window.editEntry = (v, f, m, id) => {
+    editingDocId = id; // Set ID to switch Save button to Update mode
     document.getElementById('vNum').value = v;
     document.getElementById('fNum').value = f;
     document.getElementById('mNum').value = m;
-    window.showModal("Details loaded into 'Add Vehicle' form for editing.");
+    document.getElementById('saveBtn').innerText = "Update Registry";
+    window.showModal("Details loaded. Edit fields and click Update.");
 };
 
 window.deleteEntry = async (id) => {
+    // Using a simple check; for a fully custom modal, 
+    // you would trigger a separate 'Confirm' button in your HTML.
     if (confirm("Are you sure you want to delete this record?")) {
         await deleteDoc(doc(db, "vehicles", id));
         window.showModal("Record deleted.");
-        document.getElementById('adminSearchBtn').click(); // Refresh search
+        document.getElementById('adminSearchBtn').click();
     }
 };
 
@@ -59,13 +64,12 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             await signInWithEmailAndPassword(auth, email, pass);
         } catch (e) {
-            window.showModal(e.code === 'auth/invalid-email' || e.code === 'auth/invalid-credential' ? "Invalid login credentials." : "Login error: " + e.message);
+            window.showModal(e.code?.includes('auth') ? "Invalid login credentials." : "Login error: " + e.message);
         }
     });
 
     document.getElementById('logoutBtn')?.addEventListener('click', async () => { await signOut(auth); location.reload(); });
 
-    // Correct Search Handler with WhatsApp, Edit, Delete
     document.getElementById('adminSearchBtn')?.addEventListener('click', async () => {
         const qVal = document.getElementById('adminSearch').value.trim().toUpperCase();
         const container = document.getElementById('admin-results');
@@ -79,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         snapshot.forEach((d) => {
             const data = d.data();
-            const cleanPhone = data.mobileNumber ? data.mobileNumber.replace(/\D/g, '') : "";
+            const cleanPhone = data.mobileNumber?.replace(/\D/g, '') || "";
             const waLink = cleanPhone ? `https://wa.me/${cleanPhone}?text=Hello, query regarding vehicle ${data.vehicleNumber}` : "#";
             
             container.innerHTML += `
@@ -87,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p><b>Vehicle:</b> ${data.vehicleNumber} | <b>Flat:</b> ${data.flatNumber}</p>
                     <div style="display: flex; gap: 5px; flex-wrap: wrap;">
                         <a href="${waLink}" target="_blank" style="background:#25d366; color:white; padding:5px 8px; border-radius:5px; text-decoration:none; font-size:0.8rem;">WhatsApp</a>
-                        <button onclick="editEntry('${data.vehicleNumber}', '${data.flatNumber}', '${data.mobileNumber || ''}')" style="background:#6d4c41; font-size:0.8rem;">Edit</button>
+                        <button onclick="editEntry('${data.vehicleNumber}', '${data.flatNumber}', '${data.mobileNumber || ''}', '${d.id}')" style="background:#6d4c41; font-size:0.8rem;">Edit</button>
                         <button onclick="deleteEntry('${d.id}')" style="background:#d32f2f; font-size:0.8rem;">Delete</button>
                     </div>
                 </div>`;
@@ -99,8 +103,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const f = document.getElementById('fNum').value.trim();
         const m = document.getElementById('mNum').value.trim();
         if (!v || !f) return window.showModal("Fill Vehicle and Flat fields.");
-        await addDoc(collection(db, "vehicles"), { vehicleNumber: v, flatNumber: f, mobileNumber: m, societyName: assignedSociety });
-        window.showModal("Added!");
+        
+        try {
+            if (editingDocId) {
+                await updateDoc(doc(db, "vehicles", editingDocId), { vehicleNumber: v, flatNumber: f, mobileNumber: m });
+                window.showModal("Record updated successfully!");
+                editingDocId = null;
+                document.getElementById('saveBtn').innerText = "Save to Registry";
+            } else {
+                await addDoc(collection(db, "vehicles"), { vehicleNumber: v, flatNumber: f, mobileNumber: m, societyName: assignedSociety });
+                window.showModal("Added successfully!");
+            }
+            document.getElementById('vNum').value = '';
+            document.getElementById('fNum').value = '';
+            document.getElementById('mNum').value = '';
+        } catch (e) { window.showModal("Error: " + e.message); }
     });
 
     document.getElementById('downloadTemplateBtn')?.addEventListener('click', () => {
