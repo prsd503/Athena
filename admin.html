@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <title>Owl Watch | Admin</title>
     <style>
         body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
@@ -40,10 +39,10 @@
         <hr style="margin:20px 0;">
         
         <h3>Bulk Data Management</h3>
-        <input type="file" id="excelInput" accept=".xlsx, .xls" style="font-size: 0.9rem;">
-        <button id="importBtn">Bulk Import Excel</button>
-        <button id="downloadTemplateBtn" style="background:#6d4c41;">Download Blank Template</button>
-        <button id="exportBtn" style="background:#25D366;">Download All as Excel</button>
+        <input type="file" id="excelInput" accept=".csv" style="font-size: 0.9rem;">
+        <button id="importBtn">Bulk Import CSV</button>
+        <button id="downloadTemplateBtn" style="background:#6d4c41;">Download Blank CSV Template</button>
+        <button id="exportBtn" style="background:#25D366;">Download All as CSV</button>
         
         <div class="disclaimer">
             * Import processes 500 records at a time.
