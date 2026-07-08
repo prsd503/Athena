@@ -28,23 +28,39 @@ const downloadCSV = (content, filename) => {
 let pendingDeleteId = null;
 
 // Modified deleteEntry to open your custom modal
+// Ensure this is in the top scope of your file
+let pendingDeleteId = null; 
+
 window.deleteEntry = (id) => {
-    pendingDeleteId = id; // Store ID
-    window.showModal("Are you sure you want to delete this record? Click 'Confirm Delete' below.");
-    
-    // Add a "Confirm Delete" button to your modal dynamically if it doesn't exist,
-    // or simply add an event listener to an existing button in your HTML modal.
+    pendingDeleteId = id; // Save the ID to the global variable
+    // Show the modal
+    window.showModal("Are you sure you want to delete this record?");
+    // Ensure the confirm button is visible
+    document.getElementById('confirmDeleteBtn').style.display = 'inline-block';
 };
 
-// Add this function to be triggered by a "Confirm" button inside your modal
 window.confirmDelete = async () => {
     if (pendingDeleteId) {
-        await deleteDoc(doc(db, "vehicles", pendingDeleteId));
-        window.closeModal();
-        window.showModal("Record deleted successfully.");
-        document.getElementById('adminSearchBtn').click(); // Refresh results
-        pendingDeleteId = null; // Reset
+        try {
+            await deleteDoc(doc(db, "vehicles", pendingDeleteId));
+            window.closeModal();
+            window.showModal("Record deleted successfully.");
+            // Re-run the search to refresh the list
+            document.getElementById('adminSearchBtn').click();
+        } catch (e) {
+            window.showModal("Error deleting: " + e.message);
+        } finally {
+            pendingDeleteId = null; // Reset
+        }
     }
+};
+
+// IMPORTANT: Modify your showModal to hide the confirm button for normal messages
+window.showModal = (msg) => {
+    document.getElementById('modalMessage').innerText = msg;
+    document.getElementById('customModal').style.display = 'block';
+    // Hide confirm button by default for normal messages
+    document.getElementById('confirmDeleteBtn').style.display = 'none';
 };
 
 
