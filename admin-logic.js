@@ -4,37 +4,26 @@ import { doc, getDoc, collection, addDoc, query, where, getDocs, deleteDoc, upda
 
 let assignedSociety = "";
 
-// --- Global UI Helpers ---
 window.closeModal = () => { document.getElementById('customModal').style.display = 'none'; };
-
 window.showModal = (msg) => {
     document.getElementById('modalMessage').innerText = msg;
     document.getElementById('customModal').style.display = 'block';
 };
 
-window.sendWhatsApp = (phone, vNum) => {
-    if (!phone) return window.showModal("No mobile number found.");
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent("Finder-Owl Admin query regarding vehicle: " + vNum)}`, '_blank');
+// --- CSV Helper Functions ---
+const downloadCSV = (content, filename) => {
+    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 };
 
-// --- CRUD Operations ---
-window.updateData = async (id) => {
-    const newFlat = document.getElementById(`f-${id}`).value.trim();
-    const newMobile = document.getElementById(`m-${id}`).value.trim();
-    if (!newFlat) return window.showModal("Flat number required.");
-    await updateDoc(doc(db, "vehicles", id), { flatNumber: newFlat, mobileNumber: newMobile });
-    window.showModal("Updated successfully!");
-};
-
-window.deleteData = async (id) => {
-    await deleteDoc(doc(db, "vehicles", id));
-    window.showModal("Deleted.");
-    document.getElementById('admin-results').innerHTML = "";
-};
-
-// --- Main Application Logic ---
 document.addEventListener('DOMContentLoaded', () => {
-
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             const adminDoc = await getDoc(doc(db, "admins", user.email));
@@ -47,89 +36,56 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    document.getElementById('loginBtn')?.addEventListener('click', async () => {
-        const email = document.getElementById('email').value.trim();
-        const pass = document.getElementById('pass').value.trim();
-        if (!email || !pass) return window.showModal("Please enter Email and Password.");
-        try {
-            await signInWithEmailAndPassword(auth, email, pass);
-        } catch (e) {
-            window.showModal("Login failed: " + e.message);
-        }
-    });
-
+    // Logout
     document.getElementById('logoutBtn')?.addEventListener('click', async () => {
         await signOut(auth);
         location.reload();
     });
 
-    document.getElementById('adminSearchBtn')?.addEventListener('click', async () => {
-        const qVal = document.getElementById('adminSearch').value.trim().toUpperCase();
-        const container = document.getElementById('admin-results');
-        container.innerHTML = "";
-        if (!qVal) return window.showModal("Please enter a vehicle number.");
-
-        const q = query(collection(db, "vehicles"), where("vehicleNumber", "==", qVal), where("societyName", "==", assignedSociety));
-        const snapshot = await getDocs(q);
-        if (snapshot.empty) return window.showModal("No data found.");
-        
-        snapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            container.innerHTML += `
-                <div style="margin:10px 0; border:1px solid #8d6e63; padding:10px; border-radius:10px;">
-                    <p>Vehicle: <b>${data.vehicleNumber}</b></p>
-                    Flat: <input id="f-${docSnap.id}" value="${data.flatNumber}"><br>
-                    Mobile: <input id="m-${docSnap.id}" value="${data.mobileNumber || ''}"><br>
-                    <button onclick="window.updateData('${docSnap.id}')">Update</button>
-                    <button onclick="window.sendWhatsApp('${data.mobileNumber || ''}', '${data.vehicleNumber}')">WhatsApp</button>
-                    <button onclick="window.deleteData('${docSnap.id}')">Delete</button>
-                </div>`;
-        });
-    });
-
-    // --- Bulk Data Management (FIXED) ---
+    // Export to CSV
     document.getElementById('exportBtn')?.addEventListener('click', async () => {
         const q = query(collection(db, "vehicles"), where("societyName", "==", assignedSociety));
         const snapshot = await getDocs(q);
-        const dataToExport = snapshot.docs.map(doc => ({
-            VehicleNumber: doc.data().vehicleNumber,
-            FlatNumber: doc.data().flatNumber,
-            MobileNumber: doc.data().mobileNumber
-        }));
-        const ws = XLSX.utils.json_to_sheet(dataToExport);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Vehicles");
-        // Force .xlsx format
-        XLSX.writeFile(wb, `${assignedSociety}_Vehicles.xlsx`, { bookType: 'xlsx' });
+        let csvContent = "VehicleNumber,FlatNumber,MobileNumber\n";
+        snapshot.docs.forEach(d => {
+            const data = d.data();
+            csvContent += `${data.vehicleNumber},${data.flatNumber},${data.mobileNumber}\n`;
+        });
+        downloadCSV(csvContent, `${assignedSociety}_Vehicles.csv`);
     });
 
+    // Download Template CSV
+    document.getElementById('downloadTemplateBtn')?.addEventListener('click', () => {
+        downloadCSV("VehicleNumber,FlatNumber,MobileNumber\n", "Vehicle_Template.csv");
+    });
+
+    // Import CSV
     document.getElementById('importBtn')?.addEventListener('click', () => {
         const file = document.getElementById('excelInput').files[0];
-        if (!file) return window.showModal("Please select a file.");
+        if (!file) return window.showModal("Select a CSV file first.");
         const reader = new FileReader();
         reader.onload = async (e) => {
-            const json = XLSX.utils.sheet_to_json(XLSX.read(new Uint8Array(e.target.result), {type: 'array'}).Sheets[Object.keys(XLSX.read(new Uint8Array(e.target.result), {type: 'array'}).Sheets)[0]]);
-            for (let i = 0; i < json.length; i += 500) {
+            const text = e.target.result;
+            const rows = text.split('\n').slice(1); // skip header
+            for (let i = 0; i < rows.length; i += 500) {
                 const batch = writeBatch(db);
-                json.slice(i, i + 500).forEach(row => {
-                    batch.set(doc(collection(db, "vehicles")), {
-                        vehicleNumber: String(row.VehicleNumber || '').toUpperCase(),
-                        flatNumber: String(row.FlatNumber || ''),
-                        mobileNumber: String(row.MobileNumber || ''),
-                        societyName: assignedSociety
-                    });
+                rows.slice(i, i + 500).forEach(row => {
+                    const cols = row.split(',');
+                    if (cols.length >= 2) {
+                        batch.set(doc(collection(db, "vehicles")), {
+                            vehicleNumber: cols[0].trim().toUpperCase(),
+                            flatNumber: cols[1].trim(),
+                            mobileNumber: cols[2] ? cols[2].trim() : '',
+                            societyName: assignedSociety
+                        });
+                    }
                 });
                 await batch.commit();
             }
-            window.showModal("Import complete!");
+            window.showModal("Bulk import complete!");
         };
-        reader.readAsArrayBuffer(file);
+        reader.readAsText(file);
     });
-
-    document.getElementById('downloadTemplateBtn')?.addEventListener('click', () => {
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([{VehicleNumber:"", FlatNumber:"", MobileNumber:""}]), "Template");
-        // Force .xlsx format
-        XLSX.writeFile(wb, "Template.xlsx", { bookType: 'xlsx' });
-    });
+    
+    // ... keep your existing Search/Add Logic here
 });
