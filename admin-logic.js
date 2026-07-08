@@ -105,7 +105,53 @@ window.deleteEntry = async (id) => {
     if (confirm("Are you sure you want to delete this record?")) {
         await deleteDoc(doc(db, "vehicles", id));
         window.showModal("Deleted successfully.");
-        document.getElementById('adminSearchBtn').click(); // Refresh search
+        document.getElementById('adminSearchBtn')?.addEventListener('click', async () => {
+    const qVal = document.getElementById('adminSearch').value.trim().toUpperCase();
+    const container = document.getElementById('admin-results');
+    container.innerHTML = "";
+    if (!qVal) return window.showModal("Enter vehicle number.");
+
+    const q = query(collection(db, "vehicles"), where("vehicleNumber", "==", qVal), where("societyName", "==", assignedSociety));
+    const snapshot = await getDocs(q);
+    
+    if (snapshot.empty) return window.showModal("No data found.");
+    
+    snapshot.forEach((d) => {
+        const data = d.data();
+        const docId = d.id;
+        const cleanPhone = data.mobileNumber ? data.mobileNumber.replace(/\D/g, '') : "";
+        const waLink = cleanPhone ? `https://wa.me/${cleanPhone}?text=Hello, query regarding vehicle ${data.vehicleNumber}` : "#";
+        
+        const div = document.createElement('div');
+        div.style.cssText = "background:#fdf6e3; padding:10px; border-radius:10px; margin-bottom:10px; text-align:left; border: 1px solid #8d6e63;";
+        div.innerHTML = `
+            <p><b>Vehicle:</b> ${data.vehicleNumber} | <b>Flat:</b> ${data.flatNumber}</p>
+            <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                <a href="${waLink}" target="_blank" style="background:#25d366; color:white; padding:5px 8px; border-radius:5px; text-decoration:none; font-size:0.8rem;">WhatsApp</a>
+                <button onclick="editEntry('${data.vehicleNumber}', '${data.flatNumber}', '${data.mobileNumber || ''}', '${docId}')" style="background:#6d4c41; font-size:0.8rem;">Edit</button>
+                <button onclick="deleteEntry('${docId}')" style="background:#d32f2f; font-size:0.8rem;">Delete</button>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+});
+
+// --- Helper Functions for Actions ---
+window.editEntry = (v, f, m, id) => {
+    document.getElementById('vNum').value = v;
+    document.getElementById('fNum').value = f;
+    document.getElementById('mNum').value = m;
+    window.showModal("Details loaded into 'Add Vehicle' form. Edit and save.");
+};
+
+window.deleteEntry = async (id) => {
+    if (confirm("Are you sure you want to delete this record?")) {
+        await deleteDoc(doc(db, "vehicles", id));
+        window.showModal("Record deleted.");
+        document.getElementById('adminSearchBtn').click(); // Refresh list
+    }
+};
+
     }
 };
 
