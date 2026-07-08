@@ -35,6 +35,23 @@ window.deleteData = async (id) => {
 // --- Main Application Logic ---
 document.addEventListener('DOMContentLoaded', () => {
 
+// Add this inside document.addEventListener('DOMContentLoaded', () => { ... })
+
+document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+    try {
+        await signOut(auth);
+        assignedSociety = "";
+        document.getElementById('login-section').style.display = 'block';
+        document.getElementById('search-section').style.display = 'none';
+        document.getElementById('data-section').style.display = 'none';
+        document.getElementById('admin-results').innerHTML = "";
+        window.showModal("Logged out successfully.");
+    } catch (e) {
+        window.showModal("Error logging out: " + e.message);
+    }
+});
+
+
     // Persistent Login State
     onAuthStateChanged(auth, async (user) => {
         if (user) {
