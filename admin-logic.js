@@ -35,7 +35,6 @@ window.deleteData = async (id) => {
 // --- Main Application Logic ---
 document.addEventListener('DOMContentLoaded', () => {
 
-    // 1. Persistent Login State
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             const adminDoc = await getDoc(doc(db, "admins", user.email));
@@ -48,39 +47,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 2. Login Handler
     document.getElementById('loginBtn')?.addEventListener('click', async () => {
         const email = document.getElementById('email').value.trim();
         const pass = document.getElementById('pass').value.trim();
         if (!email || !pass) return window.showModal("Please enter Email and Password.");
         try {
             await signInWithEmailAndPassword(auth, email, pass);
-            window.showModal("Logged in successfully!");
         } catch (e) {
-            let msg = "Login failed: ";
-            if (e.code === 'auth/invalid-email') msg += "Invalid email.";
-            else if (e.code === 'auth/invalid-credential') msg += "Invalid Email or Password.";
-            else msg += e.message;
-            window.showModal(msg);
+            window.showModal("Login failed: " + e.message);
         }
     });
 
-    // 3. Logout Handler (FIXED)
     document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-        try {
-            await signOut(auth);
-            assignedSociety = "";
-            document.getElementById('login-section').style.display = 'block';
-            document.getElementById('search-section').style.display = 'none';
-            document.getElementById('data-section').style.display = 'none';
-            window.showModal("Logged out successfully.");
-            location.reload(); // Refresh to clean state
-        } catch (e) {
-            window.showModal("Error logging out: " + e.message);
-        }
+        await signOut(auth);
+        location.reload();
     });
 
-    // 4. Search Handler (with Validation)
     document.getElementById('adminSearchBtn')?.addEventListener('click', async () => {
         const qVal = document.getElementById('adminSearch').value.trim().toUpperCase();
         const container = document.getElementById('admin-results');
@@ -105,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 5. Bulk Export & Import
+    // --- Bulk Data Management (FIXED) ---
     document.getElementById('exportBtn')?.addEventListener('click', async () => {
         const q = query(collection(db, "vehicles"), where("societyName", "==", assignedSociety));
         const snapshot = await getDocs(q);
@@ -117,7 +99,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const ws = XLSX.utils.json_to_sheet(dataToExport);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Vehicles");
-        XLSX.writeFile(wb, `${assignedSociety}_Vehicles.xlsx`);
+        // Force .xlsx format
+        XLSX.writeFile(wb, `${assignedSociety}_Vehicles.xlsx`, { bookType: 'xlsx' });
     });
 
     document.getElementById('importBtn')?.addEventListener('click', () => {
@@ -125,8 +108,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!file) return window.showModal("Please select a file.");
         const reader = new FileReader();
         reader.onload = async (e) => {
-            const json = XLSX.utils.sheet_to_json(XLSX.read(new Uint8Array(e.target.result), {type: 'array'}).Sheets[0]);
-            for (let i = 0; i < json.length; i += 500) { // Batching 500 limit
+            const json = XLSX.utils.sheet_to_json(XLSX.read(new Uint8Array(e.target.result), {type: 'array'}).Sheets[Object.keys(XLSX.read(new Uint8Array(e.target.result), {type: 'array'}).Sheets)[0]]);
+            for (let i = 0; i < json.length; i += 500) {
                 const batch = writeBatch(db);
                 json.slice(i, i + 500).forEach(row => {
                     batch.set(doc(collection(db, "vehicles")), {
@@ -138,12 +121,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 await batch.commit();
             }
-            window.showModal("Import complete! (Note: Processed in batches of 500).");
+            window.showModal("Import complete!");
         };
         reader.readAsArrayBuffer(file);
     });
 
     document.getElementById('downloadTemplateBtn')?.addEventListener('click', () => {
-        XLSX.writeFile(XLSX.utils.book_append_sheet(XLSX.utils.book_new(), XLSX.utils.json_to_sheet([{VehicleNumber:"", FlatNumber:"", MobileNumber:""}]), "Template"), "Template.xlsx");
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([{VehicleNumber:"", FlatNumber:"", MobileNumber:""}]), "Template");
+        // Force .xlsx format
+        XLSX.writeFile(wb, "Template.xlsx", { bookType: 'xlsx' });
     });
 });
