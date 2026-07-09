@@ -12,15 +12,6 @@ window.showModal = (msg) => {
     document.getElementById('customModal').style.display = 'block';
 };
 
-async function isVehicleExists(vNum, society) {
-    const q = query(collection(db, "vehicles"), 
-              where("vehicleNumber", "==", vNum), 
-              where("societyName", "==", society));
-    const snapshot = await getDocs(q);
-    return !snapshot.empty;
-}
-
-
 const downloadCSV = (content, filename) => {
     const blob = new Blob([content], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -42,10 +33,6 @@ window.editEntry = (v, f, m, id) => {
     window.showModal("Details loaded. Edit and click Update.");
 };
 
-// deletion this variable at the top with other let declarations
-let pendingDeleteId = null;
-
-// Update the deleteEntry function
 window.deleteEntry = async (id) => {
     if (confirm("Are you sure you want to delete this record?")) {
         try {
@@ -55,7 +42,6 @@ window.deleteEntry = async (id) => {
         } catch (e) { window.showModal("Delete error: " + e.message); }
     }
 };
-
 
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Auth
@@ -107,96 +93,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 4. Save/Update
     document.getElementById('saveBtn')?.addEventListener('click', async () => {
-    const v = document.getElementById('vNum').value.trim().toUpperCase();
-    const f = document.getElementById('fNum').value.trim();
-    const m = document.getElementById('mNum').value.trim();
-
-    if (!v || !f) {
-        return window.showModal("Fill fields.");
-    }
-    
-    if (editingDocId) {
-        // --- UPDATE EXISTING RECORD ---
-        try {
-            await updateDoc(doc(db, "vehicles", editingDocId), { 
-                vehicleNumber: v, 
-                flatNumber: f, 
-                mobileNumber: m 
-            });
+        const v = document.getElementById('vNum').value.trim().toUpperCase();
+        const f = document.getElementById('fNum').value.trim();
+        const m = document.getElementById('mNum').value.trim();
+        if (!v || !f) return window.showModal("Fill fields.");
+        
+        if (editingDocId) {
+            await updateDoc(doc(db, "vehicles", editingDocId), { vehicleNumber: v, flatNumber: f, mobileNumber: m });
             window.showModal("Record updated successfully!");
             editingDocId = null;
             document.getElementById('saveBtn').innerText = "Save to Registry";
-        } catch (e) {
-            window.showModal("Update error: " + e.message);
-        }
-    } else {
-        // --- ADD NEW RECORD WITH DUPLICATE CHECK ---
-        // Only run duplicate check if it's NOT an update
-        if (await isVehicleExists(v, assignedSociety)) {
-            return window.showModal("This vehicle is already registered in your society.");
-        }
-        
-        try {
-            await addDoc(collection(db, "vehicles"), { 
-                vehicleNumber: v, 
-                flatNumber: f, 
-                mobileNumber: m, 
-                societyName: assignedSociety 
-            });
+        } else {
+            await addDoc(collection(db, "vehicles"), { vehicleNumber: v, flatNumber: f, mobileNumber: m, societyName: assignedSociety });
             window.showModal("Added successfully!");
-        } catch (e) {
-            window.showModal("Add error: " + e.message);
         }
-    }
+        document.getElementById('vNum').value = '';
+        document.getElementById('fNum').value = '';
+        document.getElementById('mNum').value = '';
+    });
 
-    // Clear inputs after success
-    document.getElementById('vNum').value = '';
-    document.getElementById('fNum').value = '';
-    document.getElementById('mNum').value = '';
-});
-
-
-        // 5. Bulk Management (Updated with Duplicate Prevention)
+    // 5. Bulk Management (Ensured these are active)
     document.getElementById('importBtn')?.addEventListener('click', () => {
         const file = document.getElementById('excelInput').files[0];
         if (!file) return window.showModal("Select file.");
         const reader = new FileReader();
-        
         reader.onload = async (e) => {
             const rows = e.target.result.split('\n').slice(1);
             const batch = writeBatch(db);
-            let importedCount = 0;
-            let skippedCount = 0;
-
-            for (const row of rows) {
+            rows.forEach(row => {
                 const c = row.split(',');
-                if (c.length >= 2) {
-                    const vNum = c[0].trim().toUpperCase();
-                    
-                    // Check if vehicle already exists for this society
-                    const alreadyExists = await isVehicleExists(vNum, assignedSociety);
-                    
-                    if (!alreadyExists) {
-                        batch.set(doc(collection(db, "vehicles")), { 
-                            vehicleNumber: vNum, 
-                            flatNumber: c[1].trim(), 
-                            mobileNumber: c[2]?.trim() || "", 
-                            societyName: assignedSociety 
-                        });
-                        importedCount++;
-                    } else {
-                        skippedCount++;
-                    }
-                }
-            }
-            
-            // Only commit if there is something to add
-            if (importedCount > 0) {
-                await batch.commit();
-                window.showModal(`Imported ${importedCount} new vehicles. (${skippedCount} duplicates skipped)`);
-            } else {
-                window.showModal(`Import failed: All ${skippedCount} vehicles already exist.`);
-            }
+                if (c.length >= 2) batch.set(doc(collection(db, "vehicles")), { vehicleNumber: c[0].trim().toUpperCase(), flatNumber: c[1].trim(), mobileNumber: c[2]?.trim() || "", societyName: assignedSociety });
+            });
+            await batch.commit();
+            window.showModal("Imported successfully!");
         };
         reader.readAsText(file);
     });
@@ -214,3 +143,4 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         downloadCSV(csv, "Vehicles.csv");
     });
+});
