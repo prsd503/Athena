@@ -107,32 +107,46 @@
             }
         });
 
-        document.getElementById("searchBtn").addEventListener("click", async () => {
-            const vNum = document.getElementById("vehicleInput").value.trim().toUpperCase();
-            const snap = await getDocs(collection(db, "vehicles"));
-            const found = snap.docs.find(d => {
-                const data = d.data();
-                return data.societyName.toLowerCase() === currentSociety.toLowerCase() && 
-                       data.vehicleNumber.toUpperCase() === vNum;
-            });
+        import { query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+document.getElementById("searchBtn").addEventListener("click", async () => {
+    const vNum = document.getElementById("vehicleInput").value.trim().toUpperCase();
+    const display = document.getElementById("result");
+    display.innerHTML = ""; // Clear previous results
+
+    if (!vNum) return alert("Please enter a vehicle number.");
+
+    // Create a targeted query
+    const q = query(
+        collection(db, "vehicles"), 
+        where("societyName", "==", currentSociety), 
+        where("vehicleNumber", "==", vNum)
+    );
+    
+    const snap = await getDocs(q);
+
+    if (!snap.empty) {
+        // Iterate through all matches found
+        snap.forEach((d) => {
+            const data = d.data();
+            const adminPhone = data.mobileNumber || "919033406816";
+            const msg = encodeURIComponent(`Hello, I have a query regarding vehicle ${data.vehicleNumber}`);
             
-            const display = document.getElementById("result");
-            if (found) {
-                const data = found.data();
-                const adminPhone = data.mobileNumber || "919033406816";
-                const msg = encodeURIComponent("Hello, I have a query regarding vehicle.");
-                
-                display.innerHTML = `
+            display.innerHTML += `
+                <div style="margin-top: 15px; border-top: 1px solid #8d6e63; padding-top: 10px;">
                     ✅ Vehicle registered.<br>
-                    Flat: <b>${data.flatNumber || "N/A"}</b><br>
+                    Flat/Name: <b>${data.flatNumber || "N/A"}</b><br>
                     <a href="https://wa.me/${adminPhone}?text=${msg}" target="_blank" class="btn-msg">
                         💬 Message Admin
                     </a>
-                `;
-            } else {
-                display.innerHTML = "❌ Not found.";
-            }
+                </div>
+            `;
         });
+    } else {
+        display.innerHTML = "❌ Not found.";
+    }
+});
+
     </script>
     
     <div style="text-align: center; margin-top: 40px; padding-bottom: 30px;">
