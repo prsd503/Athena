@@ -4,7 +4,7 @@ import { doc, getDoc, collection, addDoc, query, where, getDocs, deleteDoc, upda
 
 let assignedSociety = "";
 let editingDocId = null;
-let pendingDeleteId = null; // Used for modal confirmation
+let pendingDeleteId = null; // Added for modal delete
 
 // --- UI Helpers ---
 window.closeModal = () => { document.getElementById('customModal').style.display = 'none'; };
@@ -58,6 +58,7 @@ window.confirmDelete = async () => {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. Auth
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             const adminDoc = await getDoc(doc(db, "admins", user.email));
@@ -70,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // 2. Login/Logout
     document.getElementById('loginBtn')?.addEventListener('click', async () => {
         const email = document.getElementById('email').value.trim();
         const pass = document.getElementById('pass').value.trim();
@@ -77,9 +79,9 @@ document.addEventListener('DOMContentLoaded', () => {
         try { await signInWithEmailAndPassword(auth, email, pass); }
         catch (e) { window.showModal("Login error: " + e.message); }
     });
-
     document.getElementById('logoutBtn')?.addEventListener('click', async () => { await signOut(auth); location.reload(); });
 
+    // 3. Search
     document.getElementById('adminSearchBtn')?.addEventListener('click', async () => {
         const qVal = document.getElementById('adminSearch').value.trim().toUpperCase();
         const container = document.getElementById('admin-results');
@@ -103,6 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // 4. Save/Update
     document.getElementById('saveBtn')?.addEventListener('click', async () => {
         const v = document.getElementById('vNum').value.trim().toUpperCase();
         const f = document.getElementById('fNum').value.trim();
@@ -124,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('mNum').value = '';
     });
 
+    // 5. Bulk Management
     document.getElementById('importBtn')?.addEventListener('click', () => {
         const file = document.getElementById('excelInput').files[0];
         if (!file) return window.showModal("Select file.");
