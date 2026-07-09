@@ -4,11 +4,15 @@ import { doc, getDoc, collection, addDoc, query, where, getDocs, deleteDoc, upda
 
 let assignedSociety = "";
 let editingDocId = null;
+let pendingDeleteId = null; // Stores ID temporarily for modal confirmation
 
 // --- UI Helpers ---
 window.closeModal = () => { document.getElementById('customModal').style.display = 'none'; };
-window.showModal = (msg) => {
+
+// Updated: Added parameter to show/hide confirm button
+window.showModal = (msg, showConfirm = false) => {
     document.getElementById('modalMessage').innerText = msg;
+    document.getElementById('confirmDeleteBtn').style.display = showConfirm ? 'inline-block' : 'none';
     document.getElementById('customModal').style.display = 'block';
 };
 
@@ -33,14 +37,22 @@ window.editEntry = (v, f, m, id) => {
     window.showModal("Details loaded. Edit and click Update.");
 };
 
-window.deleteEntry = async (id) => {
-    if (confirm("Are you sure you want to delete this record?")) {
-        try {
-            await deleteDoc(doc(db, "vehicles", id));
-            window.showModal("Record deleted.");
-            document.getElementById('adminSearchBtn').click();
-        } catch (e) { window.showModal("Delete error: " + e.message); }
-    }
+// Updated: Triggers modal instead of browser native confirm()
+window.deleteEntry = (id) => {
+    pendingDeleteId = id;
+    window.showModal("Are you sure you want to delete this record?", true);
+};
+
+// New: Actual delete operation triggered by modal confirm button
+window.confirmDelete = async () => {
+    if (!pendingDeleteId) return;
+    try {
+        await deleteDoc(doc(db, "vehicles", pendingDeleteId));
+        window.closeModal();
+        window.showModal("Record deleted.");
+        document.getElementById('adminSearchBtn').click();
+    } catch (e) { window.showModal("Delete error: " + e.message); }
+    pendingDeleteId = null;
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -112,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('mNum').value = '';
     });
 
-    // 5. Bulk Management (Ensured these are active)
+    // 5. Bulk Management
     document.getElementById('importBtn')?.addEventListener('click', () => {
         const file = document.getElementById('excelInput').files[0];
         if (!file) return window.showModal("Select file.");
