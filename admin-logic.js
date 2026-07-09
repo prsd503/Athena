@@ -93,75 +93,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 4. Save/Update
     document.getElementById('saveBtn')?.addEventListener('click', async () => {
-    const v = document.getElementById('vNum').value.trim().toUpperCase();
-    const f = document.getElementById('fNum').value.trim();
-    const m = document.getElementById('mNum').value.trim();
-    if (!v || !f) return window.showModal("Fill fields.");
-
-    if (editingDocId) {
-        // ... (Keep existing update logic)
-        await updateDoc(doc(db, "vehicles", editingDocId), { vehicleNumber: v, flatNumber: f, mobileNumber: m });
-        window.showModal("Record updated successfully!");
-        editingDocId = null;
-        document.getElementById('saveBtn').innerText = "Save to Registry";
-    } else {
-        // NEW: Check for duplicate before adding
-        const q = query(collection(db, "vehicles"), where("vehicleNumber", "==", v), where("societyName", "==", assignedSociety));
-        const checkSnapshot = await getDocs(q);
+        const v = document.getElementById('vNum').value.trim().toUpperCase();
+        const f = document.getElementById('fNum').value.trim();
+        const m = document.getElementById('mNum').value.trim();
+        if (!v || !f) return window.showModal("Fill fields.");
         
-        if (!checkSnapshot.empty) {
-            window.showModal("Error: This vehicle number already exists in your society.");
-            return;
+        if (editingDocId) {
+            await updateDoc(doc(db, "vehicles", editingDocId), { vehicleNumber: v, flatNumber: f, mobileNumber: m });
+            window.showModal("Record updated successfully!");
+            editingDocId = null;
+            document.getElementById('saveBtn').innerText = "Save to Registry";
+        } else {
+            await addDoc(collection(db, "vehicles"), { vehicleNumber: v, flatNumber: f, mobileNumber: m, societyName: assignedSociety });
+            window.showModal("Added successfully!");
         }
-
-        await addDoc(collection(db, "vehicles"), { vehicleNumber: v, flatNumber: f, mobileNumber: m, societyName: assignedSociety });
-        window.showModal("Added successfully!");
-    }
-    document.getElementById('vNum').value = '';
-    document.getElementById('fNum').value = '';
-    document.getElementById('mNum').value = '';
-});
-
+        document.getElementById('vNum').value = '';
+        document.getElementById('fNum').value = '';
+        document.getElementById('mNum').value = '';
+    });
 
     // 5. Bulk Management (Ensured these are active)
-    document.getElementById('importBtn')?.addEventListener('click', async () => {
-    const file = document.getElementById('excelInput').files[0];
-    if (!file) return window.showModal("Select file.");
-
-    // Fetch existing records for this society first
-    const existingSnapshot = await getDocs(query(collection(db, "vehicles"), where("societyName", "==", assignedSociety)));
-    const existingNumbers = new Set(existingSnapshot.docs.map(doc => doc.data().vehicleNumber));
-
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-        const rows = e.target.result.split('\n').slice(1);
-        const batch = writeBatch(db);
-        let count = 0;
-
-        rows.forEach(row => {
-            const c = row.split(',');
-            if (c.length >= 2) {
-                const vNum = c[0].trim().toUpperCase();
-                // Only add to batch if it's not in the existing set
-                if (!existingNumbers.has(vNum)) {
-                    batch.set(doc(collection(db, "vehicles")), { 
-                        vehicleNumber: vNum, 
-                        flatNumber: c[1].trim(), 
-                        mobileNumber: c[2]?.trim() || "", 
-                        societyName: assignedSociety 
-                    });
-                    existingNumbers.add(vNum); // Prevent duplicates within the same CSV
-                    count++;
-                }
-            }
-        });
-
-        if (count > 0) {
+    document.getElementById('importBtn')?.addEventListener('click', () => {
+        const file = document.getElementById('excelInput').files[0];
+        if (!file) return window.showModal("Select file.");
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const rows = e.target.result.split('\n').slice(1);
+            const batch = writeBatch(db);
+            rows.forEach(row => {
+                const c = row.split(',');
+                if (c.length >= 2) batch.set(doc(collection(db, "vehicles")), { vehicleNumber: c[0].trim().toUpperCase(), flatNumber: c[1].trim(), mobileNumber: c[2]?.trim() || "", societyName: assignedSociety });
+            });
             await batch.commit();
-            window.showModal(`Imported ${count} new records successfully!`);
-        } else {
-            window.showModal("No new records to import (duplicates found).");
-        }
-    };
-    reader.readAsText(file);
+            window.showModal("Imported successfully!");
+        };
+        reader.readAsText(file);
+    });
+
+    document.getElementById('downloadTemplateBtn')?.addEventListener('click', () => {
+        downloadCSV("VehicleNumber,FlatNumber/Name,MobileNumber\n", "Vehicle_Template.csv");
+    });
+
+    document.getElementById('exportBtn')?.addEventListener('click', async () => {
+        const snapshot = await getDocs(query(collection(db, "vehicles"), where("societyName", "==", assignedSociety)));
+        let csv = "VehicleNumber,FlatNumber,MobileNumber\n";
+        snapshot.forEach(d => { 
+            const dt = d.data(); 
+            csv += `${dt.vehicleNumber},${dt.flatNumber},${dt.mobileNumber || ''}\n`; 
+        });
+        downloadCSV(csv, "Vehicles.csv");
+    });
 });
