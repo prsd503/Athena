@@ -102,24 +102,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 4. Save/Update
     document.getElementById('saveBtn')?.addEventListener('click', async () => {
-        const v = document.getElementById('vNum').value.trim().toUpperCase();
-        const f = document.getElementById('fNum').value.trim();
-        const m = document.getElementById('mNum').value.trim();
-        if (!v || !f) return window.showModal("Fill fields.");
-        
-        if (editingDocId) {
-            await updateDoc(doc(db, "vehicles", editingDocId), { vehicleNumber: v, flatNumber: f, mobileNumber: m });
+    const v = document.getElementById('vNum').value.trim().toUpperCase();
+    const f = document.getElementById('fNum').value.trim();
+    const m = document.getElementById('mNum').value.trim();
+
+    if (!v || !f) {
+        return window.showModal("Fill fields.");
+    }
+    
+    if (editingDocId) {
+        // --- UPDATE EXISTING RECORD ---
+        try {
+            await updateDoc(doc(db, "vehicles", editingDocId), { 
+                vehicleNumber: v, 
+                flatNumber: f, 
+                mobileNumber: m 
+            });
             window.showModal("Record updated successfully!");
             editingDocId = null;
             document.getElementById('saveBtn').innerText = "Save to Registry";
-        } else {
-            await addDoc(collection(db, "vehicles"), { vehicleNumber: v, flatNumber: f, mobileNumber: m, societyName: assignedSociety });
-            window.showModal("Added successfully!");
+        } catch (e) {
+            window.showModal("Update error: " + e.message);
         }
-        document.getElementById('vNum').value = '';
-        document.getElementById('fNum').value = '';
-        document.getElementById('mNum').value = '';
-    });
+    } else {
+        // --- ADD NEW RECORD WITH DUPLICATE CHECK ---
+        // Only run duplicate check if it's NOT an update
+        if (await isVehicleExists(v, assignedSociety)) {
+            return window.showModal("This vehicle is already registered in your society.");
+        }
+        
+        try {
+            await addDoc(collection(db, "vehicles"), { 
+                vehicleNumber: v, 
+                flatNumber: f, 
+                mobileNumber: m, 
+                societyName: assignedSociety 
+            });
+            window.showModal("Added successfully!");
+        } catch (e) {
+            window.showModal("Add error: " + e.message);
+        }
+    }
+
+    // Clear inputs after success
+    document.getElementById('vNum').value = '';
+    document.getElementById('fNum').value = '';
+    document.getElementById('mNum').value = '';
+});
 
     // 5. Bulk Management (Ensured these are active)
     document.getElementById('importBtn')?.addEventListener('click', () => {
