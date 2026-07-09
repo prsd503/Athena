@@ -4,58 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
-    <title> Owl Watch| Home</title>
+    <title>Owl Watch | Home</title>
     <style>
-        
-        .contact-btn {
-    font-family: 'Caveat', cursive;
-    display: inline-block;
-    background: #8d6e63; /* Same brown as your admin portal */
-    color: white;
-    padding: 15px 30px;
-    text-decoration: none;
-    border-radius: 15px;
-    font-size: 1.5rem;
-    border: 2px solid #5d4037;
-    box-shadow: 3px 3px 0px #5d4037;
-    transition: 0.3s;
-}
-
-.contact-btn:hover {
-    background: #5d4037;
-    transform: translateY(-2px);
-    cursor: pointer;
-}
-
-        
-        
         body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
         .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; box-shadow: 5px 5px 0px #8d6e63; max-width: 400px; margin: auto; }
         input { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; }
         button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; margin-top:10px; }
-        #result { margin-top: 20px; font-size: 1.2rem; color: #5d4037; }
-        .btn-msg { background: #25D366; display: inline-block; margin-top: 10px; padding: 10px; color: white; text-decoration: none; border-radius: 10px; }
-        .admin-btn { display: inline-block; background: #8d6e63; color: white; padding: 10px 25px; text-decoration: none; border-radius: 10px; font-family: 'Caveat', cursive; font-size: 1.2rem; cursor: pointer; margin-top: 15px; }
-        .admin-btn:hover { background: #6d4c41; }
-        
-        /* Styling for the Proceed button */
-#verifyBtn {
-    font-family: 'Caveat', cursive;
-    background: #8d6e63; /* Same brown as your portal */
-    color: white;
-    padding: 10px 20px;
-    border: 2px solid #5d4037;
-    border-radius: 10px;
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-#verifyBtn:hover {
-    background: #5d4037; /* Darker brown for hover */
-}
-
-        
+        #result { margin-top: 20px; font-size: 1.2rem; color: #5d4037; text-align: left; }
+        .btn-msg { background: #25D366; display: inline-block; margin-top: 10px; padding: 10px; color: white; text-decoration: none; border-radius: 10px; font-size: 1rem; }
+        .admin-btn { display: inline-block; background: #8d6e63; color: white; padding: 10px 25px; text-decoration: none; border-radius: 10px; font-size: 1.2rem; cursor: pointer; margin-top: 15px; }
+        .contact-btn { display: inline-block; background: #8d6e63; color: white; padding: 15px 30px; text-decoration: none; border-radius: 15px; font-size: 1.5rem; border: 2px solid #5d4037; box-shadow: 3px 3px 0px #5d4037; margin-top: 40px; }
     </style>
 </head>
 <body>
@@ -75,9 +33,23 @@
         <a href="https://prsd503.github.io/Athena/admin.html" class="admin-btn">Admin Portal</a>
     </div>
 
+    <div id="customModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
+        <div style="background:white; margin: 20% auto; padding:20px; width:80%; max-width:300px; border-radius:20px; text-align:center; border: 2px solid #8d6e63;">
+            <p id="modalMessage" style="font-size: 1.2rem; color: #5d4037;"></p>
+            <button onclick="window.closeModal()">Close</button>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Global Modal Helpers
+        window.closeModal = () => { document.getElementById('customModal').style.display = 'none'; };
+        window.showModal = (msg) => {
+            document.getElementById('modalMessage').innerText = msg;
+            document.getElementById('customModal').style.display = 'block';
+        };
 
         const firebaseConfig = {
             apiKey: "AIzaSyBEYKHQpy_VjmgjYiWQOPjXth1bghYsf9M",
@@ -103,45 +75,50 @@
                 document.getElementById("vehicle-search").style.display = "block";
                 document.getElementById("displaySocietyName").innerText = currentSociety;
             } else {
-                alert("Society not found.");
+                window.showModal("Society not found.");
             }
         });
 
         document.getElementById("searchBtn").addEventListener("click", async () => {
             const vNum = document.getElementById("vehicleInput").value.trim().toUpperCase();
             const snap = await getDocs(collection(db, "vehicles"));
-            const found = snap.docs.find(d => {
+            const display = document.getElementById("result");
+            
+            const matches = snap.docs.filter(d => {
                 const data = d.data();
                 return data.societyName.toLowerCase() === currentSociety.toLowerCase() && 
                        data.vehicleNumber.toUpperCase() === vNum;
             });
             
-            const display = document.getElementById("result");
-            if (found) {
-                const data = found.data();
-                const adminPhone = data.mobileNumber || "919033406816";
-                const msg = encodeURIComponent("Hello, I have a query regarding vehicle.");
-                
-                display.innerHTML = `
-                    ✅ Vehicle registered.<br>
-                    Flat: <b>${data.flatNumber || "N/A"}</b><br>
-                    <a href="https://wa.me/${adminPhone}?text=${msg}" target="_blank" class="btn-msg">
-                        💬 Message Admin
-                    </a>
-                `;
+            display.innerHTML = "";
+
+            if (matches.length > 0) {
+                matches.forEach(found => {
+                    const data = found.data();
+                    const adminPhone = data.mobileNumber || "919033406816";
+                    const msg = encodeURIComponent(`Hello, I have a query regarding vehicle ${data.vehicleNumber}`);
+                    
+                    display.innerHTML += `
+                        <div style="margin-top: 15px; border-bottom: 1px solid #8d6e63; padding-bottom: 10px;">
+                            ✅ Vehicle: <b>${data.vehicleNumber}</b><br>
+                            Flat: <b>${data.flatNumber || "N/A"}</b><br>
+                            <a href="https://wa.me/${adminPhone.replace(/\D/g, '')}?text=${msg}" target="_blank" class="btn-msg">
+                                💬 Message Admin
+                            </a>
+                        </div>
+                    `;
+                });
             } else {
-                display.innerHTML = "❌ Not found.";
+                window.showModal("Vehicle not found.");
             }
         });
     </script>
     
-    <div style="text-align: center; margin-top: 40px; padding-bottom: 30px;">
-    <a href="https://wa.me/919033406816?text=Hi! I would like to register my society/organization on Owl-Watch." 
-       class="contact-btn" target="_blank">
-       Click here to Register Your Society/Organization.
-    </a>
-</div>
-
-    
+    <div style="text-align: center; padding-bottom: 30px;">
+        <a href="https://wa.me/919033406816?text=Hi! I would like to register my society on Owl-Watch." 
+           class="contact-btn" target="_blank">
+           Register Your Society
+        </a>
+    </div>
 </body>
 </html>
