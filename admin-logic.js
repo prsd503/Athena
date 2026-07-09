@@ -166,17 +166,16 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
+    
+    // FIX: Explicitly call window.downloadCSV
     document.getElementById('downloadTemplateBtn')?.addEventListener('click', () => {
-        downloadCSV("VehicleNumber,FlatNumber/Name,MobileNumber\n", "Vehicle_Template.csv");
+        window.downloadCSV("VehicleNumber,FlatNumber/Name,MobileNumber\n", "Vehicle_Template.csv");
     });
 
     document.getElementById('exportBtn')?.addEventListener('click', async () => {
         const snapshot = await getDocs(query(collection(db, "vehicles"), where("societyName", "==", assignedSociety)));
         let csv = "VehicleNumber,FlatNumber,MobileNumber\n";
-        snapshot.forEach(d => { 
-            const dt = d.data(); 
-            csv += `${dt.vehicleNumber},${dt.flatNumber},${dt.mobileNumber || ''}\n`; 
-        });
-        downloadCSV(csv, "Vehicles.csv");
+        snapshot.forEach(d => { const dt = d.data(); csv += `${dt.vehicleNumber},${dt.flatNumber},${dt.mobileNumber || ''}\n`; });
+        window.downloadCSV(csv, "Vehicles.csv");
     });
 });
