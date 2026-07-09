@@ -4,15 +4,15 @@ import { doc, getDoc, collection, addDoc, query, where, getDocs, deleteDoc, upda
 
 let assignedSociety = "";
 let editingDocId = null;
-let pendingDeleteId = null; // Stores ID temporarily for modal confirmation
+let pendingDeleteId = null; // New: stores ID for delete confirmation
 
 // --- UI Helpers ---
 window.closeModal = () => { document.getElementById('customModal').style.display = 'none'; };
-
-// Updated: Added parameter to show/hide confirm button
 window.showModal = (msg, showConfirm = false) => {
     document.getElementById('modalMessage').innerText = msg;
-    document.getElementById('confirmDeleteBtn').style.display = showConfirm ? 'inline-block' : 'none';
+    // Show/Hide the confirm button based on the second argument
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+    if (confirmBtn) confirmBtn.style.display = showConfirm ? 'inline-block' : 'none';
     document.getElementById('customModal').style.display = 'block';
 };
 
@@ -37,15 +37,14 @@ window.editEntry = (v, f, m, id) => {
     window.showModal("Details loaded. Edit and click Update.");
 };
 
-// Updated: Triggers modal instead of browser native confirm()
+// Updated Delete Function: triggers modal instead of confirm()
 window.deleteEntry = (id) => {
     pendingDeleteId = id;
     window.showModal("Are you sure you want to delete this record?", true);
 };
 
-// New: Actual delete operation triggered by modal confirm button
+// New: This function performs the actual delete
 window.confirmDelete = async () => {
-    if (!pendingDeleteId) return;
     try {
         await deleteDoc(doc(db, "vehicles", pendingDeleteId));
         window.closeModal();
