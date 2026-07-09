@@ -150,20 +150,48 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('mNum').value = '';
 });
 
-    // 5. Bulk Management (Ensured these are active)
+
+        // 5. Bulk Management (Updated with Duplicate Prevention)
     document.getElementById('importBtn')?.addEventListener('click', () => {
         const file = document.getElementById('excelInput').files[0];
         if (!file) return window.showModal("Select file.");
         const reader = new FileReader();
+        
         reader.onload = async (e) => {
             const rows = e.target.result.split('\n').slice(1);
             const batch = writeBatch(db);
-            rows.forEach(row => {
+            let importedCount = 0;
+            let skippedCount = 0;
+
+            for (const row of rows) {
                 const c = row.split(',');
-                if (c.length >= 2) batch.set(doc(collection(db, "vehicles")), { vehicleNumber: c[0].trim().toUpperCase(), flatNumber: c[1].trim(), mobileNumber: c[2]?.trim() || "", societyName: assignedSociety });
-            });
-            await batch.commit();
-            window.showModal("Imported successfully!");
+                if (c.length >= 2) {
+                    const vNum = c[0].trim().toUpperCase();
+                    
+                    // Check if vehicle already exists for this society
+                    const alreadyExists = await isVehicleExists(vNum, assignedSociety);
+                    
+                    if (!alreadyExists) {
+                        batch.set(doc(collection(db, "vehicles")), { 
+                            vehicleNumber: vNum, 
+                            flatNumber: c[1].trim(), 
+                            mobileNumber: c[2]?.trim() || "", 
+                            societyName: assignedSociety 
+                        });
+                        importedCount++;
+                    } else {
+                        skippedCount++;
+                    }
+                }
+            }
+            
+            // Only commit if there is something to add
+            if (importedCount > 0) {
+                await batch.commit();
+                window.showModal(`Imported ${importedCount} new vehicles. (${skippedCount} duplicates skipped)`);
+            } else {
+                window.showModal(`Import failed: All ${skippedCount} vehicles already exist.`);
+            }
         };
         reader.readAsText(file);
     });
@@ -181,4 +209,3 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         downloadCSV(csv, "Vehicles.csv");
     });
-});
