@@ -42,15 +42,30 @@ window.editEntry = (v, f, m, id) => {
     window.showModal("Details loaded. Edit and click Update.");
 };
 
-window.deleteEntry = async (id) => {
-    if (confirm("Are you sure you want to delete this record?")) {
+// Add this variable at the top with other let declarations
+let pendingDeleteId = null;
+
+// Update the deleteEntry function
+window.deleteEntry = (id) => {
+    pendingDeleteId = id; // Store the ID to delete later
+    window.showModal("Are you sure you want to delete this record?", true); // true enables the Confirm button
+};
+
+// Add this new function to handle the actual deletion
+window.confirmDelete = async () => {
+    if (pendingDeleteId) {
         try {
-            await deleteDoc(doc(db, "vehicles", id));
+            await deleteDoc(doc(db, "vehicles", pendingDeleteId));
+            window.closeModal(); // Close the modal after success
             window.showModal("Record deleted.");
-            document.getElementById('adminSearchBtn').click();
-        } catch (e) { window.showModal("Delete error: " + e.message); }
+            document.getElementById('adminSearchBtn').click(); // Refresh results
+        } catch (e) { 
+            window.showModal("Delete error: " + e.message); 
+        }
+        pendingDeleteId = null; // Reset
     }
 };
+
 
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Auth
