@@ -134,21 +134,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 5. Bulk Management
     document.getElementById('importBtn')?.addEventListener('click', () => {
-        const file = document.getElementById('excelInput').files[0];
-        if (!file) return window.showModal("Select file.");
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const rows = e.target.result.split('\n').slice(1);
-            const batch = writeBatch(db);
-            rows.forEach(row => {
-                const c = row.split(',');
-                if (c.length >= 2) batch.set(doc(collection(db, "vehicles")), { vehicleNumber: c[0].trim().toUpperCase(), flatNumber: c[1].trim(), mobileNumber: c[2]?.trim() || "", societyName: assignedSociety });
-            });
-            await batch.commit();
-            window.showModal("Imported successfully!");
-        };
-        reader.readAsText(file);
-    });
+    const file = document.getElementById('excelInput').files[0];
+    if (!file) return window.showModal("Select file.");
+    const reader = new FileReader();
+    
+    reader.onload = async (e) => {
+        const rows = e.target.result.split('\n').slice(1);
+        const batch = writeBatch(db);
+        let count = 0;
+
+        for (const row of rows) {
+            const c = row.split(',');
+            if (c.length >= 2) {
+                const vNum = c[0].trim().toUpperCase();
+                // Check if exists in DB before adding to batch
+                if (!(await isVehicleExists(vNum, assignedSociety))) {
+                    batch.set(doc(collection(db, "vehicles")), { 
+                        vehicleNumber: vNum, 
+                        flatNumber: c[1].trim(), 
+                        mobileNumber: c[2]?.trim() || "", 
+                        societyName: assignedSociety 
+                    });
+                    count++;
+                }
+            }
+        }
+        await batch.commit();
+        window.showModal(`Imported ${count} new vehicles. Duplicates were skipped.`);
+    };
+    reader.readAsText(file);
+});
+
 
     document.getElementById('downloadTemplateBtn')?.addEventListener('click', () => {
         downloadCSV("VehicleNumber,FlatNumber/Name,MobileNumber\n", "Vehicle_Template.csv");
