@@ -33,23 +33,9 @@
         <a href="https://prsd503.github.io/Athena/admin.html" class="admin-btn">Admin Portal</a>
     </div>
 
-    <div id="customModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
-        <div style="background:white; margin: 20% auto; padding:20px; width:80%; max-width:300px; border-radius:20px; text-align:center; border: 2px solid #8d6e63;">
-            <p id="modalMessage" style="font-size: 1.2rem; color: #5d4037;"></p>
-            <button onclick="window.closeModal()">Close</button>
-        </div>
-    </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        // --- Modal Helpers ---
-        window.closeModal = () => { document.getElementById('customModal').style.display = 'none'; };
-        window.showModal = (msg) => {
-            document.getElementById('modalMessage').innerText = msg;
-            document.getElementById('customModal').style.display = 'block';
-        };
 
         const firebaseConfig = {
             apiKey: "AIzaSyBEYKHQpy_VjmgjYiWQOPjXth1bghYsf9M",
@@ -75,7 +61,7 @@
                 document.getElementById("vehicle-search").style.display = "block";
                 document.getElementById("displaySocietyName").innerText = currentSociety;
             } else {
-                window.showModal("Society not found.");
+                alert("Society not found.");
             }
         });
 
@@ -84,13 +70,14 @@
             const snap = await getDocs(collection(db, "vehicles"));
             const display = document.getElementById("result");
             
+            // Collect all matching records
             const matches = snap.docs.filter(d => {
                 const data = d.data();
                 return data.societyName.toLowerCase() === currentSociety.toLowerCase() && 
                        data.vehicleNumber.toUpperCase() === vNum;
             });
             
-            display.innerHTML = ""; 
+            display.innerHTML = ""; // Clear results first
 
             if (matches.length > 0) {
                 matches.forEach(found => {
@@ -109,7 +96,7 @@
                     `;
                 });
             } else {
-                window.showModal("Vehicle not found.");
+                display.innerHTML = "❌ Not found.";
             }
         });
     </script>
