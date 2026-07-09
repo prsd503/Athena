@@ -16,6 +16,14 @@ window.showModal = (msg, showConfirm = false) => {
     document.getElementById('customModal').style.display = 'block';
 };
 
+async function isVehicleExists(vNum, society) {
+    const q = query(collection(db, "vehicles"), 
+              where("vehicleNumber", "==", vNum), 
+              where("societyName", "==", society));
+    const snapshot = await getDocs(q);
+    return !snapshot.empty;
+}
+
 const downloadCSV = (content, filename) => {
     const blob = new Blob([content], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
