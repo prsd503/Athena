@@ -10,7 +10,12 @@
         .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; box-shadow: 5px 5px 0px #8d6e63; max-width: 400px; margin: auto; }
         input { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; }
         button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; margin-top:10px; }
-        #result { margin-top: 20px; font-size: 1.2rem; color: #5d4037; text-align: left; }
+        
+        /* Modal Styles */
+        .modal { display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: #fff; margin: 15% auto; padding: 20px; border: 2px solid #8d6e63; width: 80%; max-width: 300px; border-radius: 20px; position: relative; }
+        .close { color: #5d4037; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        
         .btn-msg { background: #25D366; display: inline-block; margin-top: 10px; padding: 10px; color: white; text-decoration: none; border-radius: 10px; font-size: 1rem; }
         .admin-btn { display: inline-block; background: #8d6e63; color: white; padding: 10px 25px; text-decoration: none; border-radius: 10px; font-family: 'Caveat', cursive; font-size: 1.2rem; cursor: pointer; margin-top: 15px; }
         .contact-btn { display: inline-block; background: #8d6e63; color: white; padding: 15px 30px; text-decoration: none; border-radius: 15px; font-size: 1.5rem; border: 2px solid #5d4037; box-shadow: 3px 3px 0px #5d4037; margin-top: 40px; }
@@ -27,10 +32,16 @@
             <p>Society: <span id="displaySocietyName" style="font-weight:bold;"></span></p>
             <input type="text" id="vehicleInput" placeholder="Enter Vehicle Number">
             <button id="searchBtn">Search</button>
-            <div id="result"></div>
         </div>
         <br>
         <a href="https://prsd503.github.io/Athena/admin.html" class="admin-btn">Admin Portal</a>
+    </div>
+
+    <div id="resultModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="result"></div>
+        </div>
     </div>
 
     <script type="module">
@@ -48,7 +59,13 @@
         
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const modal = document.getElementById("resultModal");
+        const closeBtn = document.querySelector(".close");
         let currentSociety = "";
+
+        // Close modal logic
+        closeBtn.onclick = () => { modal.style.display = "none"; };
+        window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
 
         document.getElementById("verifyBtn").addEventListener("click", async () => {
             const input = document.getElementById("societyInput").value.trim().toLowerCase();
@@ -70,14 +87,13 @@
             const snap = await getDocs(collection(db, "vehicles"));
             const display = document.getElementById("result");
             
-            // Collect all matching records
             const matches = snap.docs.filter(d => {
                 const data = d.data();
                 return data.societyName.toLowerCase() === currentSociety.toLowerCase() && 
                        data.vehicleNumber.toUpperCase() === vNum;
             });
             
-            display.innerHTML = ""; // Clear results first
+            display.innerHTML = ""; 
 
             if (matches.length > 0) {
                 matches.forEach(found => {
@@ -98,6 +114,7 @@
             } else {
                 display.innerHTML = "❌ Not found.";
             }
+            modal.style.display = "block"; // Trigger the modal
         });
     </script>
     
