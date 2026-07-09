@@ -4,9 +4,9 @@ import { doc, getDoc, collection, addDoc, query, where, getDocs, deleteDoc, upda
 
 let assignedSociety = "";
 let editingDocId = null;
-let pendingDeleteId = null; // Added for modal delete
+let pendingDeleteId = null;
 
-// --- UI Helpers ---
+// --- Modal Functionality (Attached to window) ---
 window.closeModal = () => { document.getElementById('customModal').style.display = 'none'; };
 window.showModal = (msg, showConfirm = false) => {
     document.getElementById('modalMessage').innerText = msg;
@@ -32,7 +32,7 @@ const downloadCSV = (content, filename) => {
     document.body.removeChild(link);
 };
 
-// --- Edit/Delete Helpers ---
+// --- Edit/Delete Helpers (Attached to window) ---
 window.editEntry = (v, f, m, id) => {
     editingDocId = id;
     document.getElementById('vNum').value = v;
@@ -58,7 +58,6 @@ window.confirmDelete = async () => {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Auth
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             const adminDoc = await getDoc(doc(db, "admins", user.email));
@@ -71,7 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 2. Login/Logout
     document.getElementById('loginBtn')?.addEventListener('click', async () => {
         const email = document.getElementById('email').value.trim();
         const pass = document.getElementById('pass').value.trim();
@@ -81,7 +79,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('logoutBtn')?.addEventListener('click', async () => { await signOut(auth); location.reload(); });
 
-    // 3. Search
     document.getElementById('adminSearchBtn')?.addEventListener('click', async () => {
         const qVal = document.getElementById('adminSearch').value.trim().toUpperCase();
         const container = document.getElementById('admin-results');
@@ -99,13 +96,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="background:#fdf6e3; padding:10px; border-radius:10px; margin-bottom:10px; text-align:left; border: 1px solid #8d6e63;">
                     <p><b>${data.vehicleNumber}</b> | Flat/Name: ${data.flatNumber}</p>
                     <a href="${waLink}" target="_blank" style="background:#25d366; color:white; padding:5px 8px; border-radius:5px; text-decoration:none; font-size:0.8rem;">WhatsApp</a>
-                    <button onclick="editEntry('${data.vehicleNumber}', '${data.flatNumber}', '${data.mobileNumber || ''}', '${d.id}')" style="background:#6d4c41; font-size:0.8rem;">Edit</button>
-                    <button onclick="deleteEntry('${d.id}')" style="background:#d32f2f; font-size:0.8rem;">Delete</button>
+                    <button onclick="window.editEntry('${data.vehicleNumber}', '${data.flatNumber}', '${data.mobileNumber || ''}', '${d.id}')" style="background:#6d4c41; font-size:0.8rem;">Edit</button>
+                    <button onclick="window.deleteEntry('${d.id}')" style="background:#d32f2f; font-size:0.8rem;">Delete</button>
                 </div>`;
         });
     });
 
-    // 4. Save/Update
     document.getElementById('saveBtn')?.addEventListener('click', async () => {
         const v = document.getElementById('vNum').value.trim().toUpperCase();
         const f = document.getElementById('fNum').value.trim();
@@ -127,7 +123,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('mNum').value = '';
     });
 
-    // 5. Bulk Management
     document.getElementById('importBtn')?.addEventListener('click', () => {
         const file = document.getElementById('excelInput').files[0];
         if (!file) return window.showModal("Select file.");
