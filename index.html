@@ -5,13 +5,13 @@
 <meta name="theme-color" content="#8d6e63">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="OwlWatch">
+<meta name="apple-mobile-web-app-title" content="OwlWatcher">
 <link rel="apple-touch-icon" href="icon.png">
     
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
-    <title>Owl Watch | Home</title>
+    <title>Owl Watcher | Home</title>
     <style>
         body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
         .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; box-shadow: 5px 5px 0px #8d6e63; max-width: 400px; margin: auto; }
@@ -30,7 +30,7 @@
 </head>
 <body>
     <div class="card">
-        <h1>Owl Watch 🦉</h1>
+        <h1>Owl Watcher 🦉</h1>
         
         <div id="society-verification">
             <input type="text" id="societyInput" placeholder="Enter Society Name">
@@ -113,7 +113,7 @@
                 matches.forEach(found => {
                     const data = found.data();
                     const adminPhone = data.mobileNumber || "919033406816";
-                    const msg = encodeURIComponent(`(Using: Owl-Watch) Hello, this message is for vehicle ${data.vehicleNumber} of ${data.flatNumber}`);
+                    const msg = encodeURIComponent(`(Using: Owl-Watcher) Hello, this message is for vehicle ${data.vehicleNumber} of ${data.flatNumber}`);
                     htmlContent += `
                         <div style="margin-top: 15px; border-bottom: 1px solid #8d6e63; padding-bottom: 10px;">
                             ✅ Vehicle: <b>${data.vehicleNumber}</b><br>
