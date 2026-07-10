@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
         snapshot.forEach((d) => {
     const data = d.data();
     const type = data.vehicleType || "N/A"; // Shows vehicle type
-    const waLink = data.mobileNumber ? `https://wa.me/${data.mobileNumber.replace(/\D/g, '')}?text=Hello, query regarding vehicle ${data.vehicleNumber}` : "#";
+    const waLink = data.mobileNumber ? `https://wa.me/${data.mobileNumber.replace(/\D/g, '')}?text= (Using: Owl-Watch)Hello, query regarding vehicle ${data.vehicleNumber}` : "#";
     
     container.innerHTML += `
     <div style="background:#fdf6e3; padding:10px; border-radius:10px; margin-bottom:10px; text-align:left; border: 1px solid #8d6e63;">
