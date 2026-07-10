@@ -92,11 +92,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const batch = writeBatch(db);
         let deletedCount = 0;
 
+        // Process all rows
         for (const row of rows) {
             const vNum = row.split(',')[0]?.trim().toUpperCase();
             if (!vNum) continue;
 
-            // Find the document ID for this vehicle in the current society
             const q = query(collection(db, "vehicles"), 
                 where("vehicleNumber", "==", vNum), 
                 where("societyName", "==", assignedSociety));
@@ -108,17 +108,19 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
+        // Only commit if we found items to delete
         if (deletedCount > 0) {
             await batch.commit();
-            window.showModal(`Successfully deleted ${deletedCount} vehicles.`);
-            document.getElementById('adminSearchBtn').click(); // Refresh list
+            // --- UPDATED MESSAGE HERE ---
+            window.showModal(`Deleted ${deletedCount} vehicles successfully.`);
+            document.getElementById('adminSearchBtn').click(); 
         } else {
             window.showModal("No matching vehicles found to delete.");
         }
     };
     reader.readAsText(file);
 });
-    
+
 
     // 2. Login/Logout
     document.getElementById('loginBtn')?.addEventListener('click', async () => {
