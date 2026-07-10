@@ -79,6 +79,47 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+
+    //bulk delete 
+    
+    document.getElementById('bulkDeleteBtn')?.addEventListener('click', () => {
+    const file = document.getElementById('excelInput').files[0];
+    if (!file) return window.showModal("Select a CSV file first.");
+    
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const rows = e.target.result.split('\n').slice(1);
+        const batch = writeBatch(db);
+        let deletedCount = 0;
+
+        for (const row of rows) {
+            const vNum = row.split(',')[0]?.trim().toUpperCase();
+            if (!vNum) continue;
+
+            // Find the document ID for this vehicle in the current society
+            const q = query(collection(db, "vehicles"), 
+                where("vehicleNumber", "==", vNum), 
+                where("societyName", "==", assignedSociety));
+            const snapshot = await getDocs(q);
+
+            snapshot.forEach((doc) => {
+                batch.delete(doc.ref);
+                deletedCount++;
+            });
+        }
+
+        if (deletedCount > 0) {
+            await batch.commit();
+            window.showModal(`Successfully deleted ${deletedCount} vehicles.`);
+            document.getElementById('adminSearchBtn').click(); // Refresh list
+        } else {
+            window.showModal("No matching vehicles found to delete.");
+        }
+    };
+    reader.readAsText(file);
+});
+    
+
     // 2. Login/Logout
     document.getElementById('loginBtn')?.addEventListener('click', async () => {
         const email = document.getElementById('email').value.trim();
