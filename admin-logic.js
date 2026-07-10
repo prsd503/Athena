@@ -102,12 +102,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const waLink = data.mobileNumber ? `https://wa.me/${data.mobileNumber.replace(/\D/g, '')}?text=Hello, query regarding vehicle ${data.vehicleNumber}` : "#";
     
     container.innerHTML += `
-        <div style="background:#fdf6e3; padding:10px; border-radius:10px; margin-bottom:10px; text-align:left; border: 1px solid #8d6e63;">
-            <p><b>${data.vehicleNumber}</b> (${type}) | Flat: ${data.flatNumber}</p>
-            <a href="${waLink}" target="_blank" style="...">WhatsApp</a>
-            <button onclick="editEntry('${data.vehicleNumber}', '${data.flatNumber}', '${data.mobileNumber || ''}', '${d.id}')" ...>Edit</button>
-            <button onclick="deleteEntry('${d.id}')" ...>Delete</button>
-        </div>`;
+    <div style="background:#fdf6e3; padding:10px; border-radius:10px; margin-bottom:10px; text-align:left; border: 1px solid #8d6e63;">
+        <p><b>${data.vehicleNumber}</b> (${type}) | Flat: ${data.flatNumber}</p>
+        
+        <!-- Updated WhatsApp Button -->
+        <a href="${waLink}" target="_blank" style="background:#25d366; color:white; padding:8px 12px; border-radius:10px; text-decoration:none; font-size:0.8rem; display:inline-block; margin-bottom:5px;">WhatsApp</a>
+        
+        <button onclick="editEntry('${data.vehicleNumber}', '${data.flatNumber}', '${data.mobileNumber || ''}', '${d.id}')" style="background:#6d4c41; font-size:0.8rem; padding:8px 12px;">Edit</button>
+        <button onclick="deleteEntry('${d.id}')" style="background:#d32f2f; font-size:0.8rem; padding:8px 12px;">Delete</button>
+    </div>`;
+
 });
 
     });
