@@ -1,6 +1,7 @@
+
 {
-  "name": "Finder Owl",
-  "short_name": "FinderOwl",
+  "name": "Owl Watch",
+  "short_name": "OwlWatch",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#fdf6e3",
