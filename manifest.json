@@ -1,6 +1,6 @@
 {
-  "name": "Owl Watch",
-  "short_name": "OwlWatch",
+  "name": "Owl Watcher",
+  "short_name": "OwlWatcher",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#fdf6e3",
