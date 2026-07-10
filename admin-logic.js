@@ -59,11 +59,18 @@ window.confirmDelete = async () => {
     try {
         await deleteDoc(doc(db, "vehicles", pendingDeleteId));
         window.closeModal();
-        window.showModal("Record deleted.");
+        
+        // --- CHANGE: Specific delete confirmation ---
+        window.showModal("Data deleted successfully."); 
+        
+        // Refresh the search results
         document.getElementById('adminSearchBtn').click();
-    } catch (e) { window.showModal("Delete error: " + e.message); }
+    } catch (e) { 
+        window.showModal("Delete error: " + e.message); 
+    }
     pendingDeleteId = null;
 };
+
 
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Auth
@@ -133,16 +140,29 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('logoutBtn')?.addEventListener('click', async () => { await signOut(auth); location.reload(); });
 
     // 3. Search
-    document.getElementById('adminSearchBtn')?.addEventListener('click', async () => {
-        const qVal = document.getElementById('adminSearch').value.trim().toUpperCase();
-        const container = document.getElementById('admin-results');
-        container.innerHTML = "";
-        if (!qVal) return window.showModal("Enter vehicle number.");
+    document.getElementById('adminSearchBtn')?.addEventListener('click', async (event) => {
+    const qVal = document.getElementById('adminSearch').value.trim().toUpperCase();
+    const container = document.getElementById('admin-results');
+    container.innerHTML = "";
+    
+    if (!qVal) return window.showModal("Enter vehicle number.");
 
-        const q = query(collection(db, "vehicles"), where("vehicleNumber", "==", qVal), where("societyName", "==", assignedSociety));
-        const snapshot = await getDocs(q);
-        if (snapshot.empty) return window.showModal("No data found.");
-        
+    const q = query(collection(db, "vehicles"), where("vehicleNumber", "==", qVal), where("societyName", "==", assignedSociety));
+    const snapshot = await getDocs(q);
+    
+    // Only show "No data found" if this was a manual user search 
+    // (i.e., triggered by a real click event, not a programmatic refresh)
+    if (snapshot.empty) {
+        if (event.isTrusted) { 
+            window.showModal("No data found."); 
+        }
+        return;
+    }
+    
+    // ... rest of your snapshot rendering logic ...
+});
+
+    
         snapshot.forEach((d) => {
             const data = d.data();
             const waLink = data.mobileNumber ? `https://wa.me/${data.mobileNumber.replace(/\D/g, '')}?text=Hello, query regarding vehicle ${data.vehicleNumber}` : "#";
