@@ -1,4 +1,4 @@
-const CACHE_NAME = 'owl-watch-admin-v1';
+const CACHE_NAME = 'owl-watcher-admin-v1';
 const ASSETS = [
     '/',
     '/index.html',
