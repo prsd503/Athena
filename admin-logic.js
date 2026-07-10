@@ -24,7 +24,7 @@ async function isVehicleExists(vNum, society) {
     return !snapshot.empty;
 }
 
-const downloadCSV = (content, filename) => {
+window.downloadCSV = (content, filename) => {
     const blob = new Blob([content], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -33,7 +33,10 @@ const downloadCSV = (content, filename) => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    // Best practice to free up memory
+    URL.revokeObjectURL(url); 
 };
+
 
 // --- Edit/Delete Helpers ---
 window.editEntry = (v, f, m, id) => {
@@ -168,14 +171,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     
     // FIX: Explicitly call window.downloadCSV
-    document.getElementById('downloadTemplateBtn')?.addEventListener('click', () => {
-        window.downloadCSV("VehicleNumber,FlatNumber/Name,MobileNumber\n", "Vehicle_Template.csv");
-    });
+    // Update Template Download:
+document.getElementById('downloadTemplateBtn')?.addEventListener('click', () => {
+    window.downloadCSV("VehicleNumber,FlatNumber/Name,MobileNumber\n", "Vehicle_Template.csv");
+});
 
-    document.getElementById('exportBtn')?.addEventListener('click', async () => {
-        const snapshot = await getDocs(query(collection(db, "vehicles"), where("societyName", "==", assignedSociety)));
-        let csv = "VehicleNumber,FlatNumber,MobileNumber\n";
-        snapshot.forEach(d => { const dt = d.data(); csv += `${dt.vehicleNumber},${dt.flatNumber},${dt.mobileNumber || ''}\n`; });
-        window.downloadCSV(csv, "Vehicles.csv");
+// Update Export Download:
+document.getElementById('exportBtn')?.addEventListener('click', async () => {
+    const snapshot = await getDocs(query(collection(db, "vehicles"), where("societyName", "==", assignedSociety)));
+    let csv = "VehicleNumber,FlatNumber,MobileNumber\n";
+    snapshot.forEach(d => { 
+        const dt = d.data(); 
+        csv += `${dt.vehicleNumber},${dt.flatNumber},${dt.mobileNumber || ''}\n`; 
     });
+    window.downloadCSV(csv, "Vehicles.csv");
+});
+
 });
