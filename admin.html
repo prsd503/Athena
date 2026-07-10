@@ -34,10 +34,20 @@
         
     </div>
     <div class="card" id="data-section" style="display:none;">
+        
         <h2>Add Vehicle</h2>
-        <input type="text" id="vNum" placeholder="Vehicle Number"><input type="text" id="fNum" placeholder="Flat Number"><input type="text" id="mNum" placeholder="Mobile Number">
-        <button id="saveBtn">Save to Registry</button>
-  
+<input type="text" id="vNum" placeholder="Vehicle Number">
+<input type="text" id="fNum" placeholder="Flat Number">
+<input type="text" id="mNum" placeholder="Mobile Number">
+
+<select id="vType" style="width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px;">
+    <option value="2-Wheeler">2-Wheeler</option>
+    <option value="3-Wheeler">3-Wheeler</option>
+    <option value="4-Wheeler">4-Wheeler</option>
+</select>
+
+<button id="saveBtn">Save to Registry</button>
+
         <hr style="margin:20px 0;">
         <h3>Bulk Management</h3>
         <input type="file" id="excelInput" accept=".csv">
