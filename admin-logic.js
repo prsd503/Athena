@@ -148,19 +148,33 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!file) return window.showModal("Select file.");
         const reader = new FileReader();
         reader.onload = async (e) => {
-            const rows = e.target.result.split('\n').slice(1);
-            const batch = writeBatch(db);
-            let count = 0;
-            for (const row of rows) {
-                const c = row.split(',');
-                if (c.length >= 2 && !(await isVehicleExists(c[0].trim().toUpperCase(), assignedSociety))) {
-                    batch.set(doc(collection(db, "vehicles")), { vehicleNumber: c[0].trim().toUpperCase(), flatNumber: c[1].trim(), mobileNumber: c[2]?.trim() || "", societyName: assignedSociety });
-                    count++;
-                }
+    const rows = e.target.result.split('\n').slice(1);
+    const batch = writeBatch(db);
+    let count = 0;
+
+    for (const row of rows) {
+        const c = row.split(',');
+        if (c.length >= 2) {
+            const vNum = c[0].trim().toUpperCase();
+            // Use the 4th column (index 3) for type, default to "2-Wheeler" if empty
+            const vType = c[3]?.trim() || "2-Wheeler"; 
+            
+            if (!(await isVehicleExists(vNum, assignedSociety))) {
+                batch.set(doc(collection(db, "vehicles")), { 
+                    vehicleNumber: vNum, 
+                    flatNumber: c[1].trim(), 
+                    mobileNumber: c[2]?.trim() || "", 
+                    vehicleType: vType, // Save new field
+                    societyName: assignedSociety 
+                });
+                count++;
             }
-            await batch.commit();
-            window.showModal(`Imported ${count} new vehicles.`);
-        };
+        }
+    }
+    await batch.commit();
+    window.showModal(`Imported ${count} new vehicles.`);
+};
+
         reader.readAsText(file);
     });
 
@@ -186,13 +200,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('downloadTemplateBtn')?.addEventListener('click', () => {
-        window.downloadCSV("VehicleNumber,FlatNumber/Name,MobileNumber\n", "Vehicle_Template.csv");
-    });
+    // Added 'VehicleType' header
+    window.downloadCSV("VehicleNumber,FlatNumber/Name,MobileNumber,VehicleType\n", "Vehicle_Template.csv");
+});
+
 
     document.getElementById('exportBtn')?.addEventListener('click', async () => {
-        const snapshot = await getDocs(query(collection(db, "vehicles"), where("societyName", "==", assignedSociety)));
-        let csv = "VehicleNumber,FlatNumber,MobileNumber\n";
-        snapshot.forEach(d => { const dt = d.data(); csv += `${dt.vehicleNumber},${dt.flatNumber},${dt.mobileNumber || ''}\n`; });
-        window.downloadCSV(csv, "Vehicles.csv");
+    const snapshot = await getDocs(query(collection(db, "vehicles"), where("societyName", "==", assignedSociety)));
+    // Updated header
+    let csv = "VehicleNumber,FlatNumber,MobileNumber,VehicleType\n"; 
+    snapshot.forEach(d => { 
+        const dt = d.data(); 
+        // Included vehicleType
+        csv += `${dt.vehicleNumber},${dt.flatNumber},${dt.mobileNumber || ''},${dt.vehicleType || '2-Wheeler'}\n`; 
     });
+    window.downloadCSV(csv, "Vehicles.csv");
+});
+
 });
