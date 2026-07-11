@@ -1,21 +1,27 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Delete Account | Owl Watcher</title>
     <style>
         body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
         .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; max-width: 400px; margin: auto; }
-        input { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; margin-bottom: 10px; }
-        button { background: #d32f2f; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; }
+        button { background: #d32f2f; color: white; border: none; padding: 15px 30px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h2>Delete Account</h2>
-        <p>This action is permanent. Please log in to confirm.</p>
-        <input type="email" id="delEmail" placeholder="Email">
-        <input type="password" id="delPass" placeholder="Password">
-        <button id="confirmDeleteBtn">Permanently Delete</button>
+        <h2>⚠️ Delete Account</h2>
+        <p style="text-align: left;">
+            <b>Disclaimer:</b> This action will permanently close your Owl Watcher account. <br><br>
+            By submitting, you acknowledge that:
+            <ul>
+                <li>All your registry data will be removed.</li>
+                <li>We will prepare and send your full data to you via email.</li>
+                <li>Your account access will be revoked shortly after.</li>
+            </ul>
+        </p>
+        <button id="submitDeleteBtn">Submit Deletion Request</button>
     </div>
     <script type="module" src="delete-logic.js"></script>
 </body>
