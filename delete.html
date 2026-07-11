@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delete Account | Owl Watcher</title>
+    <style>
+        body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
+        .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; max-width: 400px; margin: auto; }
+        input { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; margin-bottom: 10px; }
+        button { background: #d32f2f; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Delete Account</h2>
+        <p>This action is permanent. Please log in to confirm.</p>
+        <input type="email" id="delEmail" placeholder="Email">
+        <input type="password" id="delPass" placeholder="Password">
+        <button id="confirmDeleteBtn">Permanently Delete</button>
+    </div>
+    <script type="module" src="delete-logic.js"></script>
+</body>
+</html>
