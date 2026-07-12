@@ -59,11 +59,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!assignedSociety) return alert("Society not loaded.");
 
         try {
-            await setDoc(doc(db, "notices", assignedSociety), {
-                todayMessage: today,
-                tomorrowMessage: tomorrow,
-                updatedAt: serverTimestamp()
-            }, { merge: true });
+            // Inside your postNoticeBtn click event in admin-logic.js
+await setDoc(doc(db, "notices", assignedSociety), {
+    todayMessage: today,
+    tomorrowMessage: tomorrow,
+    date: new Date().toISOString().split('T')[0], // Saves as 'YYYY-MM-DD'
+    updatedAt: serverTimestamp()
+}, { merge: true });
+
             alert("Notices updated successfully!");
         } catch (e) {
             alert("Error posting notice: " + e.message);
