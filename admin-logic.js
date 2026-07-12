@@ -58,6 +58,62 @@ window.confirmDelete = async () => {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+
+// --- Security Guard Logic ---
+
+// 1. Search Guard by Email
+document.getElementById('searchGuardBtn')?.addEventListener('click', async () => {
+    const email = document.getElementById('searchGuardEmail').value.trim();
+    if (!email) return window.showModal("Enter guard email.");
+
+    const q = query(collection(db, "guards"), where("email", "==", email), where("society", "==", assignedSociety));
+    const snap = await getDocs(q);
+
+    if (!snap.empty) {
+        const docData = snap.docs[0].data();
+        editingDocId = snap.docs[0].id; // Store ID for update/delete
+        document.getElementById('guardEmail').value = docData.email;
+        document.getElementById('guardName').value = docData.name || "";
+        document.getElementById('guardPhone').value = docData.phone || "";
+        window.showModal("Guard found.");
+    } else {
+        window.showModal("Guard not found in this society.");
+    }
+});
+
+// 2. Save/Update Guard
+document.getElementById('saveGuardBtn')?.addEventListener('click', async () => {
+    const email = document.getElementById('guardEmail').value.trim();
+    const name = document.getElementById('guardName').value.trim();
+    const phone = document.getElementById('guardPhone').value.trim();
+
+    if (!email || !name || !phone) return window.showModal("Fill all fields.");
+
+    if (editingDocId) {
+        // Update
+        await updateDoc(doc(db, "guards", editingDocId), { name, phone, email, society: assignedSociety });
+        window.showModal("Guard updated.");
+    } else {
+        // Create
+        await addDoc(collection(db, "guards"), { name, phone, email, society: assignedSociety });
+        window.showModal("Guard added.");
+    }
+    editingDocId = null; // Reset
+});
+
+// 3. Delete Guard
+document.getElementById('deleteGuardBtn')?.addEventListener('click', async () => {
+    if (!editingDocId) return window.showModal("Search for a guard first.");
+    await deleteDoc(doc(db, "guards", editingDocId));
+    window.showModal("Guard deleted.");
+    editingDocId = null;
+    // Clear inputs
+    document.getElementById('guardEmail').value = "";
+    document.getElementById('guardName').value = "";
+    document.getElementById('guardPhone').value = "";
+});
+    
+    
     // 1. Auth
     onAuthStateChanged(auth, async (user) => {
         if (user) {
