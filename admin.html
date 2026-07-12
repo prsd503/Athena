@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
-    <title>Owl Watch | Admin</title>
+    <title>Owl Watcher | Admin</title>
     <style>
 
         #customModal { z-index: 1000; }
@@ -34,7 +34,7 @@
     </style>
 </head>
 <body>
-    <div class="card"><h1>Owl Watch 🦉</h1><p>Admin Portal</p></div>
+    <div class="card"><h1>Owl Watcher 🦉</h1><p>Admin Portal</p></div>
     <div class="card" id="login-section">
         <h2>Admin Login</h2>
         <input type="email" id="email" placeholder="Email"><input type="password" id="pass" placeholder="Password">
@@ -100,6 +100,7 @@
 
 <button id="saveBtn">Save to Registry</button>
 
+         <hr style="margin:20px 0;">
 <div class="card">
     <h2>Manage Security Guards</h2>
     <input type="text" id="searchGuardName" placeholder="Search by Name...">
@@ -124,9 +125,12 @@
         <input type="file" id="excelInput" accept=".csv">
         <button id="importBtn">Bulk Import CSV</button>
         <button id="downloadTemplateBtn" style="background:#6d4c41;">Download CSV Template</button>
-        <button id="exportBtn" style="background:#25D366;">Download All as CSV</button>
-        <button id="bulkDeleteBtn" style="background:#d32f2f;">Bulk Delete CSV</button> 
-        
+       <!-- <button id="exportBtn" style="background:#25D366;">Download All as CSV</button>
+        <button id="bulkDeleteBtn" style="background:#d32f2f;">Bulk Delete CSV</button> -->
+
+          <hr style="margin:20px 0;">
+        <button id="dataDeleteBtn" style="background:#d32f2f;">Bulk Delete Data </button>
+        <button id="fullDeleteBtn" style="background:#d32f2f;">Delete Full Account</button>
     
     </div>
     <div id="customModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);">
