@@ -62,24 +62,28 @@ document.addEventListener('DOMContentLoaded', () => {
 // --- Security Guard Logic ---
 
 // 1. Search Guard by Email
-document.getElementById('searchGuardBtn')?.addEventListener('click', async () => {
-    const email = document.getElementById('searchGuardEmail').value.trim();
-    if (!email) return window.showModal("Enter guard email.");
+// Ensure this is inside your admin-logic.js
+document.getElementById('searchGuardBtn').addEventListener('click', async () => {
+    const email = document.getElementById('searchEmail').value.trim();
+    if (!email) return window.showModal("Enter email to search.");
 
+    // Query guards collection
     const q = query(collection(db, "guards"), where("email", "==", email), where("society", "==", assignedSociety));
     const snap = await getDocs(q);
 
     if (!snap.empty) {
-        const docData = snap.docs[0].data();
-        editingDocId = snap.docs[0].id; // Store ID for update/delete
-        document.getElementById('guardEmail').value = docData.email;
-        document.getElementById('guardName').value = docData.name || "";
-        document.getElementById('guardPhone').value = docData.phone || "";
-        window.showModal("Guard found.");
+        const docSnap = snap.docs[0];
+        const data = docSnap.data();
+        editingDocId = docSnap.id; // Store ID to update later
+        
+        document.getElementById('gEmail').value = data.email;
+        document.getElementById('gName').value = data.name || "";
+        document.getElementById('gPhone').value = data.phone || "";
     } else {
-        window.showModal("Guard not found in this society.");
+        window.showModal("Guard not found.");
     }
 });
+
 
 // 2. Save/Update Guard
 document.getElementById('saveGuardBtn')?.addEventListener('click', async () => {
