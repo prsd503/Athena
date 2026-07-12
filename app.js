@@ -4,7 +4,7 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth
 
 const firebaseConfig = {
   apiKey: "AIzaSyBEYKHQpy_VjmgjYIwQOPjXth1bghYsf9M",
-  authDomain: "https://console.firebase.google.com/",
+  authDomain: "https://finder-owl.firebase.google.com/",
   projectId: "finder-owl",
   storageBucket: "finder-owl.firebasestorage.app",
   messagingSenderId: "1011347100861",
