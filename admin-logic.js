@@ -4,15 +4,24 @@ import { doc, getDoc, collection, addDoc, query, where, getDocs, deleteDoc, upda
 
 let assignedSociety = "";
 let editingDocId = null;
-let pendingDeleteId = null;
 
 // --- UI Helpers ---
 window.closeModal = () => { document.getElementById('customModal').style.display = 'none'; };
-window.showModal = (msg, showConfirm = false) => {
+window.showModal = (msg) => {
     document.getElementById('modalMessage').innerText = msg;
-    const confirmBtn = document.getElementById('confirmDeleteBtn');
-    if (confirmBtn) confirmBtn.style.display = showConfirm ? 'inline-block' : 'none';
     document.getElementById('customModal').style.display = 'block';
+};
+
+window.downloadCSV = (content, filename) => {
+    const blob = new Blob([content], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -29,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 2. Search Guard by Name
+    // 2. Guard Management
     document.getElementById('searchGuardBtn')?.addEventListener('click', async () => {
         const nameToSearch = document.getElementById('searchGuardName').value.trim();
         if (!nameToSearch) return window.showModal("Enter a name to search.");
@@ -50,7 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 3. Save/Update Guard
     document.getElementById('addGuardBtn')?.addEventListener('click', async () => {
         const email = document.getElementById('gEmail').value.trim();
         const name = document.getElementById('gName').value.trim();
@@ -68,7 +76,6 @@ document.addEventListener('DOMContentLoaded', () => {
         editingDocId = null;
     });
 
-    // 4. Delete Guard
     document.getElementById('deleteGuardBtn')?.addEventListener('click', async () => {
         if (!editingDocId) return window.showModal("Search for a guard first.");
         await deleteDoc(doc(db, "guards", editingDocId));
@@ -79,8 +86,11 @@ document.addEventListener('DOMContentLoaded', () => {
         editingDocId = null;
     });
 
-    // ... (Add your existing vehicle logic here)
-            const reader = new FileReader();
+    // 3. Bulk Management (Bulk Delete)
+    document.getElementById('bulkDeleteBtn')?.addEventListener('click', () => {
+        const file = document.getElementById('excelInput').files[0];
+        if (!file) return window.showModal("Select CSV file first.");
+        const reader = new FileReader();
         reader.onload = async (e) => {
             const rows = e.target.result.split('\n').slice(1);
             const batch = writeBatch(db);
@@ -92,22 +102,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const snapshot = await getDocs(q);
                 snapshot.forEach((doc) => { batch.delete(doc.ref); deletedCount++; });
             }
-            if (deletedCount > 0) { await batch.commit(); window.showModal(`Deleted ${deletedCount} vehicles.`); document.getElementById('adminSearchBtn').click(); }
+            if (deletedCount > 0) { await batch.commit(); window.showModal(`Deleted ${deletedCount} vehicles.`); }
             else window.showModal("No matching vehicles found.");
         };
         reader.readAsText(file);
     });
 
+    // 4. Download/Export
     document.getElementById('downloadTemplateBtn')?.addEventListener('click', () => {
         window.downloadCSV("VehicleNumber,FlatNumber/Name,MobileNumber\n", "Vehicle_Template.csv");
     });
-
-    document.getElementById('exportBtn')?.addEventListener('click', async () => {
-        const snapshot = await getDocs(query(collection(db, "vehicles"), where("societyName", "==", assignedSociety)));
-        let csv = "VehicleNumber,FlatNumber,MobileNumber\n";
-        snapshot.forEach(d => { const dt = d.data(); csv += `${dt.vehicleNumber},${dt.flatNumber},${dt.mobileNumber || ''}\n`; });
-        window.downloadCSV(csv, "Vehicles.csv");
-    });
-});
-
 });
