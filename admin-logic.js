@@ -63,24 +63,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // 1. Search Guard by Email
 // Ensure this is inside your admin-logic.js
-document.getElementById('searchGuardBtn').addEventListener('click', async () => {
-    const email = document.getElementById('searchEmail').value.trim();
-    if (!email) return window.showModal("Enter email to search.");
+// Updated: Search Guard by Name
+document.getElementById('searchGuardBtn')?.addEventListener('click', async () => {
+    // Make sure your HTML input ID for searching by name is 'searchGuardName' 
+    // or update this to match your current HTML ID
+    const nameToSearch = document.getElementById('searchEmail').value.trim(); 
+    
+    if (!nameToSearch) return window.showModal("Enter a name to search.");
 
-    // Query guards collection
-    const q = query(collection(db, "guards"), where("email", "==", email), where("society", "==", assignedSociety));
+    // Query guards by 'name' and ensure it belongs to the admin's 'assignedSociety'
+    const q = query(
+        collection(db, "guards"), 
+        where("name", "==", nameToSearch), 
+        where("society", "==", assignedSociety)
+    );
+    
     const snap = await getDocs(q);
 
     if (!snap.empty) {
         const docSnap = snap.docs[0];
         const data = docSnap.data();
-        editingDocId = docSnap.id; // Store ID to update later
+        editingDocId = docSnap.id; 
         
-        document.getElementById('gEmail').value = data.email;
+        // Populate the form fields with the found guard's data
+        document.getElementById('gEmail').value = data.email || "";
         document.getElementById('gName').value = data.name || "";
         document.getElementById('gPhone').value = data.phone || "";
+        window.showModal("Guard found.");
     } else {
-        window.showModal("Guard not found.");
+        window.showModal("No guard found with that name in your society.");
     }
 });
 
