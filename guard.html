@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Guard Portal</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 350px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #2c3e50; color: white; border: none; border-radius: 6px; cursor: pointer; }
+        #searchSection { display: none; }
+        #result { margin-top: 20px; padding: 15px; background: #e8f5e9; border-radius: 6px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <!-- Login Section -->
+    <div id="loginSection">
+        <h2>Guard Login</h2>
+        <input type="email" id="email" placeholder="Guard Email">
+        <input type="password" id="pass" placeholder="Password">
+        <button onclick="login()">Sign In</button>
+    </div>
+
+    <!-- Search Section (Hidden until login) -->
+    <div id="searchSection">
+        <h2>Vehicle Lookup</h2>
+        <input type="text" id="vNum" placeholder="Enter Vehicle Number">
+        <button onclick="searchVehicle()">Search Owner</button>
+        <div id="result" style="display:none;"></div>
+    </div>
+</div>
+
+<script type="module" src="guard-logic.js"></script>
+</body>
+</html>
