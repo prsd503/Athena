@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -15,7 +15,6 @@
         .close { color: #5d4037; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
         .btn-msg { background: #25D366; display: inline-block; margin-top: 10px; padding: 10px; color: white; text-decoration: none; border-radius: 10px; font-size: 1rem; }
         .admin-btn { display: inline-block; background: #8d6e63; color: white; padding: 10px 25px; text-decoration: none; border-radius: 10px; font-family: 'Caveat', cursive; font-size: 1.2rem; cursor: pointer; margin-top: 15px; }
-        .contact-btn { display: inline-block; background: #8d6e63; color: white; padding: 15px 30px; text-decoration: none; border-radius: 15px; font-size: 1.5rem; border: 2px solid #5d4037; box-shadow: 3px 3px 0px #5d4037; margin-top: 40px; }
     </style>
 </head>
 <body>
@@ -25,25 +24,26 @@
             <input type="text" id="societyInput" placeholder="Enter Society Name">
             <button id="verifyBtn">Proceed</button>
         </div>
+        
         <div id="vehicle-search" style="display:none;">
             <p>Society: <span id="displaySocietyName" style="font-weight:bold;"></span></p>
             <input type="text" id="vehicleInput" placeholder="Enter Vehicle Number">
             <button id="searchBtn">Search</button>
             <div id="guard-container" style="margin-top:20px;"></div>
-        <div id="notice-board" style="margin-top:20px; padding:15px; border:1px solid #ccc; border-radius:10px;">
-    <h3>📢 Notice Board</h3>
-    <div id="notice-content">Loading notices...</div>
-    <p style="font-size: 10px; color: #888; margin-top: 10px;">
-        ⚠️ Disclaimer: Do not upload personal data. Notices are publicly visible.
-    </p>
+            
+            <div id="notice-board" style="margin-top:20px; padding:15px; border:1px solid #ccc; border-radius:10px;">
+                <h3>📢 Notice Board</h3>
+                <div id="notice-content">Loading notices...</div>
+                <p style="font-size: 10px; color: #888; margin-top: 10px;">
+                    ⚠️ Disclaimer: Publicly visible. Do not upload personal data.
+                </p>
+            </div>
         </div>
-         
-        </div>
+        
         <br>
-     <hr style="border: 0; border-top: 1px solid #dcdde1; margin: 20px 0;">
-     
+        <hr style="border: 0; border-top: 1px solid #dcdde1; margin: 20px 0;">
         <a href="https://prsd503.github.io/Athena/admin.html" class="admin-btn">Admin Portal</a>
-    <a href="https://prsd503.github.io/Athena/guard.html" class="admin-btn">Security Guard Portal</a>
+        <a href="https://prsd503.github.io/Athena/guard.html" class="admin-btn">Security Guard Portal</a>
     </div>
 
     <div id="resultModal" class="modal">
@@ -71,62 +71,6 @@
         const modal = document.getElementById("resultModal");
         let currentSociety = "";
 
-        function showModal(content) {
-            document.getElementById("result").innerHTML = content;
-            modal.style.display = "block";
-        }
-
-        window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
-
-        async function loadGuardInfo(societyName) {
-            // We use the society name as the document ID
-            const snap = await getDoc(doc(db, "societies", societyName));
-            if (snap.exists() && snap.data().activeGuardPhone) {
-                const guard = snap.data();
-                document.getElementById("guard-container").innerHTML = `
-                    <div style="padding:15px; border:2px solid #8d6e63; border-radius:15px; background:#fdf6e3;">
-                        <p style="margin:5px 0;">On Duty: <b>${guard.activeGuardName || "Security"}</b></p>
-                        <a href="tel:${guard.activeGuardPhone}" style="background:#27ae60; color:white; padding:10px 20px; text-decoration:none; border-radius:10px; display:inline-block; font-family: 'Caveat', cursive;">
-                            📞 Call Security
-                        </a>
-                    </div>`;
-            }
-        }
-
-        document.getElementById("verifyBtn").addEventListener("click", async () => {
-            const input = document.getElementById("societyInput").value.trim().toLowerCase();
-            const snap = await getDocs(collection(db, "societies"));
-            
-            // Safe lookup: checks if data and name exist before calling toLowerCase()
-            const match = snap.docs.find(d => {
-                const data = d.data();
-                return data && data.name && data.name.toLowerCase() === input;
-            });
-            
-            if (match) {
-                currentSociety = match.data().name;
-                document.getElementById("society-verification").style.display = "none";
-                document.getElementById("vehicle-search").style.display = "block";
- <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        // ADDED: getDoc import for fetching the notice
-        import { getFirestore, collection, getDocs, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyBEYKHQpy_VjmgjYiWQOPjXth1bghYsf9M",
-            authDomain: "finder-owl.firebaseapp.com",
-            projectId: "finder-owl",
-            storageBucket: "finder-owl.firebasestorage.app",
-            messagingSenderId: "1011347100861",
-            appId: "1:1011347100861:web:24246f9a4eb24d812cd3d4"
-        };
-        
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const modal = document.getElementById("resultModal");
-        let currentSociety = "";
-
-        // ADDED: New function to load the notice board content
         async function loadNotice(societyId) {
             try {
                 const docRef = doc(db, "notices", societyId);
@@ -165,23 +109,15 @@
         document.getElementById("verifyBtn").addEventListener("click", async () => {
             const input = document.getElementById("societyInput").value.trim().toLowerCase();
             const snap = await getDocs(collection(db, "societies"));
-            
-            const match = snap.docs.find(d => {
-                const data = d.data();
-                return data && data.name && data.name.toLowerCase() === input;
-            });
+            const match = snap.docs.find(d => d.data().name?.toLowerCase() === input);
             
             if (match) {
                 currentSociety = match.data().name;
-                // Use the document ID for both guard and notice lookups
-                const societyId = match.id; 
-                
+                const societyId = match.id;
                 document.getElementById("society-verification").style.display = "none";
                 document.getElementById("vehicle-search").style.display = "block";
                 document.getElementById("displaySocietyName").innerText = currentSociety;
-                
                 loadGuardInfo(societyId);
-                // ADDED: Call the notice loader
                 loadNotice(societyId);
             } else {
                 showModal("<p>❌ Society not found.</p>");
@@ -191,11 +127,10 @@
         document.getElementById("searchBtn").addEventListener("click", async () => {
             const vNum = document.getElementById("vehicleInput").value.trim().toUpperCase();
             const snap = await getDocs(collection(db, "vehicles"));
-            
             const matches = snap.docs.filter(d => {
                 const data = d.data();
-                return data && data.societyName && data.societyName.toLowerCase() === currentSociety.toLowerCase() && 
-                       data.vehicleNumber && data.vehicleNumber.toUpperCase() === vNum;
+                return data && data.societyName?.toLowerCase() === currentSociety.toLowerCase() && 
+                       data.vehicleNumber?.toUpperCase() === vNum;
             });
             
             if (matches.length > 0) {
@@ -203,7 +138,7 @@
                 matches.forEach(found => {
                     const data = found.data();
                     const adminPhone = data.mobileNumber || "919033406816";
-                    const msg = encodeURIComponent(`(Using: Owl-Watcher) Hello, this message is for vehicle ${data.vehicleNumber} of ${data.flatNumber}`);
+                    const msg = encodeURIComponent(`(Using: Owl-Watcher) Hello, vehicle ${data.vehicleNumber} of ${data.flatNumber}`);
                     htmlContent += `
                         <div style="margin-top: 15px; border-bottom: 1px solid #8d6e63; padding-bottom: 10px;">
                             ✅ Vehicle: <b>${data.vehicleNumber}</b><br>
@@ -219,8 +154,5 @@
             }
         });
     </script>
-
- 
-
 </body>
 </html>
