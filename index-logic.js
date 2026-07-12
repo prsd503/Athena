@@ -1,45 +1,48 @@
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, onSnapshot, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const db = getFirestore();
+// Note: Ensure your app.js exports 'db' and you import it here
+import { db } from "./app.js"; 
 
-// Updated to accept the society name dynamically
-async function loadGuardInfo(societyName) {
-    try {
-        const socSnap = await getDoc(doc(db, "societies", societyName));
-        if (socSnap.exists()) {
-            const data = socSnap.data();
-            // Only update if the activeGuardPhone field exists
-            if (data.activeGuardPhone) {
-                document.getElementById('guard-info').innerHTML = `
-                    <div style="padding:15px; border:2px solid #8d6e63; border-radius:15px; background:#fdf6e3; margin-top:10px;">
-                        <p style="margin:5px 0;">On Duty: <b>${data.activeGuardName || "Security"}</b></p>
-                        <a href="tel:${data.activeGuardPhone}" style="background:#27ae60; color:white; padding:10px 20px; text-decoration:none; border-radius:10px; display:inline-block; font-family: 'Caveat', cursive;">
-                            📞 Call Security
-                        </a>
-                    </div>`;
-            }
+// 1. Real-time Guard Info Listener
+function setupGuardListener(societyName) {
+    const docRef = doc(db, "societies", societyName);
+    
+    // onSnapshot listens for changes in real-time
+    onSnapshot(docRef, (docSnap) => {
+        const guardInfoDiv = document.getElementById('guard-info');
+        if (docSnap.exists() && docSnap.data().activeGuardName) {
+            const data = docSnap.data();
+            guardInfoDiv.innerHTML = `
+                <div style="padding:15px; border:2px solid #8d6e63; border-radius:15px; background:#fdf6e3; margin-top:10px;">
+                    <p style="margin:5px 0;">On Duty: <b>${data.activeGuardName}</b></p>
+                    <a href="tel:${data.activeGuardPhone}" style="background:#27ae60; color:white; padding:10px 20px; text-decoration:none; border-radius:10px; display:inline-block;">
+                        📞 Call Security
+                    </a>
+                </div>`;
+        } else {
+            guardInfoDiv.innerHTML = "<p>No guard currently on duty.</p>";
         }
-    } catch (error) {
-        console.error("Error loading guard info:", error);
-    }
+    });
 }
 
-// Search Vehicle (Resident View)
-document.getElementById('searchBtn').addEventListener('click', async () => {
+// 2. Search Vehicle (Resident View)
+document.getElementById('searchBtn')?.addEventListener('click', async () => {
     const vNum = document.getElementById('vSearch').value.trim().toUpperCase();
+    if (!vNum) return;
+
+    // Assuming vehicle document ID is the vehicle number
     const snap = await getDoc(doc(db, "vehicles", vNum));
     
     if (snap.exists()) {
         const d = snap.data();
         document.getElementById('result').innerHTML = `
             <p><strong>Owner:</strong> ${d.name}</p>
-            <p><strong>Flat/Unit:</strong> ${d.flat}</p>
-            <p><em>Note: Contact security if you need assistance.</em></p>
+            <p><strong>Flat/Unit:</strong> ${d.flatNumber}</p>
+            <p><em>Contact security if you need assistance.</em></p>
         `;
     } else {
         alert("Vehicle not found.");
     }
 });
 
-// Export loadGuardInfo so it can be called from index.html after society verification
-window.loadGuardInfo = loadGuardInfo;
+window.setupGuardListener = setupGuardListener;
