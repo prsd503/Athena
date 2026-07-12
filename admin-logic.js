@@ -254,6 +254,4 @@ document.addEventListener('DOMContentLoaded', () => {
         await deleteDoc(doc(db, "guards", editingDocId));
         window.showModal("Guard deleted.");
         editingDocId = null;
-    });
-
-}); // <--- THIS BRACE MUST BE AT THE VERY END
+    }); // <--- THIS BRACE MUST BE AT THE VERY END
