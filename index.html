@@ -72,38 +72,31 @@
         let currentSociety = "";
 
         async function loadNotice(societyId) {
-    const docRef = doc(db, "notices", societyId);
-    const snap = await getDoc(docRef);
-    
-    if (snap.exists()) {
-        const data = snap.data();
-        // Use standard YYYY-MM-DD format
-        const todayStr = new Date().toISOString().split('T')[0]; 
-        
-        let displayMsg = data.todayMessage;
-        let activeDate = data.date || todayStr;
-
-        console.log("Stored date:", data.date, "Today is:", todayStr);
-
-        // Check if the stored date is strictly older than today
-        if (data.date && data.date < todayStr) {
-            console.log("Date mismatch detected. Switching to tomorrow's notice...");
-            displayMsg = data.tomorrowMessage || "No new notices.";
-            activeDate = todayStr;
+            const docRef = doc(db, "notices", societyId);
+            const snap = await getDoc(docRef);
             
-            // Update Firestore with new 'Today' and clear 'Tomorrow'
-            await setDoc(docRef, {
-                todayMessage: displayMsg,
-                tomorrowMessage: "",
-                date: activeDate
-            }, { merge: true });
-        }
+            if (snap.exists()) {
+                const data = snap.data();
+                // Using 'en-CA' forces YYYY-MM-DD in local time
+                const todayStr = new Date().toLocaleDateString('en-CA'); 
+                
+                let displayMsg = data.todayMessage || "No notice for today.";
+                let activeDate = data.date || todayStr;
 
-        document.getElementById("notice-content").innerHTML = `
-            <p style="margin: 0; font-size: 0.8rem; color: #666;">Date: ${activeDate}</p>
-            <div style="margin-top: 5px;">${displayMsg}</div>`;
-    }
-}
+                // If stored date is behind today's date, promote tomorrow's msg
+                if (data.date && data.date < todayStr) {
+                    displayMsg = data.tomorrowMessage || "No new notices.";
+                    activeDate = todayStr;
+                    await setDoc(docRef, { todayMessage: displayMsg, tomorrowMessage: "", date: activeDate }, { merge: true });
+                }
+
+                document.getElementById("notice-content").innerHTML = `
+                    <p style="margin: 0; font-size: 0.8rem; color: #666;">Date: ${activeDate}</p>
+                    <div style="margin-top: 5px;">${displayMsg}</div>`;
+            } else {
+                document.getElementById("notice-content").innerText = "No notices.";
+            }
+        }
 
         function showModal(content) {
             document.getElementById("result").innerHTML = content;
