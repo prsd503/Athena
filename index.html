@@ -88,19 +88,18 @@
         const modal = document.getElementById("resultModal");
         let currentSociety = "";
 
-        async function loadNotice(societyId) {
-            try {
-                const docRef = doc(db, "notices", societyId);
-                const snap = await getDoc(docRef);
-                if (snap.exists()) {
-                    document.getElementById("notice-content").innerText = snap.data().message;
-                } else {
-                    document.getElementById("notice-content").innerText = "No notices at the moment.";
-                }
-            } catch (error) {
-                document.getElementById("notice-content").innerText = "Could not load notices.";
-            }
+        // Inside index.html script
+async function loadNotice(societyId) {
+    const snap = await getDoc(doc(db, "notices", societyId));
+    if (snap.exists()) {
+        const data = snap.data();
+        let html = `<b>Today:</b> ${data.todayMessage || "No notice"}`;
+        if (data.tomorrowMessage) {
+            html += `<br><br><b>For Tomorrow:</b> ${data.tomorrowMessage}`;
         }
+        document.getElementById("notice-content").innerHTML = html;
+    }
+}
 
         function showModal(content) {
             document.getElementById("result").innerHTML = content;
