@@ -96,12 +96,108 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 4. Save/Update Vehicle (Simplified for brevity; keep your existing logic)
-    // ... [Insert your existing vehicle Save/Update logic here]
+    // 4. Save/Update
+    document.getElementById('saveBtn')?.addEventListener('click', async () => {
+    const v = document.getElementById('vNum').value.trim().toUpperCase();
+    const f = document.getElementById('fNum').value.trim();
+    const m = document.getElementById('mNum').value.trim();
+    const type = document.getElementById('vType').value; // Get the dropdown value
+
+    if (!v || !f) return window.showModal("Fill fields.");
+
+    if (!editingDocId) {
+        if (await isVehicleExists(v, assignedSociety)) return window.showModal("Vehicle exists!");
+        await addDoc(collection(db, "vehicles"), { 
+            vehicleNumber: v, flatNumber: f, mobileNumber: m, vehicleType: type, societyName: assignedSociety 
+        });
+        window.showModal("Added!");
+    } else {
+        await updateDoc(doc(db, "vehicles", editingDocId), { 
+            vehicleNumber: v, flatNumber: f, mobileNumber: m, vehicleType: type 
+        });
+        window.showModal("Updated!");
+        editingDocId = null;
+        document.getElementById('saveBtn').innerText = "Save to Registry";
+    }
+});
+
 
     // 5. Bulk Management
-    // ... [Insert your existing bulk management logic here]
+    document.getElementById('importBtn')?.addEventListener('click', () => {
+        const file = document.getElementById('excelInput').files[0];
+        if (!file) return window.showModal("Select file.");
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+    const rows = e.target.result.split('\n').slice(1);
+    const batch = writeBatch(db);
+    let count = 0;
 
+    for (const row of rows) {
+        const c = row.split(',');
+        if (c.length >= 2) {
+            const vNum = c[0].trim().toUpperCase();
+            // Use the 4th column (index 3) for type, default to "2-Wheeler" if empty
+            const vType = c[3]?.trim() || "2-Wheeler"; 
+            
+            if (!(await isVehicleExists(vNum, assignedSociety))) {
+                batch.set(doc(collection(db, "vehicles")), { 
+                    vehicleNumber: vNum, 
+                    flatNumber: c[1].trim(), 
+                    mobileNumber: c[2]?.trim() || "", 
+                    vehicleType: vType, // Save new field
+                    societyName: assignedSociety 
+                });
+                count++;
+            }
+        }
+    }
+    await batch.commit();
+    window.showModal(`Imported ${count} new vehicles.`);
+};
+
+        reader.readAsText(file);
+    });
+
+    document.getElementById('bulkDeleteBtn')?.addEventListener('click', () => {
+        const file = document.getElementById('excelInput').files[0];
+        if (!file) return window.showModal("Select CSV first.");
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const rows = e.target.result.split('\n').slice(1);
+            const batch = writeBatch(db);
+            let deletedCount = 0;
+            for (const row of rows) {
+                const vNum = row.split(',')[0]?.trim().toUpperCase();
+                if (!vNum) continue;
+                const q = query(collection(db, "vehicles"), where("vehicleNumber", "==", vNum), where("societyName", "==", assignedSociety));
+                const snapshot = await getDocs(q);
+                snapshot.forEach((doc) => { batch.delete(doc.ref); deletedCount++; });
+            }
+            if (deletedCount > 0) { await batch.commit(); window.showModal(`Deleted ${deletedCount} vehicles.`); document.getElementById('adminSearchBtn').click(); }
+            else window.showModal("No matching vehicles found.");
+        };
+        reader.readAsText(file);
+    });
+
+    document.getElementById('downloadTemplateBtn')?.addEventListener('click', () => {
+    // Added 'VehicleType' header
+    window.downloadCSV("VehicleNumber,FlatNumber/Name,MobileNumber,VehicleType\n", "Vehicle_Template.csv");
+});
+
+
+    document.getElementById('exportBtn')?.addEventListener('click', async () => {
+    const snapshot = await getDocs(query(collection(db, "vehicles"), where("societyName", "==", assignedSociety)));
+    // Updated header
+    let csv = "VehicleNumber,FlatNumber/Name,MobileNumber,VehicleType\n"; 
+    snapshot.forEach(d => { 
+        const dt = d.data(); 
+        // Included vehicleType
+        csv += `${dt.vehicleNumber},${dt.flatNumber},${dt.mobileNumber || ''},${dt.vehicleType || '2-Wheeler'}\n`; 
+    });
+    window.downloadCSV(csv, "Vehicles.csv");
+});
+
+});
     // 6. Search Guard by Name
         // 6. Search Guard by Name (Case-Insensitive)
     document.getElementById('searchGuardBtn')?.addEventListener('click', async () => {
