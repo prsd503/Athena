@@ -98,6 +98,24 @@
 
 <button id="saveBtn">Save to Registry</button>
 
+        <div class="card">
+    <h2>Manage Security Guards</h2>
+    <input type="email" id="searchEmail" placeholder="Search by Email...">
+    <button id="searchGuardBtn" style="background: #5d4037;">Search</button>
+
+    <hr style="margin:20px 0;">
+
+    <input type="email" id="gEmail" placeholder="Guard Email (ID)" disabled>
+    <input type="text" id="gName" placeholder="Guard Full Name">
+    <input type="text" id="gPhone" placeholder="Guard Mobile Number">
+    
+    <div style="display: flex; gap: 5px;">
+        <button id="addGuardBtn" style="flex:1;">Save Guard</button>
+        <button id="deleteGuardBtn" style="flex:1; background: #d32f2f;">Delete</button>
+    </div>
+        </div>
+        
+
         <hr style="margin:20px 0;">
         <h3>Bulk Management</h3>
         <input type="file" id="excelInput" accept=".csv">
