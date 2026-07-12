@@ -242,23 +242,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 7. Add/Update Guard
     document.getElementById('addGuardBtn')?.addEventListener('click', async () => {
+        // 7. Add/Update Guard
+    document.getElementById('addGuardBtn')?.addEventListener('click', async () => {
         const email = document.getElementById('gEmail').value.trim();
         const name = document.getElementById('gName').value.trim();
         const phone = document.getElementById('gPhone').value.trim();
 
         if (!email || !name || !phone) return window.showModal("Please fill all guard fields.");
 
+        // NEW: Prevent duplicate name entry (only when adding a new guard)
+        if (!editingDocId) {
+            const q = query(collection(db, "guards"), where("name", "==", name), where("society", "==", assignedSociety));
+            const snap = await getDocs(q);
+            if (!snap.empty) {
+                return window.showModal("Error: A guard with this name already exists in your society.");
+            }
+        }
+
         if (editingDocId) {
-            // Update existing
             await updateDoc(doc(db, "guards", editingDocId), { email, name, phone, society: assignedSociety });
             window.showModal("Guard updated successfully.");
         } else {
-            // Add new
             await addDoc(collection(db, "guards"), { email, name, phone, society: assignedSociety });
             window.showModal("New guard added successfully.");
         }
-        editingDocId = null; // Reset
+        editingDocId = null;
     });
+
 
     // 8. Delete Guard
     document.getElementById('deleteGuardBtn')?.addEventListener('click', async () => {
