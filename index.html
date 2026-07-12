@@ -1,161 +1,90 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#8d6e63">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="OwlWatcher">
-<link rel="apple-touch-icon" href="icon.png">
-    
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
-    <title>Owl Watcher | Home</title>
-    <style>
-        body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
-        .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; box-shadow: 5px 5px 0px #8d6e63; max-width: 400px; margin: auto; }
-        input { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; }
-        button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; margin-top:10px; }
-        
-        /* Modal Styles */
-        .modal { display: none; position: fixed; z-index: 10; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
-        .modal-content { background-color: #fff; margin: 15% auto; padding: 20px; border: 2px solid #8d6e63; width: 80%; max-width: 320px; border-radius: 20px; position: relative; }
-        .close { color: #5d4037; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
-        
-        .btn-msg { background: #25D366; display: inline-block; margin-top: 10px; padding: 10px; color: white; text-decoration: none; border-radius: 10px; font-size: 1rem; }
-        .admin-btn { display: inline-block; background: #8d6e63; color: white; padding: 10px 25px; text-decoration: none; border-radius: 10px; font-family: 'Caveat', cursive; font-size: 1.2rem; cursor: pointer; margin-top: 15px; }
-        .contact-btn { display: inline-block; background: #8d6e63; color: white; padding: 15px 30px; text-decoration: none; border-radius: 15px; font-size: 1.5rem; border: 2px solid #5d4037; box-shadow: 3px 3px 0px #5d4037; margin-top: 40px; }
-    </style>
-</head>
 <body>
     <div class="card">
         <h1>Owl Watcher 🦉</h1>
         
+        <!-- 1. Society Verification -->
         <div id="society-verification">
             <input type="text" id="societyInput" placeholder="Enter Society Name">
             <button id="verifyBtn">Proceed</button>
         </div>
-        <div id="vehicle-search" style="display:none;">
+
+        <!-- 2. Search & Guard Area (Hidden initially) -->
+        <div id="main-interface" style="display:none;">
             <p>Society: <span id="displaySocietyName" style="font-weight:bold;"></span></p>
+            
+            <!-- Guard Status -->
+            <div id="guard-info" style="margin: 20px 0; padding: 10px; background: #fffaf0; border-radius: 10px;">
+                <p>Loading security status...</p>
+            </div>
+
+            <!-- Vehicle Search -->
             <input type="text" id="vehicleInput" placeholder="Enter Vehicle Number">
             <button id="searchBtn">Search</button>
         </div>
-       <hr style="border: 0; border-top: 1px solid #dcdde1; margin: 20px 0;">
-        <br>
-        <a href="https://prsd503.github.io/Athena/admin.html" class="admin-btn">Admin Portal</a>
- 
-       
-        
+
+        <a href="admin.html" class="admin-btn" style="margin-top:20px;">Admin Portal</a>
     </div>
 
+    <!-- The Modal for Results -->
     <div id="resultModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="document.getElementById('resultModal').style.display='none'">&times;</span>
             <div id="result"></div>
         </div>
-
-        <div id="guard-info" class="card">
-    <p>Loading security status...</p>
-</div>
-
-<div class="card">
-    <h2>Vehicle Lookup</h2>
-    <input type="text" id="vSearch" placeholder="Enter Vehicle Number">
-    <button id="searchBtn">Search</button>
-    <div id="result"></div>
-</div>
-        
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBEYKHQpy_VjmgjYiWQOPjXth1bghYsf9M",
-            authDomain: "finder-owl.firebaseapp.com",
-            projectId: "finder-owl",
-            storageBucket: "finder-owl.firebasestorage.app",
-            messagingSenderId: "1011347100861",
-            appId: "1:1011347100861:web:24246f9a4eb24d812cd3d4"
-        };
-        
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const modal = document.getElementById("resultModal");
-        let currentSociety = "";
+        // ... [Insert your firebaseConfig here] ...
+        const db = getFirestore(initializeApp(firebaseConfig));
 
-        // Function to show modal with specific content
-        function showModal(content) {
-            document.getElementById("result").innerHTML = content;
-            modal.style.display = "block";
+        // Logic to Load Guard Info
+        async function loadGuardInfo(societyName) {
+            const snap = await getDoc(doc(db, "societies", societyName));
+            if (snap.exists()) {
+                const data = snap.data();
+                document.getElementById('guard-info').innerHTML = `
+                    <p>Security on duty: <strong>${data.activeGuardName}</strong></p>
+                    <a href="tel:${data.activeGuardPhone}" class="btn-msg" style="background:#27ae60;">
+                        📞 Call ${data.activeGuardName}
+                    </a>
+                `;
+            }
         }
 
-        // Close modal when clicking outside
-        window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
-
+        // Logic for Society Verification
         document.getElementById("verifyBtn").addEventListener("click", async () => {
-            const input = document.getElementById("societyInput").value.trim().toLowerCase();
-            const snap = await getDocs(collection(db, "societies"));
-            const match = snap.docs.find(d => d.data().name.toLowerCase() === input);
+            const input = document.getElementById("societyInput").value.trim();
+            const snap = await getDoc(doc(db, "societies", input)); // Assuming Doc ID = Society Name
             
-            if (match) {
-                currentSociety = match.data().name;
+            if (snap.exists()) {
                 document.getElementById("society-verification").style.display = "none";
-                document.getElementById("vehicle-search").style.display = "block";
-                document.getElementById("displaySocietyName").innerText = currentSociety;
+                document.getElementById("main-interface").style.display = "block";
+                document.getElementById("displaySocietyName").innerText = input;
+                loadGuardInfo(input); // Fetch the guard for this society
             } else {
-                showModal("<p>❌ Society not found.</p>");
+                alert("Society not found.");
             }
         });
 
+        // Search Vehicle Logic
         document.getElementById("searchBtn").addEventListener("click", async () => {
             const vNum = document.getElementById("vehicleInput").value.trim().toUpperCase();
-            const snap = await getDocs(collection(db, "vehicles"));
+            const snap = await getDoc(doc(db, "vehicles", vNum));
             
-            const matches = snap.docs.filter(d => {
-                const data = d.data();
-                return data.societyName.toLowerCase() === currentSociety.toLowerCase() && 
-                       data.vehicleNumber.toUpperCase() === vNum;
-            });
-            
-            if (matches.length > 0) {
-                let htmlContent = "";
-                matches.forEach(found => {
-                    const data = found.data();
-                    const adminPhone = data.mobileNumber || "919033406816";
-                    const msg = encodeURIComponent(`(Using: Owl-Watcher) Hello, this message is for vehicle ${data.vehicleNumber} of ${data.flatNumber}`);
-                    htmlContent += `
-                        <div style="margin-top: 15px; border-bottom: 1px solid #8d6e63; padding-bottom: 10px;">
-                            ✅ Vehicle: <b>${data.vehicleNumber}</b><br>
-                            Flat/Name: <b>${data.flatNumber || "N/A"}</b><br>
-                            <a href="https://wa.me/${adminPhone.replace(/\D/g, '')}?text=${msg}" target="_blank" class="btn-msg">
-                                💬 Message Admin
-                            </a>
-                        </div>`;
-                });
-                showModal(htmlContent);
+            if (snap.exists()) {
+                const d = snap.data();
+                document.getElementById("result").innerHTML = `
+                    <p>Owner: ${d.name}</p>
+                    <p>Flat: ${d.flat}</p>
+                    <p><em>Contact the security guard shown above for assistance.</em></p>
+                `;
+                document.getElementById("resultModal").style.display = "block";
             } else {
-                showModal("<p>❌ Vehicle not found.</p>");
+                alert("Vehicle not found.");
             }
         });
- 
-        
     </script>
-    
-   <script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js')
-                .then(reg => console.log('Service Worker Registered'))
-                .catch(err => console.log('Service Worker Failed', err));
-        });
-    }
-</script>
-<script type="module" src="admin-logic.js"></script>
-    
-    
-
 </body>
-</html>
