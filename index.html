@@ -10,12 +10,9 @@
         .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; box-shadow: 5px 5px 0px #8d6e63; max-width: 400px; margin: auto; margin-bottom: 20px; }
         input { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; }
         button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; margin-top:10px; }
-        
-        /* Modal Styles */
         .modal { display: none; position: fixed; z-index: 10; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
         .modal-content { background-color: #fff; margin: 15% auto; padding: 20px; border: 2px solid #8d6e63; width: 80%; max-width: 320px; border-radius: 20px; position: relative; }
         .close { color: #5d4037; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
-        
         .btn-msg { background: #25D366; display: inline-block; margin-top: 10px; padding: 10px; color: white; text-decoration: none; border-radius: 10px; font-size: 1rem; }
         .admin-btn { display: inline-block; background: #8d6e63; color: white; padding: 10px 25px; text-decoration: none; border-radius: 10px; font-family: 'Caveat', cursive; font-size: 1.2rem; cursor: pointer; margin-top: 15px; }
         .contact-btn { display: inline-block; background: #8d6e63; color: white; padding: 15px 30px; text-decoration: none; border-radius: 15px; font-size: 1.5rem; border: 2px solid #5d4037; box-shadow: 3px 3px 0px #5d4037; margin-top: 40px; }
@@ -70,15 +67,15 @@
 
         window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
 
-        // Fetch and display active guard
         async function loadGuardInfo(societyName) {
+            // We use the society name as the document ID
             const snap = await getDoc(doc(db, "societies", societyName));
             if (snap.exists() && snap.data().activeGuardPhone) {
                 const guard = snap.data();
                 document.getElementById("guard-container").innerHTML = `
                     <div style="padding:15px; border:2px solid #8d6e63; border-radius:15px; background:#fdf6e3;">
-                        <p>On Duty: <b>${guard.activeGuardName || "Security"}</b></p>
-                        <a href="tel:${guard.activeGuardPhone}" style="background:#27ae60; color:white; padding:10px 20px; text-decoration:none; border-radius:10px; display:inline-block;">
+                        <p style="margin:5px 0;">On Duty: <b>${guard.activeGuardName || "Security"}</b></p>
+                        <a href="tel:${guard.activeGuardPhone}" style="background:#27ae60; color:white; padding:10px 20px; text-decoration:none; border-radius:10px; display:inline-block; font-family: 'Caveat', cursive;">
                             📞 Call Security
                         </a>
                     </div>`;
@@ -88,7 +85,12 @@
         document.getElementById("verifyBtn").addEventListener("click", async () => {
             const input = document.getElementById("societyInput").value.trim().toLowerCase();
             const snap = await getDocs(collection(db, "societies"));
-            const match = snap.docs.find(d => d.data().name.toLowerCase() === input);
+            
+            // Safe lookup: checks if data and name exist before calling toLowerCase()
+            const match = snap.docs.find(d => {
+                const data = d.data();
+                return data && data.name && data.name.toLowerCase() === input;
+            });
             
             if (match) {
                 currentSociety = match.data().name;
@@ -107,8 +109,8 @@
             
             const matches = snap.docs.filter(d => {
                 const data = d.data();
-                return data.societyName.toLowerCase() === currentSociety.toLowerCase() && 
-                       data.vehicleNumber.toUpperCase() === vNum;
+                return data && data.societyName && data.societyName.toLowerCase() === currentSociety.toLowerCase() && 
+                       data.vehicleNumber && data.vehicleNumber.toUpperCase() === vNum;
             });
             
             if (matches.length > 0) {
@@ -116,7 +118,7 @@
                 matches.forEach(found => {
                     const data = found.data();
                     const adminPhone = data.mobileNumber || "919033406816";
-                    const msg = encodeURIComponent(`(Using: Owl-Watch) Hello, this message is for vehicle ${data.vehicleNumber} of ${data.flatNumber}`);
+                    const msg = encodeURIComponent(`(Using: Owl-Watcher) Hello, this message is for vehicle ${data.vehicleNumber} of ${data.flatNumber}`);
                     htmlContent += `
                         <div style="margin-top: 15px; border-bottom: 1px solid #8d6e63; padding-bottom: 10px;">
                             ✅ Vehicle: <b>${data.vehicleNumber}</b><br>
@@ -134,7 +136,7 @@
     </script>
     
     <div style="text-align: center; padding-bottom: 30px;">
-        <a href="https://wa.me/919033406816?text=Hi! I would like to register my society/organization on Owl-Watch." 
+        <a href="https://wa.me/919033406816?text=Hi! I would like to register my society/organization on Owl-Watcher." 
            class="contact-btn" target="_blank">
            Register Your Society
         </a>
