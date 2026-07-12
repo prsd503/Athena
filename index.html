@@ -107,8 +107,82 @@
                 currentSociety = match.data().name;
                 document.getElementById("society-verification").style.display = "none";
                 document.getElementById("vehicle-search").style.display = "block";
+ <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        // ADDED: getDoc import for fetching the notice
+        import { getFirestore, collection, getDocs, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBEYKHQpy_VjmgjYiWQOPjXth1bghYsf9M",
+            authDomain: "finder-owl.firebaseapp.com",
+            projectId: "finder-owl",
+            storageBucket: "finder-owl.firebasestorage.app",
+            messagingSenderId: "1011347100861",
+            appId: "1:1011347100861:web:24246f9a4eb24d812cd3d4"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const modal = document.getElementById("resultModal");
+        let currentSociety = "";
+
+        // ADDED: New function to load the notice board content
+        async function loadNotice(societyId) {
+            try {
+                const docRef = doc(db, "notices", societyId);
+                const snap = await getDoc(docRef);
+                if (snap.exists()) {
+                    document.getElementById("notice-content").innerText = snap.data().message;
+                } else {
+                    document.getElementById("notice-content").innerText = "No notices at the moment.";
+                }
+            } catch (error) {
+                document.getElementById("notice-content").innerText = "Could not load notices.";
+            }
+        }
+
+        function showModal(content) {
+            document.getElementById("result").innerHTML = content;
+            modal.style.display = "block";
+        }
+
+        window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
+
+        async function loadGuardInfo(societyName) {
+            const snap = await getDoc(doc(db, "societies", societyName));
+            if (snap.exists() && snap.data().activeGuardPhone) {
+                const guard = snap.data();
+                document.getElementById("guard-container").innerHTML = `
+                    <div style="padding:15px; border:2px solid #8d6e63; border-radius:15px; background:#fdf6e3;">
+                        <p style="margin:5px 0;">On Duty: <b>${guard.activeGuardName || "Security"}</b></p>
+                        <a href="tel:${guard.activeGuardPhone}" style="background:#27ae60; color:white; padding:10px 20px; text-decoration:none; border-radius:10px; display:inline-block; font-family: 'Caveat', cursive;">
+                            📞 Call Security
+                        </a>
+                    </div>`;
+            }
+        }
+
+        document.getElementById("verifyBtn").addEventListener("click", async () => {
+            const input = document.getElementById("societyInput").value.trim().toLowerCase();
+            const snap = await getDocs(collection(db, "societies"));
+            
+            const match = snap.docs.find(d => {
+                const data = d.data();
+                return data && data.name && data.name.toLowerCase() === input;
+            });
+            
+            if (match) {
+                currentSociety = match.data().name;
+                // Use the document ID for both guard and notice lookups
+                const societyId = match.id; 
+                
+                document.getElementById("society-verification").style.display = "none";
+                document.getElementById("vehicle-search").style.display = "block";
                 document.getElementById("displaySocietyName").innerText = currentSociety;
-                loadGuardInfo(currentSociety);
+                
+                loadGuardInfo(societyId);
+                // ADDED: Call the notice loader
+                loadNotice(societyId);
             } else {
                 showModal("<p>❌ Society not found.</p>");
             }
