@@ -52,26 +52,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- 3. Notice Board Management ---
-    document.getElementById('postNoticeBtn')?.addEventListener('click', async () => {
-        const today = document.getElementById('todayMsg').value;
-        const tomorrow = document.getElementById('tomorrowMsg').value;
-        
-        if (!assignedSociety) return alert("Society not loaded.");
+    // --- Notice Board Management ---
+document.getElementById('postNoticeBtn')?.addEventListener('click', async () => {
+    const today = document.getElementById('todayMsg').value;
+    const tomorrow = document.getElementById('tomorrowMsg').value;
+    
+    // Helper function to count words
+    const countWords = (str) => str.trim().split(/\s+/).filter(w => w.length > 0).length;
 
-        try {
-            // Inside your postNoticeBtn click event in admin-logic.js
-await setDoc(doc(db, "notices", assignedSociety), {
-    todayMessage: today,
-    tomorrowMessage: tomorrow,
-    date: new Date().toISOString().split('T')[0], // Saves as 'YYYY-MM-DD'
-    updatedAt: serverTimestamp()
-}, { merge: true });
+    // Validate limits
+    if (countWords(today) > 60 || countWords(tomorrow) > 60) {
+        alert("Notice exceeds the 60-word limit for one or both fields!");
+        return; // Stops the function from saving to Firestore
+    }
 
-            alert("Notices updated successfully!");
-        } catch (e) {
-            alert("Error posting notice: " + e.message);
-        }
-    });
+    if (!assignedSociety) return alert("Society not loaded.");
+
+    try {
+        await setDoc(doc(db, "notices", assignedSociety), {
+            todayMessage: today,
+            tomorrowMessage: tomorrow,
+            date: new Date().toISOString().split('T')[0], // Saves date for auto-switch logic
+            updatedAt: serverTimestamp()
+        }, { merge: true });
+        alert("Notices updated successfully!");
+    } catch (e) {
+        alert("Error posting notice: " + e.message);
+    }
+});
 
     document.getElementById('deleteNoticeBtn')?.addEventListener('click', async () => {
         if (!assignedSociety) return;
