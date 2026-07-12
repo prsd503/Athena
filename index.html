@@ -17,7 +17,7 @@
         .admin-btn { display: inline-block; background: #8d6e63; color: white; padding: 10px 25px; text-decoration: none; border-radius: 10px; font-family: 'Caveat', cursive; font-size: 1.2rem; cursor: pointer; margin-top: 15px; }
         
         #notice-board { margin-top: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 10px; font-family: sans-serif; background: #fdfdfd; }
-        #notice-content { font-size: 1.1rem; font-weight: 500; color: #333; margin-top: 10px; word-break: break-word; overflow-wrap: break-word; text-align: left; }
+        #notice-content { font-size: 1.1rem; font-weight: 500; color: #333; margin-top: 10px; word-break: break-word; text-align: left; }
     </style>
 </head>
 <body>
@@ -36,14 +36,13 @@
             
             <div id="notice-board">
                 <h3>📢 Notice Board</h3>
-                <div id="notice-content">Loading notices...</div>
+                <div id="notice-content">Loading...</div>
             </div>
         </div>
         
         <br>
         <hr style="border: 0; border-top: 1px solid #dcdde1; margin: 20px 0;">
         <a href="https://prsd503.github.io/Athena/admin.html" class="admin-btn">Admin Portal</a>
-        <a href="https://prsd503.github.io/Athena/guard.html" class="admin-btn">Security Guard Portal</a>
     </div>
 
     <div id="resultModal" class="modal">
@@ -74,16 +73,14 @@
         async function loadNotice(societyId) {
             const docRef = doc(db, "notices", societyId);
             const snap = await getDoc(docRef);
-            
+            const todayStr = new Date().toLocaleDateString('en-CA'); // Current Date (YYYY-MM-DD)
+
             if (snap.exists()) {
-                const data = snap.data();
-                // Using 'en-CA' forces YYYY-MM-DD in local time
-                const todayStr = new Date().toLocaleDateString('en-CA'); 
-                
-                let displayMsg = data.todayMessage || "No notice for today.";
+                let data = snap.data();
+                let displayMsg = data.todayMessage;
                 let activeDate = data.date || todayStr;
 
-                // If stored date is behind today's date, promote tomorrow's msg
+                // Auto-Switch Logic: If stored date < today, promote tomorrow's message
                 if (data.date && data.date < todayStr) {
                     displayMsg = data.tomorrowMessage || "No new notices.";
                     activeDate = todayStr;
@@ -98,65 +95,35 @@
             }
         }
 
-        function showModal(content) {
-            document.getElementById("result").innerHTML = content;
-            modal.style.display = "block";
-        }
-
+        function showModal(content) { document.getElementById("result").innerHTML = content; modal.style.display = "block"; }
         window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
-
-        async function loadGuardInfo(societyId) {
-            const snap = await getDoc(doc(db, "societies", societyId));
-            if (snap.exists() && snap.data().activeGuardPhone) {
-                const guard = snap.data();
-                document.getElementById("guard-container").innerHTML = `
-                    <div style="padding:15px; border:2px solid #8d6e63; border-radius:15px; background:#fdf6e3;">
-                        <p style="margin:5px 0;">On Duty: <b>${guard.activeGuardName || "Security"}</b></p>
-                        <a href="tel:${guard.activeGuardPhone}" style="background:#27ae60; color:white; padding:10px 20px; text-decoration:none; border-radius:10px; display:inline-block; font-family: 'Caveat', cursive;">
-                            📞 Call Security
-                        </a>
-                    </div>`;
-            }
-        }
 
         document.getElementById("verifyBtn").addEventListener("click", async () => {
             const input = document.getElementById("societyInput").value.trim().toLowerCase();
             const snap = await getDocs(collection(db, "societies"));
             const match = snap.docs.find(d => d.data().name?.toLowerCase() === input);
-            
             if (match) {
                 currentSociety = match.data().name;
                 document.getElementById("society-verification").style.display = "none";
                 document.getElementById("vehicle-search").style.display = "block";
                 document.getElementById("displaySocietyName").innerText = currentSociety;
-                loadGuardInfo(match.id);
                 loadNotice(match.id);
-            } else {
-                showModal("<p>❌ Society not found.</p>");
-            }
+            } else { showModal("<p>❌ Society not found.</p>"); }
         });
 
         document.getElementById("searchBtn").addEventListener("click", async () => {
             const vNum = document.getElementById("vehicleInput").value.trim().toUpperCase();
             const snap = await getDocs(collection(db, "vehicles"));
             const matches = snap.docs.filter(d => d.data().societyName?.toLowerCase() === currentSociety.toLowerCase() && d.data().vehicleNumber?.toUpperCase() === vNum);
-            
             if (matches.length > 0) {
                 let htmlContent = "";
                 matches.forEach(found => {
                     const data = found.data();
                     const msg = encodeURIComponent(`(Using: Owl-Watcher) Hello, vehicle ${data.vehicleNumber} of ${data.flatNumber}`);
-                    htmlContent += `
-                        <div style="margin-top: 15px; border-bottom: 1px solid #8d6e63; padding-bottom: 10px;">
-                            ✅ Vehicle: <b>${data.vehicleNumber}</b><br>
-                            Flat: <b>${data.flatNumber || "N/A"}</b><br>
-                            <a href="https://wa.me/${data.mobileNumber?.replace(/\D/g, '')}?text=${msg}" target="_blank" class="btn-msg">💬 Message Admin</a>
-                        </div>`;
+                    htmlContent += `<div>✅ Vehicle: <b>${data.vehicleNumber}</b><br>Flat: <b>${data.flatNumber}</b><br><a href="https://wa.me/${data.mobileNumber?.replace(/\D/g, '')}?text=${msg}" target="_blank" class="btn-msg">💬 Message Admin</a></div>`;
                 });
                 showModal(htmlContent);
-            } else {
-                showModal("<p>❌ Vehicle not found.</p>");
-            }
+            } else { showModal("<p>❌ Vehicle not found.</p>"); }
         });
     </script>
 </body>
