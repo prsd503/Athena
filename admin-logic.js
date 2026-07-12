@@ -80,4 +80,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ... (Add your existing vehicle logic here)
+            const reader = new FileReader();
+        reader.onload = async (e) => {
+            const rows = e.target.result.split('\n').slice(1);
+            const batch = writeBatch(db);
+            let deletedCount = 0;
+            for (const row of rows) {
+                const vNum = row.split(',')[0]?.trim().toUpperCase();
+                if (!vNum) continue;
+                const q = query(collection(db, "vehicles"), where("vehicleNumber", "==", vNum), where("societyName", "==", assignedSociety));
+                const snapshot = await getDocs(q);
+                snapshot.forEach((doc) => { batch.delete(doc.ref); deletedCount++; });
+            }
+            if (deletedCount > 0) { await batch.commit(); window.showModal(`Deleted ${deletedCount} vehicles.`); document.getElementById('adminSearchBtn').click(); }
+            else window.showModal("No matching vehicles found.");
+        };
+        reader.readAsText(file);
+    });
+
+    document.getElementById('downloadTemplateBtn')?.addEventListener('click', () => {
+        window.downloadCSV("VehicleNumber,FlatNumber/Name,MobileNumber\n", "Vehicle_Template.csv");
+    });
+
+    document.getElementById('exportBtn')?.addEventListener('click', async () => {
+        const snapshot = await getDocs(query(collection(db, "vehicles"), where("societyName", "==", assignedSociety)));
+        let csv = "VehicleNumber,FlatNumber,MobileNumber\n";
+        snapshot.forEach(d => { const dt = d.data(); csv += `${dt.vehicleNumber},${dt.flatNumber},${dt.mobileNumber || ''}\n`; });
+        window.downloadCSV(csv, "Vehicles.csv");
+    });
+});
+
 });
