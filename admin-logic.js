@@ -35,17 +35,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // ... [Insert your existing vehicle search/save and guard search/add functions here] ...
 
     // --- 4. Notice Board Integration ---
-    document.getElementById('postNoticeBtn')?.addEventListener('click', async () => {
-        const msg = document.getElementById('noticeMsg').value.trim();
-        if (!msg) return alert("Please enter a notice.");
-        if (msg.split(" ").length > 60) return alert("Limit is 60 words.");
+// In your admin-logic.js
+document.getElementById('postNoticeBtn').addEventListener('click', async () => {
+    const today = document.getElementById('todayMsg').value;
+    const tomorrow = document.getElementById('tomorrowMsg').value;
+    const societyId = "Aangan"; // Ensure this matches your dynamic selection
 
-        try {
-            await setDoc(doc(db, "notices", assignedSociety), {
-                message: msg,
-                createdAt: serverTimestamp() 
-            });
-            alert("Notice posted successfully!");
+    await setDoc(doc(db, "notices", societyId), {
+        todayMessage: today,
+        tomorrowMessage: tomorrow,
+        updatedAt: serverTimestamp()
+    }, { merge: true });
+
+    alert("Notices updated successfully!");
+});
+
         } catch (e) {
             alert("Error posting notice: " + e.message);
         }
