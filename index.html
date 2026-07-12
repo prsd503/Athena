@@ -90,16 +90,37 @@
 
         // Inside index.html script
 async function loadNotice(societyId) {
-    const snap = await getDoc(doc(db, "notices", societyId));
+    const docRef = doc(db, "notices", societyId);
+    const snap = await getDoc(docRef);
+    
     if (snap.exists()) {
         const data = snap.data();
-        let html = `<b>Today:</b> ${data.todayMessage || "No notice"}`;
-        if (data.tomorrowMessage) {
-            html += `<br><br><b>For Tomorrow:</b> ${data.tomorrowMessage}`;
+        const todayStr = new Date().toISOString().split('T')[0];
+        
+        let displayMsg = data.todayMessage;
+        
+        // Check if stored date is older than today
+        if (data.date && data.date !== todayStr) {
+            // Promote tomorrow's message to today
+            displayMsg = data.tomorrowMessage || "No new notices.";
+            
+            // Update Firestore so it's ready for the rest of the day
+            await setDoc(docRef, {
+                todayMessage: displayMsg,
+                tomorrowMessage: "", // Clear tomorrow
+                date: todayStr
+            }, { merge: true });
         }
-        document.getElementById("notice-content").innerHTML = html;
+
+        // Show ONLY today's message
+        document.getElementById("notice-content").innerHTML = `
+            <div style="font-family: sans-serif; text-align: left;">
+                <p style="margin: 0; font-size: 0.8rem; color: #666;">Date: ${todayStr}</p>
+                <p style="margin: 5px 0; font-size: 1.1rem; color: #333;">${displayMsg}</p>
+            </div>`;
     }
 }
+
 
         function showModal(content) {
             document.getElementById("result").innerHTML = content;
