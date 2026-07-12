@@ -217,4 +217,59 @@ document.addEventListener('DOMContentLoaded', () => {
     window.downloadCSV(csv, "Vehicles.csv");
 });
 
+        // --- NEW: Security Guard Management ---
+
+    // 6. Search Guard by Name
+    document.getElementById('searchGuardBtn')?.addEventListener('click', async () => {
+        const nameToSearch = document.getElementById('searchGuardName').value.trim();
+        if (!nameToSearch) return window.showModal("Enter a name to search.");
+
+        const q = query(collection(db, "guards"), where("name", "==", nameToSearch), where("society", "==", assignedSociety));
+        const snap = await getDocs(q);
+
+        if (!snap.empty) {
+            const docSnap = snap.docs[0];
+            const data = docSnap.data();
+            editingDocId = docSnap.id; // Reuse the same global variable
+            document.getElementById('gEmail').value = data.email || "";
+            document.getElementById('gName').value = data.name || "";
+            document.getElementById('gPhone').value = data.phone || "";
+            window.showModal("Guard found. You can now edit or delete.");
+        } else {
+            window.showModal("No guard found with that name.");
+        }
+    });
+
+    // 7. Add/Update Guard
+    document.getElementById('addGuardBtn')?.addEventListener('click', async () => {
+        const email = document.getElementById('gEmail').value.trim();
+        const name = document.getElementById('gName').value.trim();
+        const phone = document.getElementById('gPhone').value.trim();
+
+        if (!email || !name || !phone) return window.showModal("Please fill all guard fields.");
+
+        if (editingDocId) {
+            // Update existing
+            await updateDoc(doc(db, "guards", editingDocId), { email, name, phone, society: assignedSociety });
+            window.showModal("Guard updated successfully.");
+        } else {
+            // Add new
+            await addDoc(collection(db, "guards"), { email, name, phone, society: assignedSociety });
+            window.showModal("New guard added successfully.");
+        }
+        editingDocId = null; // Reset
+    });
+
+    // 8. Delete Guard
+    document.getElementById('deleteGuardBtn')?.addEventListener('click', async () => {
+        if (!editingDocId) return window.showModal("Please search for a guard first.");
+        await deleteDoc(doc(db, "guards", editingDocId));
+        window.showModal("Guard deleted successfully.");
+        document.getElementById('gEmail').value = "";
+        document.getElementById('gName').value = "";
+        document.getElementById('gPhone').value = "";
+        editingDocId = null;
+    });
+    
+
 });
