@@ -14,6 +14,7 @@
         button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; margin-top: 10px; border: 2px solid #5d4037; }
         button:hover { background: #5d4037; }
         .contact-btn { display: inline-block; background: #8d6e63; color: white; padding: 10px 20px; text-decoration: none; border-radius: 10px; font-size: 1rem; margin-top: 10px; }
+        #admin-results { margin-top: 15px; text-align: left; }
     </style>
 </head>
 <body>
@@ -48,18 +49,28 @@
         </select>
         <button id="saveBtn">Save to Registry</button>
 
-        <hr>
+        <hr style="margin:20px 0;">
+        
         <h2>Manage Security Guards</h2>
-        <input type="email" id="searchEmail" placeholder="Search by Email...">
+        <input type="text" id="searchGuardName" placeholder="Search by Name...">
         <button id="searchGuardBtn" style="background: #5d4037;">Search</button>
-        <hr>
+
+        <hr style="margin:20px 0;">
+
         <input type="email" id="gEmail" placeholder="Guard Email (ID)">
         <input type="text" id="gName" placeholder="Guard Full Name">
         <input type="text" id="gPhone" placeholder="Guard Mobile Number">
+        
         <div style="display: flex; gap: 5px;">
             <button id="addGuardBtn" style="flex:1;">Save Guard</button>
             <button id="deleteGuardBtn" style="flex:1; background: #d32f2f;">Delete</button>
         </div>
+        
+        <hr style="margin:20px 0;">
+        <h3>Bulk Management</h3>
+        <input type="file" id="excelInput" accept=".csv">
+        <button id="importBtn">Bulk Import CSV</button>
+        <button id="downloadTemplateBtn" style="background:#6d4c41;">Download CSV Template</button>
     </div>
 
     <div id="customModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);">
