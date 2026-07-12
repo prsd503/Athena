@@ -6,163 +6,92 @@
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
     <title>Owl Watcher | Admin</title>
     <style>
-
         #customModal { z-index: 1000; }
-#customModal > div { border: 2px solid #8d6e63; text-align: center; }
-        
+        #customModal > div { border: 2px solid #8d6e63; text-align: center; }
         body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
         .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; box-shadow: 5px 5px 0px #8d6e63; max-width: 400px; margin: auto; margin-bottom: 25px; }
-        input { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; box-sizing: border-box; }
+        input, textarea { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; box-sizing: border-box; }
         button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; margin-top: 10px; border: 2px solid #5d4037; }
         button:hover { background: #5d4037; }
         #admin-results { margin-top: 15px; text-align: left; }
-  
-    .contact-btn {
-    display: inline-block;
-    background: #8d6e63;
-    color: white;
-    padding: 10px 20px;
-    text-decoration: none;
-    border-radius: 10px;
-    font-size: 1rem;
-    margin-top: 10px;
-    border: 2px solid #5d4037;
-}
-.contact-btn:hover { background: #5d4037; }
-        
-    
+        .contact-btn { display: inline-block; background: #8d6e63; color: white; padding: 10px 20px; text-decoration: none; border-radius: 10px; font-size: 1rem; margin-top: 10px; border: 2px solid #5d4037; }
+        .contact-btn:hover { background: #5d4037; }
     </style>
 </head>
 <body>
     <div class="card"><h1>Owl Watcher 🦉</h1><p>Admin Portal</p></div>
+    
     <div class="card" id="login-section">
         <h2>Admin Login</h2>
         <input type="email" id="email" placeholder="Email"><input type="password" id="pass" placeholder="Password">
         <button id="loginBtn">Login</button>
-        
-<hr style="border: 0; border-top: 1px solid #dcdde1; margin: 20px 0;">
-
-        <div style="text-align: center; padding-bottom: 30px;">
-        <a href="https://prsd503.github.io/Athena/guard.html" 
-           class="contact-btn" target="_blank">
-           Security Guard Portal
-        </a>
+        <hr style="border: 0; border-top: 1px solid #dcdde1; margin: 20px 0;">
+        <a href="https://prsd503.github.io/Athena/guard.html" class="contact-btn" target="_blank">Security Guard Portal</a>
     </div>
 
-<div style="text-align: center; padding-bottom: 30px;">
-        <a href="https://wa.me/919033406816?text=Hi! I would like to register my society/organization on Owl-Watch." 
-           class="contact-btn" target="_blank">
-           Register Your Society/Organization
-        </a>
-    </div>
-        
-<div style="text-align: center; padding-bottom: 30px;">
-        <a href="https://prsd503.github.io/Athena/userguide.html" 
-           class="contact-btn" target="_blank">
-           Read Admin Portal User Guide
-        </a>
-    </div>
-        
-        
- <div style="text-align: center; padding-bottom: 30px;">
-        <a href="https://prsd503.github.io/Athena/agreement.html" 
-           class="contact-btn" target="_blank">
-           Service Agreement
-        </a>
-    </div>
-
-         <div style="text-align: center; padding-bottom: 30px;">
-        <a href="https://prsd503.github.io/Athena/index.html" 
-           class="contact-btn" target="_blank">
-           Back to HOME
-        </a>
-    </div>
-        
-        
-        
- <br>
-        
- 
-        
-    </div>
     <div class="card" id="search-section" style="display:none;">
         <h2>Search & Manage</h2>
         <input type="text" id="adminSearch" placeholder="Enter Vehicle Number">
         <button id="adminSearchBtn">Search</button>
         <button id="logoutBtn" style="background:#d32f2f;">Logout</button>
-       <div id="admin-results"></div>
-        
+        <div id="admin-results"></div>
     </div>
+
     <div class="card" id="data-section" style="display:none;">
-        
         <h2>Add Vehicle</h2>
-<input type="text" id="vNum" placeholder="Vehicle Number">
-<input type="text" id="fNum" placeholder="Flat Number">
-<input type="text" id="mNum" placeholder="Mobile Number">
+        <input type="text" id="vNum" placeholder="Vehicle Number">
+        <input type="text" id="fNum" placeholder="Flat Number">
+        <input type="text" id="mNum" placeholder="Mobile Number">
+        <select id="vType" style="width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px;">
+            <option value="2-Wheeler">2-Wheeler</option>
+            <option value="3-Wheeler">3-Wheeler</option>
+            <option value="4-Wheeler">4-Wheeler</option>
+        </select>
+        <button id="saveBtn">Save to Registry</button>
 
-<select id="vType" style="width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px;">
-    <option value="2-Wheeler">2-Wheeler</option>
-    <option value="3-Wheeler">3-Wheeler</option>
-    <option value="4-Wheeler">4-Wheeler</option>
-</select>
-
-<button id="saveBtn">Save to Registry</button>
-
-         <hr style="margin:20px 0;">
-<div class="card">
-    <h2>Manage Security Guards</h2>
-    <input type="text" id="searchGuardName" placeholder="Search by Name...">
-    <button id="searchGuardBtn" style="background: #5d4037;">Search</button>
-
-    <hr style="margin:20px 0;">
-
-    <input type="email" id="gEmail" placeholder="Guard Email (ID)">
-    <input type="text" id="gName" placeholder="Guard Full Name">
-    <input type="text" id="gPhone" placeholder="Guard Mobile Number">
-    
-    <div style="display: flex; gap: 5px;">
-        <button id="addGuardBtn" style="flex:1;">Save Guard</button>
-        <button id="deleteGuardBtn" style="flex:1; background: #d32f2f;">Delete</button>
-    </div>
-</div>
+        <hr style="margin:20px 0;">
         
-        
+        <div class="card" style="border-style: dashed;">
+            <h2>📢 Notice Board</h2>
+            <textarea id="noticeMsg" placeholder="Type notice here (Max 60 words)..." rows="4"></textarea>
+            <div style="font-size: 0.8rem; color: #d32f2f; margin-bottom: 10px;">⚠️ Warning: Do not upload personal data. Publicly available.</div>
+            <button id="postNoticeBtn">Post Notice</button>
+            <button id="deleteNoticeBtn" style="background: #d32f2f;">Delete Today's Notice</button>
+        </div>
 
+        <hr style="margin:20px 0;">
+
+        <div class="card">
+            <h2>Manage Security Guards</h2>
+            <input type="text" id="searchGuardName" placeholder="Search by Name...">
+            <button id="searchGuardBtn" style="background: #5d4037;">Search</button>
+            <input type="email" id="gEmail" placeholder="Guard Email (ID)">
+            <input type="text" id="gName" placeholder="Guard Full Name">
+            <input type="text" id="gPhone" placeholder="Guard Mobile Number">
+            <div style="display: flex; gap: 5px;">
+                <button id="addGuardBtn" style="flex:1;">Save Guard</button>
+                <button id="deleteGuardBtn" style="flex:1; background: #d32f2f;">Delete</button>
+            </div>
+        </div>
+        
         <hr style="margin:20px 0;">
         <h3>Bulk Management</h3>
         <input type="file" id="excelInput" accept=".csv">
         <button id="importBtn">Bulk Import CSV</button>
         <button id="downloadTemplateBtn" style="background:#6d4c41;">Download CSV Template</button>
-       <!-- <button id="exportBtn" style="background:#25D366;">Download All as CSV</button>
-        <button id="bulkDeleteBtn" style="background:#d32f2f;">Bulk Delete CSV</button> -->
 
-          <hr style="margin:20px 0;">
-        <div style="text-align: center; padding-bottom: 30px;">
-  <a href="https://prsd503.github.io/Athena/deletedata.html" 
-           class="contact-btn" target="_blank">
-           Bulk Data Delete 
-        </a>
+        <hr style="margin:20px 0;">
+        <a href="https://prsd503.github.io/Athena/deletedata.html" class="contact-btn" target="_blank">Bulk Data Delete</a>
+        <a href="https://prsd503.github.io/Athena/delete.html" class="contact-btn" target="_blank">Delete Full Account</a>
     </div>
-         <div style="text-align: center; padding-bottom: 30px;">
-  <a href="https://prsd503.github.io/Athena/delete.html" 
-           class="contact-btn" target="_blank">
-           Delete Full Account 
-        </a>
-    </div>
-        
-      
-    
-    </div>
+
     <div id="customModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);">
         <div style="background:white; margin: 20% auto; padding:20px; width:80%; max-width:300px; border-radius:20px;">
-            <p id="modalMessage"></p><button onclick="closeModal()">Close</button>
-       <button id="confirmDeleteBtn" onclick="window.confirmDelete()" style="display:none; background:#d32f2f; color:white;">Confirm Delete</button>
-            
+            <p id="modalMessage"></p>
+            <button onclick="closeModal()">Close</button>
+            <button id="confirmDeleteBtn" onclick="window.confirmDelete()" style="display:none; background:#d32f2f; color:white;">Confirm Delete</button>
         </div>
     </div>
     <script type="module" src="admin-logic.js"></script>
-   
-                  
-    
 </body>
 </html>
