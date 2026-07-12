@@ -198,13 +198,13 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 });
-    // 6. Search Guard by Name
-        // 6. Search Guard by Name (Case-Insensitive)
+
+
+// 6. Search Guard by Name
     document.getElementById('searchGuardBtn')?.addEventListener('click', async () => {
         const nameToSearch = document.getElementById('searchGuardName').value.trim().toLowerCase();
         if (!nameToSearch) return window.showModal("Enter a name to search.");
 
-        // Query using lowercase name
         const q = query(collection(db, "guards"), where("name_lower", "==", nameToSearch), where("society", "==", assignedSociety));
         const snap = await getDocs(q);
 
@@ -221,19 +221,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-
     // 7. Add/Update Guard
-        // 7. Add/Update Guard
     document.getElementById('addGuardBtn')?.addEventListener('click', async () => {
         const email = document.getElementById('gEmail').value.trim();
         const name = document.getElementById('gName').value.trim();
         const phone = document.getElementById('gPhone').value.trim();
-        const nameLower = name.toLowerCase(); // Create lowercase version
+        const nameLower = name.toLowerCase();
 
         if (!email || !name || !phone) return window.showModal("Fill all fields.");
 
         if (!editingDocId) {
-            // Check for duplicate name using the lowercase field
             const q = query(collection(db, "guards"), where("name_lower", "==", nameLower), where("society", "==", assignedSociety));
             const snap = await getDocs(q);
             if (!snap.empty) return window.showModal("Error: Guard already exists.");
@@ -251,7 +248,6 @@ document.addEventListener('DOMContentLoaded', () => {
         editingDocId = null;
     });
 
-
     // 8. Delete Guard
     document.getElementById('deleteGuardBtn')?.addEventListener('click', async () => {
         if (!editingDocId) return window.showModal("Search for a guard first.");
@@ -259,4 +255,5 @@ document.addEventListener('DOMContentLoaded', () => {
         window.showModal("Guard deleted.");
         editingDocId = null;
     });
-});
+
+}); // <--- THIS BRACE MUST BE AT THE VERY END
