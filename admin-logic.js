@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 4. Notice Board Integration ---
 // In your admin-logic.js
+// In your admin-logic.js
 document.getElementById('postNoticeBtn').addEventListener('click', async () => {
     const today = document.getElementById('todayMsg').value;
     const tomorrow = document.getElementById('tomorrowMsg').value;
@@ -48,6 +49,8 @@ document.getElementById('postNoticeBtn').addEventListener('click', async () => {
     }, { merge: true });
 
     alert("Notices updated successfully!");
+});
+
 });
 
         } catch (e) {
