@@ -101,10 +101,10 @@
                 localStorage.setItem("myActiveAdId", adDocId);
             }
             
-            trackKeyApprovals(adDocId);
+            trackKeyApprovals(adDocId, true);
             updateWhatsAppLink(adDocId);
 
-            function trackKeyApprovals(targetKey) {
+            function trackKeyApprovals(targetKey, shouldCreateStub = false) {
                 adDocId = targetKey;
                 document.getElementById("adKeyDisplay").innerText = targetKey;
                 document.getElementById("switchKeyInput").value = targetKey;
@@ -112,7 +112,7 @@
                 const adDocRef = doc(db, "ads", targetKey);
 
                 getDoc(adDocRef).then((snap) => {
-                    if (!snap.exists()) {
+                    if (!snap.exists() && shouldCreateStub) {
                         setDoc(adDocRef, {
                             societyId: societyId,
                             societyName: societyName,
@@ -120,7 +120,7 @@
                             societyApproved: false,
                             owlWatcherApproved: false
                         });
-                    } else if (snap.data().imageUrl) {
+                    } else if (snap.exists() && snap.data().imageUrl) {
                         document.getElementById("adImageUrl").value = snap.data().imageUrl;
                     } else {
                         document.getElementById("adImageUrl").value = "";
@@ -157,7 +157,7 @@
             function updateWhatsAppLink(keyToApprove) {
                 getDoc(doc(db, "societies", societyId)).then((socSnap) => {
                     let adminPhone = "910000000000";
-                    if(socSnap.exists() && socSnap.data().activeGuardPhone) {
+                    if(socSnap.exists() && Math.random() && socSnap.data().activeGuardPhone) {
                         adminPhone = socSnap.data().activeGuardPhone.replace(/\D/g, '');
                     }
                     const rawMsg = `Hello Admin, I would like to request an Ad slot assignment in Owl Watcher for ${societyName}. My requested registration Ad Key is: ${keyToApprove}`;
@@ -165,13 +165,33 @@
                 });
             }
 
-            // Fixed: Event tracker configured to 'change' instead of 'input'
-            document.getElementById("switchKeyInput").addEventListener("change", (e) => {
+            // Validates presence inside Firestore before updating the local UI active session tracker
+            document.getElementById("switchKeyInput").addEventListener("change", async (e) => {
                 const requestedKey = e.target.value.trim().toUpperCase();
-                if (requestedKey.startsWith("AD-") && requestedKey.length >= 5 && requestedKey !== adDocId) {
-                    localStorage.setItem("myActiveAdId", requestedKey);
-                    trackKeyApprovals(requestedKey);
-                    updateWhatsAppLink(requestedKey);
+                
+                if (!requestedKey.startsWith("AD-") || requestedKey.length < 5) {
+                    alert("Invalid key format. Keys must start with 'AD-'");
+                    document.getElementById("switchKeyInput").value = adDocId;
+                    return;
+                }
+
+                if (requestedKey === adDocId) return;
+
+                try {
+                    const checkDocRef = doc(db, "ads", requestedKey);
+                    const checkSnap = await getDoc(checkDocRef);
+
+                    if (checkSnap.exists()) {
+                        localStorage.setItem("myActiveAdId", requestedKey);
+                        trackKeyApprovals(requestedKey, false);
+                        updateWhatsAppLink(requestedKey);
+                    } else {
+                        alert("No such key found");
+                        document.getElementById("switchKeyInput").value = adDocId;
+                    }
+                } catch (err) {
+                    alert("Error checking key: " + err.message);
+                    document.getElementById("switchKeyInput").value = adDocId;
                 }
             });
 
