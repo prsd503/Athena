@@ -201,13 +201,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 //NoticeBoard
-import { auth, db } from "./app.js"; 
-import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, getDoc, getDocs, collection, setDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-let assignedSociety = "";
 
-// Helper to fetch notices
 async function loadNoticeData() {
     if (!assignedSociety) return;
     try {
