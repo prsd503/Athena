@@ -5,19 +5,42 @@ import { doc, getDoc, getDocs, collection, setDoc, deleteDoc, serverTimestamp } 
 let assignedSociety = "";
 
 // Helper to fetch notices
-async function loadNoticeData() {
-    if (!assignedSociety) return;
-    try {
-        const snap = await getDoc(doc(db, "notices", assignedSociety));
-        if (snap.exists()) {
-            const data = snap.data();
-            document.getElementById('todayMsg').value = data.todayMessage || "";
-            document.getElementById('tomorrowMsg').value = data.tomorrowMessage || "";
+import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+async function loadNotice(societyId) {
+    const noticeDiv = document.getElementById('notice-content');
+    if (!noticeDiv) return;
+
+    const docRef = doc(db, "notices", societyId);
+    const snap = await getDoc(docRef);
+    const todayStr = new Date().toLocaleDateString('en-CA'); // Gets YYYY-MM-DD
+
+    if (snap.exists()) {
+        let data = snap.data();
+        let displayMsg = data.todayMessage;
+        let storedDate = data.date || todayStr;
+
+        // Auto-Switch Logic: If the stored date is older than today
+        if (storedDate < todayStr) {
+            displayMsg = data.tomorrowMessage || "No new notices.";
+            // Update Firestore with the new "Today" message
+            await setDoc(docRef, { 
+                todayMessage: displayMsg, 
+                tomorrowMessage: "", 
+                date: todayStr 
+            }, { merge: true });
         }
-    } catch (e) {
-        console.error("Error loading notices:", e);
+
+        // Display only today's message
+        noticeDiv.innerHTML = `
+            <div style="margin-top: 10px; font-size: 1.1rem; color: #333;">
+                <b>${todayStr}:</b> ${displayMsg}
+            </div>`;
+    } else {
+        noticeDiv.innerHTML = "No notices for today.";
     }
 }
+
 
 document.addEventListener('DOMContentLoaded', () => {
 
