@@ -1,4 +1,4 @@
-//admin-logic.js
+// admin-logic.js
 import { auth, db } from "./app.js";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { doc, getDoc, setDoc, collection, addDoc, query, where, getDocs, deleteDoc, updateDoc, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -74,18 +74,33 @@ async function loadNoticeData() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- 1. Auth ---
+    // --- 1. Auth & Session Persistence ---
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            const adminDoc = await getDoc(doc(db, "admins", user.email));
-            if (adminDoc.exists()) {
-                assignedSociety = adminDoc.data().society;
-                document.getElementById('login-section').style.display = 'none';
-                document.getElementById('search-section').style.display = 'block';
-                document.getElementById('data-section').style.display = 'block';
-                
-                loadNoticeData();
+            try {
+                const adminDoc = await getDoc(doc(db, "admins", user.email));
+                if (adminDoc.exists()) {
+                    assignedSociety = adminDoc.data().society;
+                    
+                    // Force display states to maintain layout on refresh
+                    document.getElementById('login-section').style.display = 'none';
+                    document.getElementById('search-section').style.display = 'block';
+                    document.getElementById('data-section').style.display = 'block';
+                    
+                    loadNoticeData();
+                } else {
+                    window.showModal("Unauthorized access: Admin record not found.");
+                    await signOut(auth);
+                }
+            } catch (err) {
+                console.error("Error verifying admin profile:", err);
             }
+        } else {
+            // Revert interface view cleanly if unauthenticated
+            document.getElementById('login-section').style.display = 'block';
+            document.getElementById('search-section').style.display = 'none';
+            document.getElementById('data-section').style.display = 'none';
+            assignedSociety = "";
         }
     });
 
@@ -94,16 +109,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const email = document.getElementById('email').value.trim();
         const pass = document.getElementById('pass').value.trim();
         if (!email || !pass) return window.showModal("Enter Email and Password.");
-        try { await signInWithEmailAndPassword(auth, email, pass); }
-        catch (e) { window.showModal("Login error: " + e.message); }
+        try { 
+            await signInWithEmailAndPassword(auth, email, pass); 
+        } catch (e) { 
+            window.showModal("Login error: " + e.message); 
+        }
     });
 
     document.getElementById('logoutBtn')?.addEventListener('click', async () => { 
-        await signOut(auth); 
-        location.reload(); 
+        try {
+            await signOut(auth);
+            // UI visibility is automatically caught and updated by onAuthStateChanged 
+        } catch (e) {
+            window.showModal("Logout error: " + e.message);
+        }
     });
 
-    // --- 3. Search Vehicles (Updated with WhatsApp Messaging Option) ---
+    // --- 3. Search Vehicles ---
     document.getElementById('adminSearchBtn')?.addEventListener('click', async (event) => {
         const qVal = document.getElementById('adminSearch').value.trim().toUpperCase();
         const container = document.getElementById('admin-results');
@@ -117,7 +139,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = d.data();
             const type = data.vehicleType || "N/A";
             
-            // Clean phone numbers by keeping only structural digits
             const waLink = data.mobileNumber ? `https://wa.me/${data.mobileNumber.replace(/\D/g, '')}?text=Hello, query regarding vehicle ${data.vehicleNumber}` : "#";
             const hasPhone = data.mobileNumber ? "" : "pointer-events: none; opacity: 0.5; background: #999;";
 
