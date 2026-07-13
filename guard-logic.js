@@ -4,21 +4,23 @@ import { doc, getDoc, updateDoc, collection, getDocs, query, where } from "https
 
 let assignedSociety = "";
 
-// Helper to handle post-login UI and data fetching
+// --- Modal UI Helpers ---
+window.closeModal = () => { document.getElementById('customModal').style.display = 'none'; };
+window.showModal = (msg) => {
+    document.getElementById('modalMessage').innerText = msg;
+    document.getElementById('customModal').style.display = 'block';
+};
+
 async function initializeGuardPortal(email) {
     try {
         const q = query(collection(db, "guards"), where("email", "==", email));
         const snap = await getDocs(q);
         
-        if (snap.empty) {
-            console.error("Guard profile not found.");
-            return;
-        }
+        if (snap.empty) return;
         
         const guardData = snap.docs[0].data();
         assignedSociety = guardData.society; 
         
-        // Populate dropdown
         const qGuards = query(collection(db, "guards"), where("society", "==", assignedSociety));
         const guards = await getDocs(qGuards);
         const select = document.getElementById('guardSelect');
@@ -34,41 +36,29 @@ async function initializeGuardPortal(email) {
         document.getElementById('login-section').style.display = 'none';
         document.getElementById('portalSection').style.display = 'block';
         document.getElementById('logoutBtn').style.display = 'block';
-    } catch (e) {
-        console.error("Initialization error:", e);
-    }
+    } catch (e) { console.error(e); }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // This handles persistence on refresh
     onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            await initializeGuardPortal(user.email);
-        }
+        if (user) await initializeGuardPortal(user.email);
     });
 });
 
-// 1. Handle Login
+// Login with Modal
 document.getElementById('loginBtn')?.addEventListener('click', async () => {
     const email = document.getElementById('email').value.trim();
     const pass = document.getElementById('pass').value.trim();
-    
-    if (!email || !pass) return alert("Please enter email and password.");
+    if (!email || !pass) return window.showModal("Please enter email and password.");
     
     try {
         await signInWithEmailAndPassword(auth, email, pass);
-        // initializeGuardPortal is triggered automatically by onAuthStateChanged
     } catch (e) {
-        alert("Login failed: " + e.message);
+        window.showModal("Login failed: " + e.message);
     }
 });
 
-document.getElementById('logoutBtn')?.addEventListener('click', async () => { 
-    await signOut(auth);
-    location.reload(); 
-});
-
-// 2. Activate Duty
+// Activate Duty with Modal
 document.getElementById('activateBtn')?.addEventListener('click', async () => {
     const select = document.getElementById('guardSelect');
     if (!select || !assignedSociety) return;
@@ -78,22 +68,19 @@ document.getElementById('activateBtn')?.addEventListener('click', async () => {
             activeGuardName: select.value, 
             activeGuardPhone: select.options[select.selectedIndex].dataset.phone 
         });
-        alert("Duty activated successfully!");
+        window.showModal("Duty activated successfully for " + assignedSociety);
     } catch (e) {
-        alert("Failed to activate: " + e.message);
+        window.showModal("Failed to activate: " + e.message);
     }
 });
 
-// 3. Search Vehicle
+// Search with Modal
 document.getElementById('searchBtn')?.addEventListener('click', async () => {
     const vNum = document.getElementById('vSearch').value.trim().toUpperCase();
-    if (!vNum) return alert("Enter vehicle number");
+    if (!vNum) return window.showModal("Enter a valid vehicle number.");
 
     try {
-        const q = query(collection(db, "vehicles"), 
-            where("vehicleNumber", "==", vNum), 
-            where("societyName", "==", assignedSociety)
-        );
+        const q = query(collection(db, "vehicles"), where("vehicleNumber", "==", vNum), where("societyName", "==", assignedSociety));
         const snap = await getDocs(q);
         const resultDiv = document.getElementById('result');
         
@@ -101,9 +88,15 @@ document.getElementById('searchBtn')?.addEventListener('click', async () => {
             const d = snap.docs[0].data();
             resultDiv.innerHTML = `Flat: ${d.flatNumber}<br><a href="tel:${d.mobileNumber}">📞 Call: ${d.mobileNumber}</a>`;
         } else {
-            resultDiv.innerHTML = "Not found in your society.";
+            window.showModal("No vehicle found for this society.");
+            resultDiv.innerHTML = "";
         }
     } catch (e) {
-        alert("Search failed.");
+        window.showModal("Search error: " + e.message);
     }
+});
+
+document.getElementById('logoutBtn')?.addEventListener('click', async () => { 
+    await signOut(auth);
+    location.reload(); 
 });
