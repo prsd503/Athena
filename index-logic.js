@@ -1,17 +1,33 @@
-import { db } from "./app.js"; 
-import { doc, onSnapshot, getDoc, getDocs, collection, query, where, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+// index-logic.js
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, onSnapshot, getDoc, getDocs, collection, query, where, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// Firebase Configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyBEYKHQpy_VjmgjYiWQOPjXth1bghYsf9M",
+    authDomain: "finder-owl.firebaseapp.com",
+    projectId: "finder-owl",
+    storageBucket: "finder-owl.firebasestorage.app",
+    messagingSenderId: "1011347100861",
+    appId: "1:1011347100861:web:24246f9a4eb24d812cd3d4"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 // 1. Real-time Guard Info Listener
-function setupGuardListener(societyName) {
+export function setupGuardListener(societyName) {
     const docRef = doc(db, "societies", societyName);
     onSnapshot(docRef, (docSnap) => {
         const guardInfoDiv = document.getElementById('guard-info');
+        if (!guardInfoDiv) return;
+
         if (docSnap.exists() && docSnap.data().activeGuardName) {
             const data = docSnap.data();
             guardInfoDiv.innerHTML = `
                 <div style="padding:15px; border:2px solid #8d6e63; border-radius:15px; background:#fdf6e3; margin-top:10px;">
                     <p style="margin:5px 0;">On Duty: <b>${data.activeGuardName}</b></p>
-                    <a href="tel:${data.activeGuardPhone}" style="background:#27ae60; color:white; padding:10px 20px; text-decoration:none; border-radius:10px; display:inline-block;">
+                    <a href="tel:${data.activeGuardPhone}" style="background:#27ae60; color:white; padding:10px 20px; text-decoration:none; border-radius:10px; display:inline-block; font-family: 'Caveat', cursive;">
                         📞 Call Security
                     </a>
                 </div>`;
@@ -22,15 +38,17 @@ function setupGuardListener(societyName) {
 }
 
 // 2. Notice Board Fetcher
-async function loadNotice(societyName) {
+export async function loadNotice(societyName) {
     const noticeDiv = document.getElementById('notice-content');
-    const docRef = doc(db, "notices", societyName);
+    if (!noticeDiv) return;
     
+    const docRef = doc(db, "notices", societyName);
     try {
         const snap = await getDoc(docRef);
         if (snap.exists()) {
             const data = snap.data();
-            const createdAt = data.createdAt?.toDate();
+            // Note: Verify if createdAt is a Firestore Timestamp or Date
+            const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
             const now = new Date();
             
             // Auto-delete if older than 24 hours
@@ -47,31 +65,33 @@ async function loadNotice(societyName) {
         }
     } catch (e) {
         console.error("Error loading notice:", e);
+        noticeDiv.innerHTML = "Could not load notices.";
     }
 }
 
 // 3. Search Vehicle (Resident View)
-document.getElementById('searchBtn')?.addEventListener('click', async () => {
-    const vNum = document.getElementById('vSearch').value.trim().toUpperCase();
+export async function searchVehicle(societyName, vNum) {
     const resultDiv = document.getElementById('result');
-    if (!vNum) return alert("Enter vehicle number.");
+    if (!vNum || !resultDiv) return;
 
-    // Using query because vehicleNumber is the field, not necessarily the Doc ID
-    const q = query(collection(db, "vehicles"), where("vehicleNumber", "==", vNum));
+    // Query matches vehicle number AND societyName
+    const q = query(
+        collection(db, "vehicles"), 
+        where("vehicleNumber", "==", vNum),
+        where("societyName", "==", societyName)
+    );
     const snap = await getDocs(q);
     
     if (!snap.empty) {
         const d = snap.docs[0].data();
         resultDiv.innerHTML = `
-            <div style="padding:10px; background:#e8f8f5; border-radius:8px;">
-                <p><strong>Owner:</strong> ${d.flatNumber}</p>
-                <a href="tel:${d.mobileNumber}">📞 Contact: ${d.mobileNumber}</a>
+            <div style="padding:15px; border:2px solid #8d6e63; border-radius:15px; background:#e8f8f5;">
+                <p><strong>Owner/Flat:</strong> ${d.flatNumber}</p>
+                <a href="tel:${d.mobileNumber}" style="background:#27ae60; color:white; padding:10px; text-decoration:none; border-radius:10px;">
+                    📞 Contact: ${d.mobileNumber}
+                </a>
             </div>`;
     } else {
-        resultDiv.innerHTML = "<p>Vehicle not found.</p>";
+        resultDiv.innerHTML = "<p>❌ Vehicle not found in this society.</p>";
     }
-});
-
-// Export functions for use in your HTML
-window.setupGuardListener = setupGuardListener;
-window.loadNotice = loadNotice;
+}
