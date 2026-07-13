@@ -1,12 +1,23 @@
 // 1. Import initialized services from your app.js
 import { auth, db } from "./app.js"; 
-import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { doc, updateDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Global variable to store society
 let assignedSociety = "";
 
 // 1. Handle Login
+document.addEventListener('DOMContentLoaded', () => {
+    // --- 1. Auth ---
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            const gaurdDoc = await getDoc(doc(db, "guards", user.email));
+            if (adminDoc.exists()) {
+                assignedSociety = gaurdDoc.data().society;
+            }
+        }
+    });
+
 document.getElementById('loginBtn')?.addEventListener('click', async () => {
     const email = document.getElementById('email').value.trim();
     const pass = document.getElementById('pass').value.trim();
@@ -51,6 +62,11 @@ document.getElementById('loginBtn')?.addEventListener('click', async () => {
     }
 });
 
+    document.getElementById('logoutBtn')?.addEventListener('click', async () => { 
+        await signOut(auth); 
+        location.reload(); 
+    });
+    
 // 2. Activate Duty
 document.getElementById('activateBtn')?.addEventListener('click', async () => {
     const select = document.getElementById('guardSelect');
