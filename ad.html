@@ -9,15 +9,17 @@
         body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
         .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; box-shadow: 5px 5px 0px #8d6e63; max-width: 400px; margin: auto; }
         input[type="text"] { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 15px; box-sizing: border-box; }
-        button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; margin-top: 10px; width: 85%; }
-        button:disabled { background: #ccc; border-color: #999; cursor: not-allowed; }
-        .btn-wa { background: #25D366; display: inline-block; padding: 10px; color: white; text-decoration: none; border-radius: 10px; font-size: 1.1rem; width: 80%; margin-top: 10px; box-sizing: border-box; font-weight: bold; }
+        button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; margin-top: 10px; width: 85%; border: 2px solid #5d4037; }
+        button:disabled { background: #ccc; border-color: #999; cursor: not-allowed; color: #666; }
+        .btn-wa { background: #25D366; display: inline-block; padding: 10px; color: white; text-decoration: none; border-radius: 10px; font-size: 1.1rem; width: 80%; margin-top: 10px; box-sizing: border-box; font-weight: bold; border: 2px solid #1ebe57; }
+        .btn-wa:hover { opacity: 0.9; }
         
         .status-badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-family: sans-serif; font-size: 0.85rem; font-weight: bold; margin-left: 5px; }
         .pending { background: #ffeaa7; color: #d63031; }
         .approved { background: #55efc4; color: #00b894; }
         .approval-box { text-align: left; padding: 15px; border: 1px dashed #8d6e63; border-radius: 10px; margin-bottom: 15px; background: #fafafa; }
         .reset-btn { background: #6d4c41; margin-bottom: 12px; font-size: 1rem; padding: 6px 15px; width: auto; display: inline-block; }
+        .disclaimer-box { background: #fff5f5; border: 1px dashed #d32f2f; border-radius: 10px; padding: 12px; text-align: left; margin-bottom: 15px; font-family: sans-serif; font-size: 0.9rem; color: #c0392b; }
     </style>
 </head>
 <body>
@@ -30,44 +32,58 @@
         </div>
 
         <div id="main-portal-content">
-            <div class="approval-box">
-                <h3 style="margin-top:0; border-bottom:1px solid #8d6e63;">Step 1: Get Dual Verification</h3>
-                <p>1. Society Admin: <span id="statusSociety" class="status-badge pending">PENDING</span></p>
-                <p>2. Owl Watcher Team: <span id="statusOwl" class="status-badge pending">PENDING</span></p>
+            <!-- Initial Key Generation Container -->
+            <div id="generation-block" class="approval-box" style="text-align: center; display: none;">
+                <h3 style="margin-top:0; border-bottom:1px solid #8d6e63;">Step 1: Provision Workspace</h3>
+                <p style="font-family: sans-serif; font-size:0.95rem; color:#555;">You do not have an active tracking token. Generate a custom identification ledger key to pitch placement spaces.</p>
+                <button id="initializeKeyBtn" style="background: #27ae60; border-color: #219653;">✨ Generate Request Key</button>
             </div>
 
-            <div class="approval-box" style="text-align:center;">
-                <h3 style="margin-top:0; border-bottom:1px solid #8d6e63; text-align:left;">Step 2: Pitch Society Admin</h3>
-                <p style="font-size:0.95rem; text-align:left; font-family:sans-serif; color:#666;">
-                    Click below to chat with the local administrator via WhatsApp to secure booking confirmation. Provide them with your placeholder Ad Key below.
-                </p>
-                <p>Active Tracking Key: <b id="adKeyDisplay">Loading...</b></p>
-                
-                <button id="newRequestBtn" class="reset-btn" disabled>🔄 Generate New Request Key</button>
-                <br>
-                <a id="waAdminBtn" href="#" target="_blank" class="btn-wa">💬 Request Admin Approval</a>
-            </div>
+            <!-- Active Workspace Container -->
+            <div id="workspace-block" style="display: none;">
+                <div class="disclaimer-box">
+                    <strong>⚠️ Auto-Deletion Policy Notice:</strong> This tracking slot token operates under temporary provisioning rules. If full dual optimization approvals are not successfully secured within <b>15 days</b> of initialization, the record token will automatically be purged and deleted from our tracking databases.
+                </div>
 
-            <div class="approval-box">
-                <h3 style="margin-top:0; border-bottom:1px solid #8d6e63;">Step 3: Upload Slider Creative</h3>
-                
-                <label style="font-family: sans-serif; font-size:0.9rem; display:block; margin-bottom: 5px;">Switch/Manage Alternate Request Key:</label>
-                <input type="text" id="switchKeyInput" placeholder="Enter alternate Ad Request Key... (e.g. AD-XXXXXX)">
-                
-                <hr style="border: 0; border-top: 1px dashed #8d6e63; margin: 15px 0;">
+                <div class="approval-box">
+                    <h3 style="margin-top:0; border-bottom:1px solid #8d6e63;">Step 1: Get Dual Verification</h3>
+                    <p>1. Society Admin: <span id="statusSociety" class="status-badge pending">PENDING</span></p>
+                    <p>2. Owl Watcher Team: <span id="statusOwl" class="status-badge pending">PENDING</span></p>
+                </div>
 
-                <label style="font-family: sans-serif; font-size:0.9rem; display:block; margin-bottom: 8px;">Paste Banner Image Link (URL):</label>
-                <input type="text" id="adImageUrl" placeholder="https://example.com/your-ad.jpg" disabled>
-                <button id="uploadAdBtn" disabled style="width:100%;">Publish Banner Live</button>
+                <div class="approval-box" style="text-align:center;">
+                    <h3 style="margin-top:0; border-bottom:1px solid #8d6e63; text-align:left;">Step 2: Pitch Society Admin</h3>
+                    <p style="font-size:0.95rem; text-align:left; font-family:sans-serif; color:#666;">
+                        Click below to chat with the local administrator via WhatsApp to secure booking confirmation. Provide them with your placeholder Ad Key below.
+                    </p>
+                    <p>Active Tracking Key: <b id="adKeyDisplay">Loading...</b></p>
+                    
+                    <button id="newRequestBtn" class="reset-btn" disabled>🔄 Generate New Request Key</button>
+                    <br>
+                    <a id="waAdminBtn" href="#" target="_blank" class="btn-wa">💬 Request Admin Approval</a>
+                </div>
+
+                <div class="approval-box">
+                    <h3 style="margin-top:0; border-bottom:1px solid #8d6e63;">Step 3: Upload Slider Creative</h3>
+                    
+                    <label style="font-family: sans-serif; font-size:0.9rem; display:block; margin-bottom: 5px;">Switch/Manage Alternate Request Key:</label>
+                    <input type="text" id="switchKeyInput" placeholder="Enter alternate Ad Request Key... (e.g. AD-XXXXXX)">
+                    
+                    <hr style="border: 0; border-top: 1px dashed #8d6e63; margin: 15px 0;">
+
+                    <label style="font-family: sans-serif; font-size:0.9rem; display:block; margin-bottom: 8px;">Paste Banner Image Link (URL):</label>
+                    <input type="text" id="adImageUrl" placeholder="https://example.com/your-ad.jpg" disabled>
+                    <button id="uploadAdBtn" disabled style="width:100%;">Publish Banner Live</button>
+                </div>
             </div>
         </div>
 
-        <a href="index.html" style="display:inline-block; margin-top:20px; color:#8d6e63;">Back to Portal Home</a>
+        <a href="index.html" style="display:inline-block; margin-top:20px; color:#8d6e63; text-decoration: none; font-weight: bold;">Back to Portal Home</a>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, onSnapshot, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBEYKHQpy_VjmgjYiWQOPjXth1bghYsf9M",
@@ -84,6 +100,8 @@
         const societyName = localStorage.getItem("savedSocietyName");
         const societyId = localStorage.getItem("savedSocietyId");
         const mainContent = document.getElementById("main-portal-content");
+        const genBlock = document.getElementById("generation-block");
+        const workspaceBlock = document.getElementById("workspace-block");
 
         let activeUnsubscribe = null;
         let adDocId = "";
@@ -97,12 +115,44 @@
             
             adDocId = localStorage.getItem("myActiveAdId");
             if (!adDocId) {
-                adDocId = "AD-" + Math.random().toString(36).substr(2, 9).toUpperCase();
-                localStorage.setItem("myActiveAdId", adDocId);
+                // Key does not exist, display the generation button block
+                genBlock.style.display = "block";
+                workspaceBlock.style.display = "none";
+            } else {
+                // Key exists locally, restore tracking workspace view
+                genBlock.style.display = "none";
+                workspaceBlock.style.display = "block";
+                trackKeyApprovals(adDocId, false);
+                updateWhatsAppLink(adDocId);
             }
-            
-            trackKeyApprovals(adDocId, true);
-            updateWhatsAppLink(adDocId);
+
+            // Click Handler for Key Generation
+            document.getElementById("initializeKeyBtn").addEventListener("click", async () => {
+                const generatedKey = "AD-" + Math.random().toString(36).substr(2, 9).toUpperCase();
+                try {
+                    const adDocRef = doc(db, "ads", generatedKey);
+                    await setDoc(adDocRef, {
+                        societyId: societyId,
+                        societyName: societyName,
+                        imageUrl: "",
+                        societyApproved: false,
+                        owlWatcherApproved: false,
+                        createdAt: serverTimestamp() // Used by Backend Cloud Functions to track the 15-day lifecycle
+                    });
+                    
+                    localStorage.setItem("myActiveAdId", generatedKey);
+                    adDocId = generatedKey;
+                    
+                    // Toggle Views UI State
+                    genBlock.style.display = "none";
+                    workspaceBlock.style.display = "block";
+                    
+                    trackKeyApprovals(generatedKey, false);
+                    updateWhatsAppLink(generatedKey);
+                } catch (e) {
+                    alert("Error provisioning ad tracking key: " + e.message);
+                }
+            });
 
             function trackKeyApprovals(targetKey, shouldCreateStub = false) {
                 adDocId = targetKey;
@@ -112,15 +162,7 @@
                 const adDocRef = doc(db, "ads", targetKey);
 
                 getDoc(adDocRef).then((snap) => {
-                    if (!snap.exists() && shouldCreateStub) {
-                        setDoc(adDocRef, {
-                            societyId: societyId,
-                            societyName: societyName,
-                            imageUrl: "",
-                            societyApproved: false,
-                            owlWatcherApproved: false
-                        });
-                    } else if (snap.exists() && snap.data().imageUrl) {
+                    if (snap.exists() && snap.data().imageUrl) {
                         document.getElementById("adImageUrl").value = snap.data().imageUrl;
                     } else {
                         document.getElementById("adImageUrl").value = "";
@@ -157,7 +199,7 @@
             function updateWhatsAppLink(keyToApprove) {
                 getDoc(doc(db, "societies", societyId)).then((socSnap) => {
                     let adminPhone = "910000000000";
-                    if(socSnap.exists() && Math.random() && socSnap.data().activeGuardPhone) {
+                    if(socSnap.exists() && socSnap.data().activeGuardPhone) {
                         adminPhone = socSnap.data().activeGuardPhone.replace(/\D/g, '');
                     }
                     const rawMsg = `Hello Admin, I would like to request an Ad slot assignment in Owl Watcher for ${societyName}. My requested registration Ad Key is: ${keyToApprove}`;
@@ -165,7 +207,6 @@
                 });
             }
 
-            // Validates presence inside Firestore before updating the local UI active session tracker
             document.getElementById("switchKeyInput").addEventListener("change", async (e) => {
                 const requestedKey = e.target.value.trim().toUpperCase();
                 
@@ -183,6 +224,8 @@
 
                     if (checkSnap.exists()) {
                         localStorage.setItem("myActiveAdId", requestedKey);
+                        genBlock.style.display = "none";
+                        workspaceBlock.style.display = "block";
                         trackKeyApprovals(requestedKey, false);
                         updateWhatsAppLink(requestedKey);
                     } else {
@@ -208,7 +251,7 @@
             });
 
             document.getElementById("newRequestBtn").addEventListener("click", () => {
-                if (confirm("Are you sure you want to start a brand new ad request? Your current key will be replaced.")) {
+                if (confirm("Are you sure you want to start a brand new ad request? Your current local key link mapping will be reset.")) {
                     localStorage.removeItem("myActiveAdId");
                     window.location.reload();
                 }
