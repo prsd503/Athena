@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -28,8 +27,7 @@
         <button id="loginBtn">Login</button>
         <hr style="border: 0; border-top: 1px solid #dcdde1; margin: 20px 0;">
         <a href="https://prsd503.github.io/Athena/guard.html" class="contact-btn" target="_self">Security Guard Portal</a>
-    <a href="https://prsd503.github.io/Athena/index.html" class="contact-btn" target="_self">Back to HOME</a>
-    
+        <a href="https://prsd503.github.io/Athena/index.html" class="contact-btn" target="_self">Back to HOME</a>
     </div>
 
     <div class="card" id="search-section" style="display:none;">
@@ -55,21 +53,20 @@
         <hr style="margin:20px 0;">
 
         <div class="card" style="border-style: dashed;">
-    <h2>📢 Notice Board</h2>
-    
-    <label>Today's Notice:</label>
-    <textarea id="todayMsg" placeholder="Visible now..." rows="3"></textarea>
-    
-    <label>Tomorrow's Notice:</label>
-    <textarea id="tomorrowMsg" placeholder="Set for tomorrow..." rows="3"></textarea>
-    <p style="font-size: 10px; color: #888; margin-top: 10px;">
-        *Note: Notice board content has max. 60 words limit.
-                    ⚠️ Disclaimer: Publicly visible. Do not upload personal data.
-    </p>
-    <button id="postNoticeBtn">Update Notices</button>
-    <button id="deleteNoticeBtn" style="background: #d32f2f;">Clear All Notices</button>
-</div>
-
+            <h2>📢 Notice Board</h2>
+            
+            <label>Today's Notice:</label>
+            <textarea id="todayMsg" placeholder="Visible now..." rows="3"></textarea>
+            
+            <label>Tomorrow's Notice:</label>
+            <textarea id="tomorrowMsg" placeholder="Set for tomorrow..." rows="3"></textarea>
+            <p style="font-size: 10px; color: #888; margin-top: 10px;">
+                *Note: Notice board content has max. 60 words limit.
+                ⚠️ Disclaimer: Publicly visible. Do not upload personal data.
+            </p>
+            <button id="postNoticeBtn">Update Notices</button>
+            <button id="deleteNoticeBtn" style="background: #d32f2f;">Clear All Notices</button>
+        </div>
 
         <hr style="margin:20px 0;">
 
@@ -104,6 +101,38 @@
             <button id="confirmDeleteBtn" onclick="window.confirmDelete()" style="display:none; background:#d32f2f; color:white;">Confirm Delete</button>
         </div>
     </div>
+
+    <script>
+        // Check local storage immediately upon parser load to reduce screen flash
+        if (localStorage.getItem("adminLoggedIn") === "true") {
+            document.getElementById("login-section").style.display = "none";
+            document.getElementById("search-section").style.display = "block";
+            document.getElementById("data-section").style.display = "block";
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            // Intercept manual login click to save persistence key
+            document.getElementById("loginBtn").addEventListener("click", () => {
+                // We add a tiny delay so it verifies with your Firebase logic script first
+                setTimeout(() => {
+                    if (document.getElementById("login-section").style.display === "none") {
+                        localStorage.setItem("adminLoggedIn", "true");
+                    }
+                }, 1000);
+            });
+
+            // Intercept logout button to clear validation state
+            document.getElementById("logoutBtn").addEventListener("click", () => {
+                localStorage.removeItem("adminLoggedIn");
+                document.getElementById("login-section").style.display = "block";
+                document.getElementById("search-section").style.display = "none";
+                document.getElementById("data-section").style.display = "none";
+            });
+        });
+
+        function closeModal() { document.getElementById('customModal').style.display='none'; }
+    </script>
+
     <script type="module" src="admin-logic.js"></script>
 </body>
 </html>
