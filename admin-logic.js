@@ -200,6 +200,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
+//NoticeBoard
+// --- 4. Notice Board Integration ---
+    document.getElementById('postNoticeBtn')?.addEventListener('click', async () => {
+        const msg = document.getElementById('noticeMsg').value.trim();
+        if (!msg) return alert("Please enter a notice.");
+        if (msg.split(" ").length > 60) return alert("Limit is 60 words.");
+
+        try {
+            await setDoc(doc(db, "notices", assignedSociety), {
+                message: msg,
+                createdAt: serverTimestamp() 
+            });
+            alert("Notice posted successfully!");
+        } catch (e) {
+            alert("Error posting notice: " + e.message);
+        }
+    });
+
+    document.getElementById('deleteNoticeBtn')?.addEventListener('click', async () => {
+        try {
+            await deleteDoc(doc(db, "notices", assignedSociety));
+            alert("Notice deleted.");
+        } catch (e) {
+            alert("Error deleting: " + e.message);
+        }
+    });
+});
+
+
+
 
 // 6. Search Guard by Name
     document.getElementById('searchGuardBtn')?.addEventListener('click', async () => {
