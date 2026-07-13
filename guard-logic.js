@@ -12,12 +12,12 @@ document.addEventListener('DOMContentLoaded', () => {
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             const gaurdDoc = await getDoc(doc(db, "guards", user.email));
-            if (adminDoc.exists()) {
+            if (gaurdDoc.exists()) {
                 assignedSociety = gaurdDoc.data().society;
             }
         }
     });
-
+});
 document.getElementById('loginBtn')?.addEventListener('click', async () => {
     const email = document.getElementById('email').value.trim();
     const pass = document.getElementById('pass').value.trim();
@@ -25,7 +25,8 @@ document.getElementById('loginBtn')?.addEventListener('click', async () => {
     if (!email || !pass) return alert("Please enter email and password.");
     
     try {
-        await signInWithEmailAndPassword(auth, email, pass);
+        try { await signInWithEmailAndPassword(auth, email, pass); }
+        catch (e) { window.showModal("Login error: " + e.message); }
         
         // Find guard info based on email
         const q = query(collection(db, "guards"), where("email", "==", email));
@@ -54,6 +55,7 @@ document.getElementById('loginBtn')?.addEventListener('click', async () => {
         
         document.getElementById('login-section').style.display = 'none';
         document.getElementById('portalSection').style.display = 'block';
+        document.getElementById('logoutBtn').style.display = 'block';
         alert("Logged in successfully!");
         
     } catch (e) {
@@ -63,7 +65,8 @@ document.getElementById('loginBtn')?.addEventListener('click', async () => {
 });
 
     document.getElementById('logoutBtn')?.addEventListener('click', async () => { 
-        await signOut(auth); 
+        await signOut(auth);
+        document.getElementById('logoutBtn').style.display = 'block'; //TODO: may be this can be removed? 
         location.reload(); 
     });
     
