@@ -95,18 +95,15 @@
         } else {
             document.getElementById("targetSociety").innerText = societyName;
             
-            // 1. Initial Key Assignment Setup
             adDocId = localStorage.getItem("myActiveAdId");
             if (!adDocId) {
                 adDocId = "AD-" + Math.random().toString(36).substr(2, 9).toUpperCase();
                 localStorage.setItem("myActiveAdId", adDocId);
             }
             
-            // Initialize system context
             trackKeyApprovals(adDocId);
             updateWhatsAppLink(adDocId);
 
-            // 2. Listener Function to handle real-time logic changes for any key
             function trackKeyApprovals(targetKey) {
                 adDocId = targetKey;
                 document.getElementById("adKeyDisplay").innerText = targetKey;
@@ -114,7 +111,6 @@
 
                 const adDocRef = doc(db, "ads", targetKey);
 
-                // Initialize document structure if it doesn't exist yet
                 getDoc(adDocRef).then((snap) => {
                     if (!snap.exists()) {
                         setDoc(adDocRef, {
@@ -131,39 +127,33 @@
                     }
                 });
 
-                // Clear prior snapshot listener attachments if switching keys
                 if (activeUnsubscribe) activeUnsubscribe();
 
-                // Listen for structural state changes
                 activeUnsubscribe = onSnapshot(adDocRef, (snap) => {
                     if (snap.exists()) {
                         const data = snap.data();
                         
-                        // Update Society Status Elements
                         const socBadge = document.getElementById("statusSociety");
                         socBadge.innerText = data.societyApproved ? "APPROVED" : "PENDING";
                         socBadge.className = "status-badge " + (data.societyApproved ? "approved" : "pending");
 
-                        // Update Owl Watcher Status Elements
                         const owlBadge = document.getElementById("statusOwl");
                         owlBadge.innerText = data.owlWatcherApproved ? "APPROVED" : "PENDING";
                         owlBadge.className = "status-badge " + (data.owlWatcherApproved ? "approved" : "pending");
 
-                        // Rule Enforcement: Check for structural dual approval verification
                         if (data.societyApproved && data.owlWatcherApproved) {
                             document.getElementById("adImageUrl").disabled = false;
                             document.getElementById("uploadAdBtn").disabled = false;
-                            document.getElementById("newRequestBtn").disabled = false; // Enable "Generate New Request Key" button
+                            document.getElementById("newRequestBtn").disabled = false; 
                         } else {
                             document.getElementById("adImageUrl").disabled = true;
                             document.getElementById("uploadAdBtn").disabled = true;
-                            document.getElementById("newRequestBtn").disabled = true; // Keep button locked if approval missing
+                            document.getElementById("newRequestBtn").disabled = true; 
                         }
                     }
                 });
             }
 
-            // 3. Dynamic WhatsApp Contact Router Generator
             function updateWhatsAppLink(keyToApprove) {
                 getDoc(doc(db, "societies", societyId)).then((socSnap) => {
                     let adminPhone = "910000000000";
@@ -175,18 +165,16 @@
                 });
             }
 
-            // 4. Input Listener to switch tracking context via structural key text change input
-            document.getElementById("switchKeyInput").addEventListener("input", (e) => {
+            // Fixed: Event tracker configured to 'change' instead of 'input'
+            document.getElementById("switchKeyInput").addEventListener("change", (e) => {
                 const requestedKey = e.target.value.trim().toUpperCase();
-                // Ensure key pattern looks healthy before triggering database connections
-                if (requestedKey.length >= 4 && requestedKey !== adDocId) {
+                if (requestedKey.startsWith("AD-") && requestedKey.length >= 5 && requestedKey !== adDocId) {
                     localStorage.setItem("myActiveAdId", requestedKey);
                     trackKeyApprovals(requestedKey);
                     updateWhatsAppLink(requestedKey);
                 }
             });
 
-            // 5. Save uploaded URL changes live
             document.getElementById("uploadAdBtn").addEventListener("click", async () => {
                 const imgUrl = document.getElementById("adImageUrl").value.trim();
                 if(!imgUrl) return alert("Please specify a valid source image link.");
@@ -199,7 +187,6 @@
                 }
             });
 
-            // 6. Handle explicit request initialization cycles
             document.getElementById("newRequestBtn").addEventListener("click", () => {
                 if (confirm("Are you sure you want to start a brand new ad request? Your current key will be replaced.")) {
                     localStorage.removeItem("myActiveAdId");
