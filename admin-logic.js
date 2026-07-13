@@ -1,7 +1,7 @@
-//M22
+//admin-logic.js
 import { auth, db } from "./app.js";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, getDoc, collection, addDoc, query, where, getDocs, deleteDoc, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, getDoc, setDoc, collection, addDoc, query, where, getDocs, deleteDoc, updateDoc, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let assignedSociety = "";
 let editingDocId = null;
@@ -58,8 +58,23 @@ window.confirmDelete = async () => {
     pendingDeleteId = null;
 };
 
+// --- Notice Board Helper Function ---
+async function loadNoticeData() {
+    if (!assignedSociety) return;
+    try {
+        const noticeDoc = await getDoc(doc(db, "notices", assignedSociety));
+        if (noticeDoc.exists()) {
+            const data = noticeDoc.data();
+            if (document.getElementById('todayMsg')) document.getElementById('todayMsg').value = data.todayMessage || "";
+            if (document.getElementById('tomorrowMsg')) document.getElementById('tomorrowMsg').value = data.tomorrowMessage || "";
+        }
+    } catch (e) {
+        console.error("Error loading notices: ", e);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Auth
+    // --- 1. Auth ---
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             const adminDoc = await getDoc(doc(db, "admins", user.email));
@@ -68,11 +83,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('login-section').style.display = 'none';
                 document.getElementById('search-section').style.display = 'block';
                 document.getElementById('data-section').style.display = 'block';
+                
+                // Fixed: The function now safely executes here
+                loadNoticeData();
             }
         }
     });
 
-    // 2. Login/Logout
+    // --- 2. Login/Logout ---
     document.getElementById('loginBtn')?.addEventListener('click', async () => {
         const email = document.getElementById('email').value.trim();
         const pass = document.getElementById('pass').value.trim();
@@ -80,9 +98,13 @@ document.addEventListener('DOMContentLoaded', () => {
         try { await signInWithEmailAndPassword(auth, email, pass); }
         catch (e) { window.showModal("Login error: " + e.message); }
     });
-    document.getElementById('logoutBtn')?.addEventListener('click', async () => { await signOut(auth); location.reload(); });
 
-    // 3. Search Vehicles
+    document.getElementById('logoutBtn')?.addEventListener('click', async () => { 
+        await signOut(auth); 
+        location.reload(); 
+    });
+
+    // --- 3. Search Vehicles ---
     document.getElementById('adminSearchBtn')?.addEventListener('click', async (event) => {
         const qVal = document.getElementById('adminSearch').value.trim().toUpperCase();
         const container = document.getElementById('admin-results');
@@ -97,65 +119,62 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 4. Save/Update
+    // --- 4. Save/Update Vehicles ---
     document.getElementById('saveBtn')?.addEventListener('click', async () => {
-    const v = document.getElementById('vNum').value.trim().toUpperCase();
-    const f = document.getElementById('fNum').value.trim();
-    const m = document.getElementById('mNum').value.trim();
-    const type = document.getElementById('vType').value; // Get the dropdown value
+        const v = document.getElementById('vNum').value.trim().toUpperCase();
+        const f = document.getElementById('fNum').value.trim();
+        const m = document.getElementById('mNum').value.trim();
+        const type = document.getElementById('vType').value;
 
-    if (!v || !f) return window.showModal("Fill fields.");
+        if (!v || !f) return window.showModal("Fill fields.");
 
-    if (!editingDocId) {
-        if (await isVehicleExists(v, assignedSociety)) return window.showModal("Vehicle exists!");
-        await addDoc(collection(db, "vehicles"), { 
-            vehicleNumber: v, flatNumber: f, mobileNumber: m, vehicleType: type, societyName: assignedSociety 
-        });
-        window.showModal("Added!");
-    } else {
-        await updateDoc(doc(db, "vehicles", editingDocId), { 
-            vehicleNumber: v, flatNumber: f, mobileNumber: m, vehicleType: type 
-        });
-        window.showModal("Updated!");
-        editingDocId = null;
-        document.getElementById('saveBtn').innerText = "Save to Registry";
-    }
-});
+        if (!editingDocId) {
+            if (await isVehicleExists(v, assignedSociety)) return window.showModal("Vehicle exists!");
+            await addDoc(collection(db, "vehicles"), { 
+                vehicleNumber: v, flatNumber: f, mobileNumber: m, vehicleType: type, societyName: assignedSociety 
+            });
+            window.showModal("Added!");
+        } else {
+            await updateDoc(doc(db, "vehicles", editingDocId), { 
+                vehicleNumber: v, flatNumber: f, mobileNumber: m, vehicleType: type 
+            });
+            window.showModal("Updated!");
+            editingDocId = null;
+            document.getElementById('saveBtn').innerText = "Save to Registry";
+        }
+    });
 
-
-    // 5. Bulk Management
+    // --- 5. Bulk Management ---
     document.getElementById('importBtn')?.addEventListener('click', () => {
         const file = document.getElementById('excelInput').files[0];
         if (!file) return window.showModal("Select file.");
         const reader = new FileReader();
         reader.onload = async (e) => {
-    const rows = e.target.result.split('\n').slice(1);
-    const batch = writeBatch(db);
-    let count = 0;
+            const rows = e.target.result.split('\n').slice(1);
+            const batch = writeBatch(db);
+            let count = 0;
 
-    for (const row of rows) {
-        const c = row.split(',');
-        if (c.length >= 2) {
-            const vNum = c[0].trim().toUpperCase();
-            // Use the 4th column (index 3) for type, default to "2-Wheeler" if empty
-            const vType = c[3]?.trim() || "2-Wheeler"; 
-            
-            if (!(await isVehicleExists(vNum, assignedSociety))) {
-                batch.set(doc(collection(db, "vehicles")), { 
-                    vehicleNumber: vNum, 
-                    flatNumber: c[1].trim(), 
-                    mobileNumber: c[2]?.trim() || "", 
-                    vehicleType: vType, // Save new field
-                    societyName: assignedSociety 
-                });
-                count++;
+            for (const row of rows) {
+                const c = row.split(',');
+                if (c.length >= 2) {
+                    const vNum = c[0].trim().toUpperCase();
+                    const vType = c[3]?.trim() || "2-Wheeler"; 
+                    
+                    if (!(await isVehicleExists(vNum, assignedSociety))) {
+                        batch.set(doc(collection(db, "vehicles")), { 
+                            vehicleNumber: vNum, 
+                            flatNumber: c[1].trim(), 
+                            mobileNumber: c[2]?.trim() || "", 
+                            vehicleType: vType, 
+                            societyName: assignedSociety 
+                        });
+                        count++;
+                    }
+                }
             }
-        }
-    }
-    await batch.commit();
-    window.showModal(`Imported ${count} new vehicles.`);
-};
-
+            await batch.commit();
+            window.showModal(`Imported ${count} new vehicles.`);
+        };
         reader.readAsText(file);
     });
 
@@ -181,116 +200,45 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('downloadTemplateBtn')?.addEventListener('click', () => {
-    // Added 'VehicleType' header
-    window.downloadCSV("VehicleNumber,FlatNumber/Name,MobileNumber,VehicleType\n", "Vehicle_Template.csv");
-});
-
+        window.downloadCSV("VehicleNumber,FlatNumber/Name,MobileNumber,VehicleType\n", "Vehicle_Template.csv");
+    });
 
     document.getElementById('exportBtn')?.addEventListener('click', async () => {
-    const snapshot = await getDocs(query(collection(db, "vehicles"), where("societyName", "==", assignedSociety)));
-    // Updated header
-    let csv = "VehicleNumber,FlatNumber/Name,MobileNumber,VehicleType\n"; 
-    snapshot.forEach(d => { 
-        const dt = d.data(); 
-        // Included vehicleType
-        csv += `${dt.vehicleNumber},${dt.flatNumber},${dt.mobileNumber || ''},${dt.vehicleType || '2-Wheeler'}\n`; 
+        const snapshot = await getDocs(query(collection(db, "vehicles"), where("societyName", "==", assignedSociety)));
+        let csv = "VehicleNumber,FlatNumber/Name,MobileNumber,VehicleType\n"; 
+        snapshot.forEach(d => { 
+            const dt = d.data(); 
+            csv += `${dt.vehicleNumber},${dt.flatNumber},${dt.mobileNumber || ''},${dt.vehicleType || '2-Wheeler'}\n`; 
+        });
+        window.downloadCSV(csv, "Vehicles.csv");
     });
-    window.downloadCSV(csv, "Vehicles.csv");
-});
 
-});
+    // --- 6. Notice Board Management ---
+    document.getElementById('postNoticeBtn')?.addEventListener('click', async () => {
+        const today = document.getElementById('todayMsg').value;
+        const tomorrow = document.getElementById('tomorrowMsg').value;
+        
+        const countWords = (str) => str.trim().split(/\s+/).filter(w => w.length > 0).length;
 
-//NoticeBoard
+        if (countWords(today) > 60 || countWords(tomorrow) > 60) {
+            alert("Notice exceeds the 60-word limit for one or both fields!");
+            return; 
+        }
 
-document.getElementById('postNoticeBtn')?.addEventListener('click', async () => {
-    const today = document.getElementById('todayMsg').value;
-    const tomorrow = document.getElementById('tomorrowMsg').value;
-    
-    // Helper function to count words
-    const countWords = (str) => str.trim().split(/\s+/).filter(w => w.length > 0).length;
+        if (!assignedSociety) return alert("Society not loaded.");
 
-    // Validate limits
-    if (countWords(today) > 60 || countWords(tomorrow) > 60) {
-        alert("Notice exceeds the 60-word limit for one or both fields!");
-        return; // Stops the function from saving to Firestore
-    }
-
-    if (!assignedSociety) return alert("Society not loaded.");
-
-    try {
-        await setDoc(doc(db, "notices", assignedSociety), {
-            todayMessage: today,
-            tomorrowMessage: tomorrow,
-            date: new Date().toISOString().split('T')[0], // Saves date for auto-switch logic
-            updatedAt: serverTimestamp()
-        }, { merge: true });
-        alert("Notices updated successfully!");
-    } catch (e) {
-        alert("Error posting notice: " + e.message);
-    }
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-
-    // --- 1. Auth ---
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            const adminDoc = await getDoc(doc(db, "admins", user.email));
-            if (adminDoc.exists()) {
-                assignedSociety = adminDoc.data().society;
-                document.getElementById('login-section').style.display = 'none';
-                document.getElementById('search-section').style.display = 'block';
-                document.getElementById('data-section').style.display = 'block';
-                
-                // Load notice data for the assigned society
-               // loadNoticeData();
-            }
+        try {
+            await setDoc(doc(db, "notices", assignedSociety), {
+                todayMessage: today,
+                tomorrowMessage: tomorrow,
+                date: new Date().toISOString().split('T')[0],
+                updatedAt: serverTimestamp()
+            }, { merge: true });
+            alert("Notices updated successfully!");
+        } catch (e) {
+            alert("Error posting notice: " + e.message);
         }
     });
-
-    // --- 2. Login/Logout ---
-    document.getElementById('loginBtn')?.addEventListener('click', async () => {
-        const email = document.getElementById('email').value.trim();
-        const pass = document.getElementById('pass').value.trim();
-        if (!email || !pass) return alert("Enter Email and Password.");
-        try { await signInWithEmailAndPassword(auth, email, pass); }
-        catch (e) { alert("Login error: " + e.message); }
-    });
-
-    document.getElementById('logoutBtn')?.addEventListener('click', async () => { 
-        await signOut(auth); 
-        location.reload(); 
-    });
-
-    // --- 3. Notice Board Management ---
-    // --- Notice Board Management ---
-document.getElementById('postNoticeBtn')?.addEventListener('click', async () => {
-    const today = document.getElementById('todayMsg').value;
-    const tomorrow = document.getElementById('tomorrowMsg').value;
-    
-    // Helper function to count words
-    const countWords = (str) => str.trim().split(/\s+/).filter(w => w.length > 0).length;
-
-    // Validate limits
-    if (countWords(today) > 60 || countWords(tomorrow) > 60) {
-        alert("Notice exceeds the 60-word limit for one or both fields!");
-        return; // Stops the function from saving to Firestore
-    }
-
-    if (!assignedSociety) return alert("Society not loaded.");
-
-    try {
-        await setDoc(doc(db, "notices", assignedSociety), {
-            todayMessage: today,
-            tomorrowMessage: tomorrow,
-            date: new Date().toISOString().split('T')[0], // Saves date for auto-switch logic
-            updatedAt: serverTimestamp()
-        }, { merge: true });
-        alert("Notices updated successfully!");
-    } catch (e) {
-        alert("Error posting notice: " + e.message);
-    }
-});
 
     document.getElementById('deleteNoticeBtn')?.addEventListener('click', async () => {
         if (!assignedSociety) return;
@@ -303,10 +251,8 @@ document.getElementById('postNoticeBtn')?.addEventListener('click', async () => 
             alert("Error deleting: " + e.message);
         }
     });
-});
 
-
-// 6. Search Guard by Name
+    // --- 7. Security Guard Management ---
     document.getElementById('searchGuardBtn')?.addEventListener('click', async () => {
         const nameToSearch = document.getElementById('searchGuardName').value.trim().toLowerCase();
         if (!nameToSearch) return window.showModal("Enter a name to search.");
@@ -327,7 +273,6 @@ document.getElementById('postNoticeBtn')?.addEventListener('click', async () => 
         }
     });
 
-    // 7. Add/Update Guard
     document.getElementById('addGuardBtn')?.addEventListener('click', async () => {
         const email = document.getElementById('gEmail').value.trim();
         const name = document.getElementById('gName').value.trim();
@@ -354,10 +299,13 @@ document.getElementById('postNoticeBtn')?.addEventListener('click', async () => 
         editingDocId = null;
     });
 
-    // 8. Delete Guard
     document.getElementById('deleteGuardBtn')?.addEventListener('click', async () => {
         if (!editingDocId) return window.showModal("Search for a guard first.");
         await deleteDoc(doc(db, "guards", editingDocId));
         window.showModal("Guard deleted.");
         editingDocId = null;
-    }); // <--- THIS BRACE MUST BE AT THE VERY END
+        document.getElementById('gEmail').value = "";
+        document.getElementById('gName').value = "";
+        document.getElementById('gPhone').value = "";
+    }); 
+});
