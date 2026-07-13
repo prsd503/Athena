@@ -19,7 +19,7 @@
         .approved { background: #55efc4; color: #00b894; }
         .approval-box { text-align: left; padding: 15px; border: 1px dashed #8d6e63; border-radius: 10px; margin-bottom: 15px; background: #fafafa; }
         .reset-btn { background: #6d4c41; margin-bottom: 12px; font-size: 1rem; padding: 6px 15px; width: auto; display: inline-block; }
-        .disclaimer-box { background: #fff5f5; border: 1px dashed #d32f2f; border-radius: 10px; padding: 12px; text-align: left; margin-bottom: 15px; font-family: sans-serif; font-size: 0.9rem; color: #c0392b; }
+        .disclaimer-box { background: #fff5f5; border: 1px dashed #d32f2f; border-radius: 10px; padding: 12px; text-align: left; margin-bottom: 15px; font-family: sans-serif; font-size: 0.9rem; color: #c0392b; line-height: 1.4; }
     </style>
 </head>
 <body>
@@ -42,7 +42,9 @@
             <!-- Active Workspace Container -->
             <div id="workspace-block" style="display: none;">
                 <div class="disclaimer-box">
-                    <strong>⚠️ Auto-Deletion Policy Notice:</strong> This tracking slot token operates under temporary provisioning rules. If full dual optimization approvals are not successfully secured within <b>15 days</b> of initialization, the record token will automatically be purged and deleted from our tracking databases.
+                    <strong>⚠️ Database Lifecycle Policy Notice:</strong> 
+                    <br>• <strong>Unapproved Keys:</strong> Must secure dual validation within <b>15 days</b> of initialization or the entry token will be cleared.
+                    <br>• <strong>Approved Ads:</strong> Once dual verification goes live, your ad banner will run for <b>exactly 12 days</b>. Following this cycle, the document key is automatically deleted from Firebase.
                 </div>
 
                 <div class="approval-box">
@@ -115,11 +117,9 @@
             
             adDocId = localStorage.getItem("myActiveAdId");
             if (!adDocId) {
-                // Key does not exist, display the generation button block
                 genBlock.style.display = "block";
                 workspaceBlock.style.display = "none";
             } else {
-                // Key exists locally, restore tracking workspace view
                 genBlock.style.display = "none";
                 workspaceBlock.style.display = "block";
                 trackKeyApprovals(adDocId, false);
@@ -137,13 +137,13 @@
                         imageUrl: "",
                         societyApproved: false,
                         owlWatcherApproved: false,
-                        createdAt: serverTimestamp() // Used by Backend Cloud Functions to track the 15-day lifecycle
+                        createdAt: serverTimestamp(), // Track initialization for the 15-day policy
+                        approvedAt: null              // Populated when full dual authorization is achieved
                     });
                     
                     localStorage.setItem("myActiveAdId", generatedKey);
                     adDocId = generatedKey;
                     
-                    // Toggle Views UI State
                     genBlock.style.display = "none";
                     workspaceBlock.style.display = "block";
                     
@@ -175,6 +175,20 @@
                     if (snap.exists()) {
                         const data = snap.data();
                         
+                        // Client side safety check for the 12-day running campaign limit
+                        if (data.approvedAt) {
+                            const approvedTime = data.approvedAt.toDate ? data.approvedAt.toDate().getTime() : new Date(data.approvedAt).getTime();
+                            const timeDifference = Date.now() - approvedTime;
+                            const daysPassed = timeDifference / (1000 * 60 * 60 * 24);
+                            
+                            if (daysPassed > 12) {
+                                alert("This campaign slot has run its 12-day timeframe and is now expired.");
+                                localStorage.removeItem("myActiveAdId");
+                                window.location.reload();
+                                return;
+                            }
+                        }
+
                         const socBadge = document.getElementById("statusSociety");
                         socBadge.innerText = data.societyApproved ? "APPROVED" : "PENDING";
                         socBadge.className = "status-badge " + (data.societyApproved ? "approved" : "pending");
@@ -192,6 +206,11 @@
                             document.getElementById("uploadAdBtn").disabled = true;
                             document.getElementById("newRequestBtn").disabled = true; 
                         }
+                    } else {
+                        // Document has been deleted out of the DB by backend cleanup scripts
+                        localStorage.removeItem("myActiveAdId");
+                        genBlock.style.display = "block";
+                        workspaceBlock.style.display = "none";
                     }
                 });
             }
@@ -229,7 +248,7 @@
                         trackKeyApprovals(requestedKey, false);
                         updateWhatsAppLink(requestedKey);
                     } else {
-                        alert("No such key found");
+                        alert("No such key found. It may have expired and been deleted automatically.");
                         document.getElementById("switchKeyInput").value = adDocId;
                     }
                 } catch (err) {
@@ -243,7 +262,15 @@
                 if(!imgUrl) return alert("Please specify a valid source image link.");
                 
                 try {
-                    await setDoc(doc(db, "ads", adDocId), { imageUrl: imgUrl }, { merge: true });
+                    // Inject timestamp logic if it is the first time publishing live
+                    const adSnap = await getDoc(doc(db, "ads", adDocId));
+                    const updatePayload = { imageUrl: imgUrl };
+                    
+                    if (adSnap.exists() && !adSnap.data().approvedAt) {
+                        updatePayload.approvedAt = serverTimestamp(); // Mark the start of the 12-day active live run
+                    }
+
+                    await setDoc(doc(db, "ads", adDocId), updatePayload, { merge: true });
                     alert("Ad creative updated successfully! It is now rolling live on the billboard.");
                 } catch (e) {
                     alert("Error saving your banner details: " + e.message);
