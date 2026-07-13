@@ -21,6 +21,13 @@
         #notice-content { font-family: sans-serif; font-size: 1.05rem; line-height: 1.5; color: #2f3640; margin-top: 10px; overflow-wrap: break-word; word-wrap: break-word; word-break: break-word; }
         .notice-date { font-size: 0.75rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; }
 
+        /* Billboard Slider Styles */
+        #ad-billboard { margin-top: 25px; padding: 15px; border: 2px dashed #8d6e63; border-radius: 15px; background: #fff8f5; text-align: center; overflow: hidden; position: relative; }
+        .ad-slider-container { width: 100%; height: 180px; display: flex; align-items: center; justify-content: center; position: relative; }
+        .ad-slide { max-width: 100%; max-height: 100%; object-fit: contain; display: none; border-radius: 10px; }
+        .ad-slide.active { display: block; }
+        .ad-link { font-size: 0.9rem; color: #8d6e63; text-decoration: underline; display: inline-block; margin-top: 8px; }
+
         .btn-msg { background: #25D366; display: inline-block; margin-top: 10px; padding: 10px; color: white; text-decoration: none; border-radius: 10px; font-size: 1rem; }
         .admin-btn { display: inline-block; background: #8d6e63; color: white; padding: 10px 25px; text-decoration: none; border-radius: 10px; font-family: 'Caveat', cursive; font-size: 1.2rem; cursor: pointer; margin-top: 15px; }
         .switch-btn { background: #d32f2f; padding: 4px 10px; font-size: 0.9rem; border-radius: 6px; margin-left: 10px; cursor: pointer; display: inline-block; color: white; vertical-align: middle; }
@@ -47,6 +54,14 @@
                 <h3 style="margin-top: 0; font-family: 'Caveat', cursive; border-bottom: 2px solid #8d6e63; padding-bottom: 5px;">📢 Notice Board</h3>
                 <div id="notice-content">Loading...</div>
             </div>
+
+            <div id="ad-billboard">
+                <h4 style="margin: 0 0 10px 0; font-family: 'Caveat', cursive; color: #8d6e63;">✨ Community Billboard ✨</h4>
+                <div class="ad-slider-container" id="adSlider">
+                    <p id="ad-placeholder" style="color: #a1887f;">Space Available for Ad placement</p>
+                </div>
+                <a href="ad.html" class="ad-link">Advertise Here!</a>
+            </div>
         </div>
         
         <hr style="border: 0; border-top: 1px solid #dcdde1; margin: 20px 0;">
@@ -62,7 +77,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, getDoc, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, getDoc, doc, setDoc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBEYKHQpy_VjmgjYiWQOPjXth1bghYsf9M",
@@ -78,6 +93,7 @@
         const modal = document.getElementById("resultModal");
         let currentSociety = "";
         let guardUnsubscribe = null;
+        let adInterval = null;
 
         function showModal(content) { document.getElementById("result").innerHTML = content; modal.style.display = "block"; }
         window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
@@ -119,6 +135,50 @@
             });
         }
 
+        // Rolling Advertisement Billboard System
+        async function loadAds(societyId) {
+            const slider = document.getElementById("adSlider");
+            if(adInterval) clearInterval(adInterval);
+
+            try {
+                // Fetch ads where both parameters equal true
+                const q = query(
+                    collection(db, "ads"), 
+                    where("societyId", "==", societyId),
+                    where("societyApproved", "==", true),
+                    where("owlWatcherApproved", "==", true)
+                );
+                
+                const snap = await getDocs(q);
+                if (snap.empty) {
+                    slider.innerHTML = `<p id="ad-placeholder" style="color: #a1887f;">Space Available for Ad placement</p>`;
+                    return;
+                }
+
+                slider.innerHTML = "";
+                snap.forEach((doc) => {
+                    const adData = doc.data();
+                    slider.innerHTML += `<img src="${adData.imageUrl}" class="ad-slide" alt="Community Ad">`;
+                });
+
+                const slides = slider.getElementsByClassName("ad-slide");
+                if (slides.length > 0) {
+                    let currentIndex = 0;
+                    slides[currentIndex].classList.add("active");
+
+                    if (slides.length > 1) {
+                        adInterval = setInterval(() => {
+                            slides[currentIndex].classList.remove("active");
+                            currentIndex = (currentIndex + 1) % slides.length;
+                            slides[currentIndex].classList.add("active");
+                        }, 5000); // 5 seconds roll intervals
+                    }
+                }
+            } catch (error) {
+                console.error("Error setting up dynamic ad array: ", error);
+            }
+        }
+
         // Helper function to transition UI screens
         function showSearchScreen(societyName, societyId) {
             currentSociety = societyName;
@@ -127,6 +187,7 @@
             document.getElementById("displaySocietyName").innerText = currentSociety;
             setupGuard(societyId);
             loadNotice(societyId);
+            loadAds(societyId);
         }
 
         // 3. Logic to Start / Handle Manual Verification
@@ -166,6 +227,7 @@
             localStorage.removeItem("savedSocietyName");
             localStorage.removeItem("savedSocietyId");
             if (guardUnsubscribe) guardUnsubscribe();
+            if (adInterval) clearInterval(adInterval);
             currentSociety = "";
             document.getElementById("vehicleInput").value = "";
             document.getElementById("societyInput").value = "";
@@ -184,7 +246,7 @@
             // 7. Auto-Refresh Logic (Runs every 5 minutes)
             setTimeout(() => {
                 window.location.reload();
-            }, 5 * 60 * 1000); // 5 minutes expressed in milliseconds
+            }, 5 * 60 * 1000);
         });
     </script>
 </body>
