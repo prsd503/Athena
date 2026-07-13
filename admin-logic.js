@@ -202,20 +202,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
 //NoticeBoard
 
+document.getElementById('postNoticeBtn')?.addEventListener('click', async () => {
+    const today = document.getElementById('todayMsg').value;
+    const tomorrow = document.getElementById('tomorrowMsg').value;
+    
+    // Helper function to count words
+    const countWords = (str) => str.trim().split(/\s+/).filter(w => w.length > 0).length;
 
-async function loadNoticeData() {
-    if (!assignedSociety) return;
-    try {
-        const snap = await getDoc(doc(db, "notices", assignedSociety));
-        if (snap.exists()) {
-            const data = snap.data();
-            document.getElementById('todayMsg').value = data.todayMessage || "";
-            document.getElementById('tomorrowMsg').value = data.tomorrowMessage || "";
-        }
-    } catch (e) {
-        console.error("Error loading notices:", e);
+    // Validate limits
+    if (countWords(today) > 60 || countWords(tomorrow) > 60) {
+        alert("Notice exceeds the 60-word limit for one or both fields!");
+        return; // Stops the function from saving to Firestore
     }
-}
+
+    if (!assignedSociety) return alert("Society not loaded.");
+
+    try {
+        await setDoc(doc(db, "notices", assignedSociety), {
+            todayMessage: today,
+            tomorrowMessage: tomorrow,
+            date: new Date().toISOString().split('T')[0], // Saves date for auto-switch logic
+            updatedAt: serverTimestamp()
+        }, { merge: true });
+        alert("Notices updated successfully!");
+    } catch (e) {
+        alert("Error posting notice: " + e.message);
+    }
+});
 
 document.addEventListener('DOMContentLoaded', () => {
 
