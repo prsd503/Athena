@@ -1,4 +1,4 @@
-import { auth, db } from "./app.js"; 
+import { auth, db } from "./app.js";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { doc, getDoc, collection, addDoc, query, where, getDocs, deleteDoc, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -15,18 +15,7 @@ window.showModal = (msg, showConfirm = false) => {
     document.getElementById('customModal').style.display = 'block';
 };
 
-window.downloadCSV = (content, filename) => {
-    const blob = new Blob([content], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-};
-
+// --- Core Logic ---
 async function isVehicleExists(vNum, society) {
     const q = query(collection(db, "vehicles"), where("vehicleNumber", "==", vNum), where("societyName", "==", society));
     const snapshot = await getDocs(q);
@@ -42,12 +31,8 @@ window.editEntry = (v, f, m, id) => {
     window.showModal("Details loaded. Edit and click Update.");
 };
 
-window.deleteEntry = (id) => {
-    pendingDeleteId = id;
-    window.showModal("Are you sure you want to delete this record?", true);
-};
-
 window.confirmDelete = async () => {
+    if (!pendingDeleteId) return;
     try {
         await deleteDoc(doc(db, "vehicles", pendingDeleteId));
         window.closeModal();
@@ -58,55 +43,54 @@ window.confirmDelete = async () => {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Auth
+    // 1. Auth Observer
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            const adminDoc = await getDoc(doc(db, "admins", user.email));
-            if (adminDoc.exists()) {
-                assignedSociety = adminDoc.data().society;
-                document.getElementById('login-section').style.display = 'none';
-                document.getElementById('search-section').style.display = 'block';
-                document.getElementById('data-section').style.display = 'block';
-            }
+            try {
+                const adminDoc = await getDoc(doc(db, "admins", user.email));
+                if (adminDoc.exists()) {
+                    assignedSociety = adminDoc.data().society;
+                    document.getElementById('login-section').style.display = 'none';
+                    document.getElementById('search-section').style.display = 'block';
+                    document.getElementById('data-section').style.display = 'block';
+                } else {
+                    window.showModal("User is authenticated but not registered as an Admin.");
+                }
+            } catch (e) { window.showModal("Error fetching admin data: " + e.message); }
         }
     });
 
-    // 2. Login/Logout
+    // 2. Login
     document.getElementById('loginBtn')?.addEventListener('click', async () => {
         const email = document.getElementById('email').value.trim();
         const pass = document.getElementById('pass').value.trim();
         if (!email || !pass) return window.showModal("Enter Email and Password.");
-        try { await signInWithEmailAndPassword(auth, email, pass); }
-        catch (e) { window.showModal("Login error: " + e.message); }
+        try { 
+            await signInWithEmailAndPassword(auth, email, pass); 
+        }
+        catch (e) { window.showModal("Login failed: " + e.message); }
     });
-    document.getElementById('logoutBtn')?.addEventListener('click', async () => { await signOut(auth); location.reload(); });
 
     // 3. Search
-    document.getElementById('adminSearchBtn')?.addEventListener('click', async (event) => {
+    document.getElementById('adminSearchBtn')?.addEventListener('click', async () => {
         const qVal = document.getElementById('adminSearch').value.trim().toUpperCase();
         const container = document.getElementById('admin-results');
         container.innerHTML = "";
-        if (!qVal) return window.showModal("Enter vehicle number.");
+        
+        if (!qVal || !assignedSociety) return window.showModal("Please search a valid vehicle number.");
 
         const q = query(collection(db, "vehicles"), where("vehicleNumber", "==", qVal), where("societyName", "==", assignedSociety));
         const snapshot = await getDocs(q);
         
-        if (snapshot.empty) {
-            if (event.isTrusted) window.showModal("No data found.");
-            return;
-        }
+        if (snapshot.empty) return window.showModal("No data found for this society.");
         
         snapshot.forEach((d) => {
             const data = d.data();
-            const type = data.vehicleType || "N/A";
-            const waLink = data.mobileNumber ? `https://wa.me/${data.mobileNumber.replace(/\D/g, '')}?text= (Using: Owl-Watch) Hello, query regarding vehicle ${data.vehicleNumber}` : "#";
-            
             container.innerHTML += `
-            <div style="background:#fdf6e3; padding:10px; border-radius:10px; margin-bottom:10px; text-align:left; border: 1px solid #8d6e63;">
-                <p><b>${data.vehicleNumber}</b> (${type}) | Flat: ${data.flatNumber}</p>
-                <a href="${waLink}" target="_blank" style="background:#25d366; color:white; padding:8px 12px; border-radius:10px; text-decoration:none; font-size:0.8rem; display:inline-block; margin-bottom:5px;">WhatsApp</a>
-                <button onclick="editEntry('${data.vehicleNumber}', '${data.flatNumber}', '${data.mobileNumber || ''}', '${d.id}')" style="background:#6d4c41; font-size:0.8rem; padding:8px 12px;">Edit</button>
-                <button onclick="deleteEntry('${d.id}')" style="background:#d32f2f; font-size:0.8rem; padding:8px 12px;">Delete</button>
+            <div style="background:#fdf6e3; padding:10px; border-radius:10px; margin-bottom:10px; border: 1px solid #8d6e63;">
+                <p><b>${data.vehicleNumber}</b> | Flat: ${data.flatNumber}</p>
+                <button onclick="editEntry('${data.vehicleNumber}', '${data.flatNumber}', '${data.mobileNumber || ''}', '${d.id}')">Edit</button>
+                <button onclick="window.pendingDeleteId='${d.id}'; window.showModal('Confirm delete?', true)">Delete</button>
             </div>`;
         });
     });
@@ -118,84 +102,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const m = document.getElementById('mNum').value.trim();
         const type = document.getElementById('vType').value;
 
-        if (!v || !f) return window.showModal("Fill fields.");
+        if (!v || !f) return window.showModal("Fill required fields.");
 
-        if (!editingDocId) {
-            if (await isVehicleExists(v, assignedSociety)) return window.showModal("Vehicle exists!");
-            await addDoc(collection(db, "vehicles"), { 
-                vehicleNumber: v, flatNumber: f, mobileNumber: m, vehicleType: type, societyName: assignedSociety 
-            });
-            window.showModal("Added!");
-        } else {
-            await updateDoc(doc(db, "vehicles", editingDocId), { 
-                vehicleNumber: v, flatNumber: f, mobileNumber: m, vehicleType: type 
-            });
-            window.showModal("Updated!");
-            editingDocId = null;
-            document.getElementById('saveBtn').innerText = "Save to Registry";
-        }
-    });
-
-    // 5. Bulk Management
-    document.getElementById('importBtn')?.addEventListener('click', () => {
-        const file = document.getElementById('excelInput').files[0];
-        if (!file) return window.showModal("Select file.");
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const rows = e.target.result.split('\n').slice(1);
-            const batch = writeBatch(db);
-            let count = 0;
-            for (const row of rows) {
-                const c = row.split(',');
-                if (c.length >= 2) {
-                    const vNum = c[0].trim().toUpperCase();
-                    const vType = c[3]?.trim() || "2-Wheeler";
-                    if (!(await isVehicleExists(vNum, assignedSociety))) {
-                        batch.set(doc(collection(db, "vehicles")), { 
-                            vehicleNumber: vNum, flatNumber: c[1].trim(), mobileNumber: c[2]?.trim() || "", vehicleType: vType, societyName: assignedSociety 
-                        });
-                        count++;
-                    }
-                }
+        try {
+            if (!editingDocId) {
+                if (await isVehicleExists(v, assignedSociety)) return window.showModal("Vehicle already exists!");
+                await addDoc(collection(db, "vehicles"), { vehicleNumber: v, flatNumber: f, mobileNumber: m, vehicleType: type, societyName: assignedSociety });
+            } else {
+                await updateDoc(doc(db, "vehicles", editingDocId), { vehicleNumber: v, flatNumber: f, mobileNumber: m, vehicleType: type });
+                editingDocId = null;
+                document.getElementById('saveBtn').innerText = "Save to Registry";
             }
-            await batch.commit();
-            window.showModal(`Imported ${count} new vehicles.`);
-        };
-        reader.readAsText(file);
-    });
-
-    document.getElementById('bulkDeleteBtn')?.addEventListener('click', () => {
-        const file = document.getElementById('excelInput').files[0];
-        if (!file) return window.showModal("Select CSV first.");
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const rows = e.target.result.split('\n').slice(1);
-            const batch = writeBatch(db);
-            let deletedCount = 0;
-            for (const row of rows) {
-                const vNum = row.split(',')[0]?.trim().toUpperCase();
-                if (!vNum) continue;
-                const q = query(collection(db, "vehicles"), where("vehicleNumber", "==", vNum), where("societyName", "==", assignedSociety));
-                const snapshot = await getDocs(q);
-                snapshot.forEach((doc) => { batch.delete(doc.ref); deletedCount++; });
-            }
-            if (deletedCount > 0) { await batch.commit(); window.showModal(`Deleted ${deletedCount} vehicles.`); document.getElementById('adminSearchBtn').click(); }
-            else window.showModal("No matching vehicles found.");
-        };
-        reader.readAsText(file);
-    });
-
-    document.getElementById('downloadTemplateBtn')?.addEventListener('click', () => {
-        window.downloadCSV("VehicleNumber,FlatNumber/Name,MobileNumber,VehicleType\n", "Vehicle_Template.csv");
-    });
-
-    document.getElementById('exportBtn')?.addEventListener('click', async () => {
-        const snapshot = await getDocs(query(collection(db, "vehicles"), where("societyName", "==", assignedSociety)));
-        let csv = "VehicleNumber,FlatNumber/Name,MobileNumber,VehicleType\n"; 
-        snapshot.forEach(d => { 
-            const dt = d.data(); 
-            csv += `${dt.vehicleNumber},${dt.flatNumber},${dt.mobileNumber || ''},${dt.vehicleType || '2-Wheeler'}\n`; 
-        });
-        window.downloadCSV(csv, "Vehicles.csv");
+            window.showModal("Operation successful.");
+        } catch (e) { window.showModal("Error: " + e.message); }
     });
 });
