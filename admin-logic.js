@@ -243,7 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('data-section').style.display = 'block';
                 
                 // Load notice data for the assigned society
-                loadNoticeData();
+               // loadNoticeData();
             }
         }
     });
