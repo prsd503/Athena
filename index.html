@@ -18,7 +18,8 @@
         
         /* Notice Board Styles */
         #notice-board { margin-top: 25px; padding: 20px; border: 1px solid #dcdde1; border-radius: 15px; background: #fcfcfc; text-align: left; }
-        #notice-content { font-family: sans-serif; font-size: 1.05rem; line-height: 1.5; color: #2f3640; margin-top: 10px; }
+        /* Added word wrapping to handle unbroken character lines */
+        #notice-content { font-family: sans-serif; font-size: 1.05rem; line-height: 1.5; color: #2f3640; margin-top: 10px; overflow-wrap: break-word; word-wrap: break-word; word-break: break-word; }
         .notice-date { font-size: 0.75rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; }
 
         .btn-msg { background: #25D366; display: inline-block; margin-top: 10px; padding: 10px; color: white; text-decoration: none; border-radius: 10px; font-size: 1rem; }
