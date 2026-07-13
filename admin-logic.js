@@ -84,7 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('search-section').style.display = 'block';
                 document.getElementById('data-section').style.display = 'block';
                 
-                // Fixed: The function now safely executes here
                 loadNoticeData();
             }
         }
@@ -104,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
         location.reload(); 
     });
 
-    // --- 3. Search Vehicles ---
+    // --- 3. Search Vehicles (Updated with WhatsApp Messaging Option) ---
     document.getElementById('adminSearchBtn')?.addEventListener('click', async (event) => {
         const qVal = document.getElementById('adminSearch').value.trim().toUpperCase();
         const container = document.getElementById('admin-results');
@@ -113,9 +112,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const q = query(collection(db, "vehicles"), where("vehicleNumber", "==", qVal), where("societyName", "==", assignedSociety));
         const snapshot = await getDocs(q);
         if (snapshot.empty) { if (event.isTrusted) window.showModal("No data found."); return; }
+        
         snapshot.forEach((d) => {
             const data = d.data();
-            container.innerHTML += `<div><b>${data.vehicleNumber}</b> | Flat: ${data.flatNumber}</div>`;
+            const type = data.vehicleType || "N/A";
+            
+            // Clean phone numbers by keeping only structural digits
+            const waLink = data.mobileNumber ? `https://wa.me/${data.mobileNumber.replace(/\D/g, '')}?text=Hello, query regarding vehicle ${data.vehicleNumber}` : "#";
+            const hasPhone = data.mobileNumber ? "" : "pointer-events: none; opacity: 0.5; background: #999;";
+
+            container.innerHTML += `
+            <div style="background:#fdf6e3; padding:12px; border-radius:10px; margin-bottom:10px; text-align:left; border: 1px solid #8d6e63;">
+                <p style="margin: 0 0 8px 0;"><b>${data.vehicleNumber}</b> (${type}) | Flat: ${data.flatNumber}</p>
+                <a href="${waLink}" target="_blank" style="background:#25d366; color:white; padding:6px 12px; border-radius:6px; text-decoration:none; font-size:0.8rem; display:inline-block; margin-right:5px; ${hasPhone}">WhatsApp</a>
+                <button onclick="editEntry('${data.vehicleNumber}', '${data.flatNumber}', '${data.mobileNumber || ''}', '${d.id}')" style="background:#6d4c41; font-size:0.8rem; padding:6px 12px; border-radius:6px; color:white; border:none; cursor:pointer;">Edit</button>
+                <button onclick="deleteEntry('${d.id}')" style="background:#d32f2f; font-size:0.8rem; padding:6px 12px; border-radius:6px; color:white; border:none; cursor:pointer;">Delete</button>
+            </div>`;
         });
     });
 
