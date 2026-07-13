@@ -119,7 +119,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('logoutBtn')?.addEventListener('click', async () => { 
         try {
             await signOut(auth);
-            // UI visibility is automatically caught and updated by onAuthStateChanged 
         } catch (e) {
             window.showModal("Logout error: " + e.message);
         }
@@ -341,4 +340,36 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('gName').value = "";
         document.getElementById('gPhone').value = "";
     }); 
+
+    // --- 8. Ad Request Key Approval System ---
+    document.getElementById('approveAdBtn')?.addEventListener('click', async () => {
+        const adKeyInput = document.getElementById('adApprovalKey');
+        if (!adKeyInput) return;
+        
+        const adKey = adKeyInput.value.trim().toUpperCase();
+        if (!adKey) return window.showModal("Please enter an Ad Request Key.");
+        if (!assignedSociety) return window.showModal("Society data missing. Please re-login.");
+
+        try {
+            const adDocRef = doc(db, "ads", adKey);
+            const adSnap = await getDoc(adDocRef);
+
+            if (!adSnap.exists()) {
+                return window.showModal("No such Ad Request Key found in the system.");
+            }
+
+            const adData = adSnap.data();
+            
+            // Security verification: Ensure admin only approves ads for their own society
+            if (adData.societyName?.toLowerCase() !== assignedSociety.toLowerCase()) {
+                return window.showModal("Unauthorized: This key belongs to another community billboard.");
+            }
+
+            await updateDoc(adDocRef, { societyApproved: true });
+            window.showModal(`Success! Ad Request ${adKey} has been verified and approved.`);
+            adKeyInput.value = ""; // Clear input field upon successful updates
+        } catch (e) {
+            window.showModal("Error approving Ad Key: " + e.message);
+        }
+    });
 });
