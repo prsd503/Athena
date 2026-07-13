@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
+    <title>Owl Watcher | Ad Hub</title>
+    <style>
+        body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
+        .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; box-shadow: 5px 5px 0px #8d6e63; max-width: 400px; margin: auto; }
+        input[type="text"] { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 15px; }
+        button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; margin-top: 10px; width: 85%; }
+        button:disabled { background: #ccc; border-color: #999; cursor: not-allowed; }
+        .btn-wa { background: #25D366; display: inline-block; padding: 10px; color: white; text-decoration: none; border-radius: 10px; font-size: 1.1rem; width: 80%; margin-top: 10px; box-sizing: border-box; font-weight: bold; }
+        
+        .status-badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-family: sans-serif; font-size: 0.85rem; font-weight: bold; margin-left: 5px; }
+        .pending { background: #ffeaa7; color: #d63031; }
+        .approved { background: #55efc4; color: #00b894; }
+        .approval-box { text-align: left; padding: 15px; border: 1px dashed #8d6e63; border-radius: 10px; margin-bottom: 15px; background: #fafafa; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Advertiser Portal 📢</h1>
+        <p style="font-size: 1.3rem;">Target Society: <b id="targetSociety">None Selected</b></p>
+        
+        <div id="no-society-error" style="display:none; color: #d32f2f; margin-bottom: 15px;">
+            ⚠️ Please verify a society on the Home Page first!
+        </div>
+
+        <div id="main-portal-content">
+            <div class="approval-box">
+                <h3 style="margin-top:0; border-bottom:1px solid #8d6e63;">Step 1: Get Dual Verification</h3>
+                <p>1. Society Admin: <span id="statusSociety" class="status-badge pending">PENDING</span></p>
+                <p>2. Owl Watcher Team: <span id="statusOwl" class="status-badge pending">PENDING</span></p>
+            </div>
+
+            <div class="approval-box" style="text-align:center;">
+                <h3 style="margin-top:0; border-bottom:1px solid #8d6e63; text-align:left;">Step 2: Pitch Society Admin</h3>
+                <p style="font-size:0.95rem; text-align:left; font-family:sans-serif; color:#666;">
+                    Click below to chat with the local administrator via WhatsApp to secure booking confirmation. Provide them with your placeholder Ad Key below.
+                </p>
+                <p>Your Request Key: <b id="adKeyDisplay">Loading...</b></p>
+                <a id="waAdminBtn" href="#" target="_blank" class="btn-wa">💬 Request Admin Approval</a>
+            </div>
+
+            <div class="approval-box">
+                <h3 style="margin-top:0; border-bottom:1px solid #8d6e63;">Step 3: Upload Slider Creative</h3>
+                <label style="font-family: sans-serif; font-size:0.9rem; display:block; margin-bottom: 8px;">Paste Banner Image Link (URL):</label>
+                <input type="text" id="adImageUrl" placeholder="https://example.com/your-ad.jpg" disabled>
+                <button id="uploadAdBtn" disabled>Publish Banner Live</button>
+            </div>
+        </div>
+
+        <a href="index.html" style="display:inline-block; margin-top:20px; color:#8d6e63;">Back to Portal Home</a>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBEYKHQpy_VjmgjYiWQOPjXth1bghYsf9M",
+            authDomain: "finder-owl.firebaseapp.com",
+            projectId: "finder-owl",
+            storageBucket: "finder-owl.firebasestorage.app",
+            messagingSenderId: "1011347100861",
+            appId: "1:1011347100861:web:24246f9a4eb24d812cd3d4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const societyName = localStorage.getItem("savedSocietyName");
+        const societyId = localStorage.getItem("savedSocietyId");
+
+        if (!societyName || !societyId) {
+            document.getElementById("no-society-error").style.display = "block";
+            document.getElementById("main-portal-content").style.style.pointerEvents = "none";
+            document.getElementById("main-portal-content").style.opacity = "0.4";
+        } else {
+            document.getElementById("targetSociety").innerText = societyName;
+            
+            // Assign or pull a unique request ID for this device session
+            let adDocId = localStorage.getItem("myActiveAdId");
+            if (!adDocId) {
+                adDocId = "AD-" + Math.random().toString(36).substr(2, 9).toUpperCase();
+                localStorage.setItem("myActiveAdId", adDocId);
+            }
+            document.getElementById("adKeyDisplay").innerText = adDocId;
+
+            const adDocRef = doc(db, "ads", adDocId);
+
+            // Initialize document stub container if it doesn't exist yet
+            getDoc(adDocRef).then((snap) => {
+                if (!snap.exists()) {
+                    setDoc(adDocRef, {
+                        societyId: societyId,
+                        societyName: societyName,
+                        imageUrl: "",
+                        societyApproved: false,
+                        owlWatcherApproved: false
+                    });
+                }
+            });
+
+            // Set up real-time listener for the two approvals
+            onSnapshot(adDocRef, (snap) => {
+                if (snap.exists()) {
+                    const data = snap.data();
+                    
+                    // Update Society Admin Approval status
+                    const socBadge = document.getElementById("statusSociety");
+                    if (data.societyApproved) {
+                        socBadge.innerText = "APPROVED";
+                        socBadge.className = "status-badge approved";
+                    } else {
+                        socBadge.innerText = "PENDING";
+                        socBadge.className = "status-badge pending";
+                    }
+
+                    // Update Owl Watcher Team Approval status
+                    const owlBadge = document.getElementById("statusOwl");
+                    if (data.owlWatcherApproved) {
+                        owlBadge.innerText = "APPROVED";
+                        owlBadge.className = "status-badge approved";
+                    } else {
+                        owlBadge.innerText = "PENDING";
+                        owlBadge.className = "status-badge pending";
+                    }
+
+                    // If both parties approve, unlock the form fields
+                    if (data.societyApproved && data.owlWatcherApproved) {
+                        document.getElementById("adImageUrl").disabled = false;
+                        document.getElementById("uploadAdBtn").disabled = false;
+                    } else {
+                        document.getElementById("adImageUrl").disabled = true;
+                        document.getElementById("uploadAdBtn").disabled = true;
+                    }
+                }
+            });
+
+            // Set up dynamic WhatsApp contact button link using the active society guard number as standard root route
+            getDoc(doc(db, "societies", societyId)).then((socSnap) => {
+                let adminPhone = "910000000000"; // Fallback placeholder number
+                if(socSnap.exists() && socSnap.data().activeGuardPhone) {
+                    adminPhone = socSnap.data().activeGuardPhone.replace(/\D/g, '');
+                }
+                const rawMsg = `Hello Admin, I would like to request an Ad slot assignment in Owl Watcher for ${societyName}. My requested registration Ad Key is: ${adDocId}`;
+                document.getElementById("waAdminBtn").href = `https://wa.me/${adminPhone}?text=${encodeURIComponent(rawMsg)}`;
+            });
+
+            // Handle publishing the image URL once authorized
+            document.getElementById("uploadAdBtn").addEventListener("click", async () => {
+                const imgUrl = document.getElementById("adImageUrl").value.trim();
+                if(!imgUrl) return alert("Please specify a valid source image link.");
+                
+                try {
+                    await setDoc(adDocRef, { imageUrl: imgUrl }, { merge: true });
+                    alert("Ad creative updated successfully! It is now rolling live on the billboard.");
+                } catch (e) {
+                    alert("Error saving your banner details: " + e.message);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
