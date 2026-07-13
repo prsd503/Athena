@@ -1,3 +1,4 @@
+//index.html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,12 +19,12 @@
         
         /* Notice Board Styles */
         #notice-board { margin-top: 25px; padding: 20px; border: 1px solid #dcdde1; border-radius: 15px; background: #fcfcfc; text-align: left; }
-        /* Added word wrapping to handle unbroken character lines */
         #notice-content { font-family: sans-serif; font-size: 1.05rem; line-height: 1.5; color: #2f3640; margin-top: 10px; overflow-wrap: break-word; word-wrap: break-word; word-break: break-word; }
         .notice-date { font-size: 0.75rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; }
 
         .btn-msg { background: #25D366; display: inline-block; margin-top: 10px; padding: 10px; color: white; text-decoration: none; border-radius: 10px; font-size: 1rem; }
         .admin-btn { display: inline-block; background: #8d6e63; color: white; padding: 10px 25px; text-decoration: none; border-radius: 10px; font-family: 'Caveat', cursive; font-size: 1.2rem; cursor: pointer; margin-top: 15px; }
+        .switch-btn { background: #d32f2f; padding: 4px 10px; font-size: 0.9rem; border-radius: 6px; margin-left: 10px; cursor: pointer; display: inline-block; color: white; vertical-align: middle; }
     </style>
 </head>
 <body>
@@ -35,7 +36,10 @@
         </div>
         
         <div id="vehicle-search" style="display:none;">
-            <p>Society: <span id="displaySocietyName" style="font-weight:bold;"></span></p>
+            <p style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                <span>Society: <span id="displaySocietyName" style="font-weight:bold;"></span></span>
+                <button id="switchSocietyBtn" class="switch-btn">Change</button>
+            </p>
             <input type="text" id="vehicleInput" placeholder="Enter Vehicle Number">
             <button id="searchBtn">Search</button>
             <div id="guard-container" style="margin-top:20px;"></div>
@@ -74,6 +78,7 @@
         const db = getFirestore(app);
         const modal = document.getElementById("resultModal");
         let currentSociety = "";
+        let guardUnsubscribe = null; // Track snapshot listener to prevent duplicates
 
         function showModal(content) { document.getElementById("result").innerHTML = content; modal.style.display = "block"; }
         window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
@@ -100,7 +105,8 @@
 
         // 2. Real-time Guard Info
         function setupGuard(societyId) {
-            onSnapshot(doc(db, "societies", societyId), (snap) => {
+            if (guardUnsubscribe) guardUnsubscribe(); // Clear old listener if switching societies
+            guardUnsubscribe = onSnapshot(doc(db, "societies", societyId), (snap) => {
                 if (snap.exists() && snap.data().activeGuardName) {
                     const g = snap.data();
                     document.getElementById("guard-container").innerHTML = `
@@ -108,27 +114,42 @@
                             <p style="margin:0;">On Duty: <b>${g.activeGuardName}</b></p>
                             <a href="tel:${g.activeGuardPhone}" class="btn-msg" style="background:#27ae60; margin-top:5px;">📞 Call Security</a>
                         </div>`;
+                } else {
+                    document.getElementById("guard-container").innerHTML = "";
                 }
             });
         }
 
-        // 3. Logic to Start
+        // Helper function to transition UI screens
+        function showSearchScreen(societyName, societyId) {
+            currentSociety = societyName;
+            document.getElementById("society-verification").style.display = "none";
+            document.getElementById("vehicle-search").style.display = "block";
+            document.getElementById("displaySocietyName").innerText = currentSociety;
+            setupGuard(societyId);
+            loadNotice(societyId);
+        }
+
+        // 3. Logic to Start / Handle Manual Verification
         document.getElementById("verifyBtn").addEventListener("click", async () => {
             const input = document.getElementById("societyInput").value.trim().toLowerCase();
+            if (!input) return showModal("<p>⚠️ Please enter a society name.</p>");
+            
             const snap = await getDocs(collection(db, "societies"));
             const match = snap.docs.find(d => d.data().name?.toLowerCase() === input);
             if (match) {
-                currentSociety = match.data().name;
-                document.getElementById("society-verification").style.display = "none";
-                document.getElementById("vehicle-search").style.display = "block";
-                document.getElementById("displaySocietyName").innerText = currentSociety;
-                setupGuard(match.id);
-                loadNotice(match.id);
+                // Save state data to localStorage
+                localStorage.setItem("savedSocietyName", match.data().name);
+                localStorage.setItem("savedSocietyId", match.id);
+                showSearchScreen(match.data().name, match.id);
             } else { showModal("<p>❌ Society not found.</p>"); }
         });
 
+        // 4. Vehicle Search Logic
         document.getElementById("searchBtn").addEventListener("click", async () => {
             const vNum = document.getElementById("vehicleInput").value.trim().toUpperCase();
+            if (!vNum) return showModal("<p>⚠️ Please enter a vehicle number.</p>");
+            
             const snap = await getDocs(collection(db, "vehicles"));
             const matches = snap.docs.filter(d => d.data().societyName?.toLowerCase() === currentSociety.toLowerCase() && d.data().vehicleNumber?.toUpperCase() === vNum);
             if (matches.length > 0) {
@@ -136,10 +157,31 @@
                 matches.forEach(found => {
                     const data = found.data();
                     const msg = encodeURIComponent(`(Using: Owl-Watcher) Hello, vehicle ${data.vehicleNumber} of ${data.flatNumber}`);
-                    htmlContent += `<div>✅ Vehicle: <b>${data.vehicleNumber}</b><br>Flat: <b>${data.flatNumber}</b><br><a href="https://wa.me/${data.mobileNumber?.replace(/\D/g, '')}?text=${msg}" target="_blank" class="btn-msg">💬 Message Admin</a></div>`;
+                    htmlContent += `<div style="margin-bottom:15px;">✅ Vehicle: <b>${data.vehicleNumber}</b><br>Flat: <b>${data.flatNumber}</b><br><a href="https://wa.me/${data.mobileNumber?.replace(/\D/g, '')}?text=${msg}" target="_blank" class="btn-msg">💬 Message Admin</a></div>`;
                 });
                 showModal(htmlContent);
             } else { showModal("<p>❌ Vehicle not found.</p>"); }
+        });
+
+        // 5. Change/Switch Society button implementation
+        document.getElementById("switchSocietyBtn").addEventListener("click", () => {
+            localStorage.removeItem("savedSocietyName");
+            localStorage.removeItem("savedSocietyId");
+            if (guardUnsubscribe) guardUnsubscribe();
+            currentSociety = "";
+            document.getElementById("vehicleInput").value = "";
+            document.getElementById("societyInput").value = "";
+            document.getElementById("vehicle-search").style.display = "none";
+            document.getElementById("society-verification").style.display = "block";
+        });
+
+        // 6. Lifecycle: Check for persistent session on page load/refresh
+        window.addEventListener("DOMContentLoaded", () => {
+            const savedName = localStorage.getItem("savedSocietyName");
+            const savedId = localStorage.getItem("savedSocietyId");
+            if (savedName && savedId) {
+                showSearchScreen(savedName, savedId);
+            }
         });
     </script>
 </body>
