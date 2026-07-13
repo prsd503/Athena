@@ -226,7 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
             alert("Error deleting: " + e.message);
         }
     });
-});
+
 
 
 
