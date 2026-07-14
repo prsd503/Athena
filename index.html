@@ -22,7 +22,7 @@
         .notice-date { font-size: 0.75rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; }
 
         /* Billboard Slider Styles Optimization for 720x720 Square Artwork */
-        .billboard { margin-top: 25px; padding: 15px; border: 2px dashed #8d6e63; border-radius: 15px; background: #fff8f5; text-align: center; overflow: hidden; position: relative; }
+        #ad-billboard { margin-top: 25px; padding: 15px; border: 2px dashed #8d6e63; border-radius: 15px; background: #fff8f5; text-align: center; overflow: hidden; position: relative; }
         .ad-slider-container { width: 100%; height: 340px; display: flex; align-items: center; justify-content: center; position: relative; margin: 0 auto; }
         .ad-slide { width: 100%; height: 100%; object-fit: cover; display: none; border-radius: 10px; }
         .ad-slide.active { display: block; }
@@ -41,22 +41,9 @@
 <body>
     <div class="card">
         <h1>Owl Watcher 🦉</h1>
-        
         <div id="society-verification">
             <input type="text" id="societyInput" placeholder="Enter Society Name">
             <button id="verifyBtn">Proceed</button>
-            
-            <div id="global-ad-billboard" class="billboard">
-                <h4 style="margin: 0 0 10px 0; font-family: 'Caveat', cursive; color: #8d6e63;">🌍 Sponsored Global Billboard 🌍</h4>
-                <div class="ad-slider-container" id="globalAdSlider">
-                    <p id="global-ad-placeholder" style="color: #a1887f;">Global advertising space available</p>
-                </div>
-                <div class="ad-controls" id="globalAdControls" style="display: none;">
-                    <button class="ad-nav-btn" id="prevGlobalAdBtn">❮ Prev</button>
-                    <button class="ad-nav-btn" id="nextGlobalAdBtn">Next ❯</button>
-                </div>
-                <a href="ad.html" class="ad-link">Advertise Globally Here!</a>
-            </div>
         </div>
         
         <div id="vehicle-search" style="display:none;">
@@ -73,15 +60,17 @@
                 <div id="notice-content">Loading...</div>
             </div>
 
-            <div id="ad-billboard" class="billboard">
+            <div id="ad-billboard">
                 <h4 style="margin: 0 0 10px 0; font-family: 'Caveat', cursive; color: #8d6e63;">✨ Community Billboard ✨</h4>
                 <div class="ad-slider-container" id="adSlider">
                     <p id="ad-placeholder" style="color: #a1887f;">Space Available for Ad placement</p>
                 </div>
+                
                 <div class="ad-controls" id="adControls" style="display: none;">
                     <button class="ad-nav-btn" id="prevAdBtn">❮ Prev</button>
                     <button class="ad-nav-btn" id="nextAdBtn">Next ❯</button>
                 </div>
+
                 <a href="ad.html" class="ad-link">Advertise Here!</a>
             </div>
         </div>
@@ -99,7 +88,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, getDoc, doc, setDoc, onSnapshot, query, where, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, getDoc, doc, setDoc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBEYKHQpy_VjmgjYiWQOPjXth1bghYsf9M",
@@ -115,16 +104,11 @@
         const modal = document.getElementById("resultModal");
         let currentSociety = "";
         let guardUnsubscribe = null;
-        
-        // Trackers for Local Billboard
         let adInterval = null;
+        
+        // Navigation Tracker States
         let currentIndex = 0;
         let totalSlides = 0;
-
-        // Trackers for Global Billboard
-        let globalAdInterval = null;
-        let globalCurrentIndex = 0;
-        let globalTotalSlides = 0;
 
         function showModal(content) { document.getElementById("result").innerHTML = content; modal.style.display = "block"; }
         window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
@@ -166,119 +150,78 @@
             });
         }
 
-        // Slide switcher helpers
-        function changeSlide(direction, isGlobal = false) {
-            const sliderId = isGlobal ? "globalAdSlider" : "adSlider";
-            const slider = document.getElementById(sliderId);
+        // Helper tracker module to switch layout frames cleanly
+        function changeSlide(direction) {
+            const slider = document.getElementById("adSlider");
             const slides = slider.getElementsByClassName("ad-slide");
             if (slides.length <= 1) return;
 
-            let idx = isGlobal ? globalCurrentIndex : currentIndex;
-            slides[idx].classList.remove("active");
+            slides[currentIndex].classList.remove("active");
             
             if (direction === "next") {
-                idx = (idx + 1) % slides.length;
+                currentIndex = (currentIndex + 1) % slides.length;
             } else if (direction === "prev") {
-                idx = (idx - 1 + slides.length) % slides.length;
+                currentIndex = (currentIndex - 1 + slides.length) % slides.length;
             }
             
-            slides[idx].classList.add("active");
-            if (isGlobal) {
-                globalCurrentIndex = idx;
-            } else {
-                currentIndex = idx;
+            slides[currentIndex].classList.add("active");
+        }
+
+        // Resets the timer interval loops whenever user interactions are recorded
+        function startAdTimer() {
+            if (adInterval) clearInterval(adInterval);
+            const slider = document.getElementById("adSlider");
+            const slides = slider.getElementsByClassName("ad-slide");
+            
+            if (slides.length > 1) {
+                adInterval = setInterval(() => {
+                    changeSlide("next");
+                }, 5000);
             }
         }
 
-        function startAdTimer(isGlobal = false) {
-            if (isGlobal) {
-                if (globalAdInterval) clearInterval(globalAdInterval);
-                const slides = document.getElementById("globalAdSlider").getElementsByClassName("ad-slide");
-                if (slides.length > 1) {
-                    globalAdInterval = setInterval(() => changeSlide("next", true), 5000);
-                }
-            } else {
-                if (adInterval) clearInterval(adInterval);
-                const slides = document.getElementById("adSlider").getElementsByClassName("ad-slide");
-                if (slides.length > 1) {
-                    adInterval = setInterval(() => changeSlide("next", false), 5000);
-                }
-            }
-        }
-
-        // 3. Load Global Advertisements
-        async function loadGlobalAds() {
-            const slider = document.getElementById("globalAdSlider");
-            const controls = document.getElementById("globalAdControls");
-            if (globalAdInterval) clearInterval(globalAdInterval);
-
-            try {
-                const q = query(
-                    collection(db, "ads"),
-                    where("type", "==", "global"),
-                    where("societyApproved", "==", true),
-                    where("owlWatcherApproved", "==", true),
-                    limit(10)
-                );
-                
-                const snap = await getDocs(q);
-                if (snap.empty) {
-                    slider.innerHTML = `<p id="global-ad-placeholder" style="color: #a1887f;">Global advertising space available</p>`;
-                    controls.style.display = "none";
-                    return;
-                }
-
-                slider.innerHTML = "";
-                snap.forEach((doc) => {
-                    const adData = doc.data();
-                    if (adData.imageUrl) {
-                        slider.innerHTML += `<img src="${adData.imageUrl}" class="ad-slide" alt="Global Community Ad">`;
-                    }
-                });
-
-                const slides = slider.getElementsByClassName("ad-slide");
-                globalTotalSlides = slides.length;
-                globalCurrentIndex = 0;
-
-                if (globalTotalSlides > 0) {
-                    slides[globalCurrentIndex].classList.add("active");
-                    if (globalTotalSlides > 1) {
-                        controls.style.display = "flex"; 
-                        startAdTimer(true);
-                    } else {
-                        controls.style.display = "none";
-                    }
-                }
-            } catch (error) {
-                console.error("Error setting up global ads: ", error);
-            }
-        }
-
-        // 4. Load Society-Specific Local Advertisements
+        // 3. Rolling Advertisement Billboard System (Handles both Local and Global Ads)
         async function loadAds(societyId) {
             const slider = document.getElementById("adSlider");
             const controls = document.getElementById("adControls");
             if(adInterval) clearInterval(adInterval);
 
             try {
-                const q = query(
+                // Fetch approved Local Ads for this specific society
+                const localQuery = query(
                     collection(db, "ads"), 
                     where("societyId", "==", societyId),
                     where("type", "==", "local"),
                     where("societyApproved", "==", true),
                     where("owlWatcherApproved", "==", true)
                 );
+
+                // Fetch approved Global Ads designed to display across all screens
+                const globalQuery = query(
+                    collection(db, "ads"),
+                    where("type", "==", "global"),
+                    where("societyApproved", "==", true),
+                    where("owlWatcherApproved", "==", true)
+                );
                 
-                const snap = await getDocs(q);
-                if (snap.empty) {
+                const [localSnap, globalSnap] = await Promise.all([
+                    getDocs(localQuery),
+                    getDocs(globalQuery)
+                ]);
+
+                // Combine local and global ads into a single array
+                const combinedAds = [];
+                localSnap.forEach(doc => combinedAds.push(doc.data()));
+                globalSnap.forEach(doc => combinedAds.push(doc.data()));
+
+                if (combinedAds.length === 0) {
                     slider.innerHTML = `<p id="ad-placeholder" style="color: #a1887f;">Space Available for Ad placement</p>`;
                     controls.style.display = "none";
                     return;
                 }
 
                 slider.innerHTML = "";
-                snap.forEach((doc) => {
-                    const adData = doc.data();
+                combinedAds.forEach((adData) => {
                     if (adData.imageUrl) {
                         slider.innerHTML += `<img src="${adData.imageUrl}" class="ad-slide" alt="Community Ad">`;
                     }
@@ -290,39 +233,34 @@
 
                 if (totalSlides > 0) {
                     slides[currentIndex].classList.add("active");
+
                     if (totalSlides > 1) {
-                        controls.style.display = "flex"; 
-                        startAdTimer(false);
+                        controls.style.display = "flex"; // Reveal navigation interface if multiple ads exist
+                        startAdTimer();
                     } else {
                         controls.style.display = "none";
                     }
+                } else {
+                    slider.innerHTML = `<p id="ad-placeholder" style="color: #a1887f;">Space Available for Ad placement</p>`;
+                    controls.style.display = "none";
                 }
             } catch (error) {
-                console.error("Error setting up local ads: ", error);
+                console.error("Error setting up dynamic ad array: ", error);
             }
         }
 
-        // Local Slider Listeners
+        // Attach action events directly to the navigation elements
         document.getElementById("nextAdBtn").addEventListener("click", () => {
-            changeSlide("next", false);
-            startAdTimer(false); 
+            changeSlide("next");
+            startAdTimer(); // Reset auto-timer tracking reference clock
         });
+
         document.getElementById("prevAdBtn").addEventListener("click", () => {
-            changeSlide("prev", false);
-            startAdTimer(false); 
+            changeSlide("prev");
+            startAdTimer(); // Reset auto-timer tracking reference clock
         });
 
-        // Global Slider Listeners
-        document.getElementById("nextGlobalAdBtn").addEventListener("click", () => {
-            changeSlide("next", true);
-            startAdTimer(true); 
-        });
-        document.getElementById("prevGlobalAdBtn").addEventListener("click", () => {
-            changeSlide("prev", true);
-            startAdTimer(true); 
-        });
-
-        // UI Screen Transition
+        // Helper function to transition UI screens
         function showSearchScreen(societyName, societyId) {
             currentSociety = societyName;
             document.getElementById("society-verification").style.display = "none";
@@ -330,10 +268,10 @@
             document.getElementById("displaySocietyName").innerText = currentSociety;
             setupGuard(societyId);
             loadNotice(societyId);
-            loadAds(societyId); 
+            loadAds(societyId);
         }
 
-        // Verification Logic
+        // Logic to Start / Handle Manual Verification
         document.getElementById("verifyBtn").addEventListener("click", async () => {
             const input = document.getElementById("societyInput").value.trim().toLowerCase();
             if (!input) return showModal("<p>⚠️ Please enter a society name.</p>");
@@ -365,7 +303,7 @@
             } else { showModal("<p>❌ Vehicle not found.</p>"); }
         });
 
-        // Switch Society 
+        // Change/Switch Society button implementation
         document.getElementById("switchSocietyBtn").addEventListener("click", () => {
             localStorage.removeItem("savedSocietyName");
             localStorage.removeItem("savedSocietyId");
@@ -376,19 +314,17 @@
             document.getElementById("societyInput").value = "";
             document.getElementById("vehicle-search").style.display = "none";
             document.getElementById("society-verification").style.display = "block";
-            loadGlobalAds();
         });
 
-        // Initialize Lifecycle
+        // Lifecycle: Check for persistent session on page load/refresh
         window.addEventListener("DOMContentLoaded", () => {
-            loadGlobalAds(); 
             const savedName = localStorage.getItem("savedSocietyName");
             const savedId = localStorage.getItem("savedSocietyId");
             if (savedName && savedId) {
                 showSearchScreen(savedName, savedId);
             }
 
-            // Auto-Refresh Logic (5 minutes)
+            // Auto-Refresh Logic (Runs every 5 minutes)
             setTimeout(() => {
                 window.location.reload();
             }, 5 * 60 * 1000);
