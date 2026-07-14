@@ -398,4 +398,3 @@ document.addEventListener('DOMContentLoaded', () => {
             window.showModal("Error approving Ad Key: " + e.message);
         }
     });    
-
