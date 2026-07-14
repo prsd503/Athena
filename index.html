@@ -85,7 +85,8 @@
                     <button class="ad-nav-btn" id="nextAdBtn">Next ❯</button>
                 </div>
 
-                <a href="ad.html" class="ad-link">Advertise Here!</a>
+                <!-- Updated to target dynamic updates via ID assignment -->
+                <a id="localAdLink" href="#" target="_blank" class="ad-link">Advertise Here!</a>
             </div>
         </div>
         
@@ -353,6 +354,13 @@
             document.getElementById("society-verification").style.display = "none";
             document.getElementById("vehicle-search").style.display = "block";
             document.getElementById("displaySocietyName").innerText = currentSociety;
+            
+            // Auto-fetch current society context and dynamically update the WhatsApp advertisement anchor element
+            const encodedText = encodeURIComponent(`Hi I want to apply for local-society ad in Owl Watcher for ${societyName}`);
+            const localAdLink = document.getElementById("localAdLink");
+            localAdLink.href = `https://wa.me/919033406816?text=${encodedText}`;
+            localAdLink.innerText = `Advertise in ${societyName}!`;
+
             if (globalAdInterval) clearInterval(globalAdInterval); // Clear home page global intervals
             setupGuard(societyId);
             loadNotice(societyId);
