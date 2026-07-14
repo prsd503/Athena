@@ -113,7 +113,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, onSnapshot, getDoc, serverTimestamp, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, onSnapshot, getDoc, serverTimestamp, collection } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBEYKHQpy_VjmgjYiWQOPjXth1bghYsf9M",
@@ -135,11 +135,10 @@
 
         let activeUnsubscribe = null;
         let adDocId = "";
-        let isSocietyPaid = false; // Resolved dynamically via database query
+        let isSocietyPaid = false; 
 
-        // Helper function for global keys
-        function generateAdKey() {
-            return "GL-" + Math.random().toString(36).substr(2, 9).toUpperCase();
+        function generateAdKey(prefix = "AD-") {
+            return prefix + Math.random().toString(36).substr(2, 9).toUpperCase();
         }
 
         if (!societyName || !societyId) {
@@ -149,22 +148,19 @@
         } else {
             document.getElementById("targetSociety").innerText = societyName;
             
-            // Step 0: Fetch Society details to determine Paid vs Free status
             const docRef = doc(db, "societies", societyId);
             getDoc(docRef).then((socSnap) => {
                 const tierBadge = document.getElementById("tierBadge");
-                let activeGuardPhone = "919033406816"; // fallback
+                let activeGuardPhone = "919033406816"; 
 
                 if (socSnap.exists()) {
                     const data = socSnap.data();
-                    // Supports both 'isPaid' and 'paid' attributes
                     isSocietyPaid = !!(data.isPaid || data.paid);
                     if (data.activeGuardPhone) {
                         activeGuardPhone = data.activeGuardPhone.replace(/\D/g, '');
                     }
                 }
 
-                // Render UI depending on Paid status
                 tierBadge.style.display = "block";
                 if (isSocietyPaid) {
                     tierBadge.innerText = "Premium Paid Society 🌟";
@@ -177,11 +173,9 @@
                     tierBadge.className = "tier-banner tier-free";
                     document.getElementById("free-workflow-section").style.display = "block";
                     document.getElementById("paid-workflow-section").style.display = "none";
-                    // Hide local admin approval track since free societies are managed by the team directly
                     document.getElementById("societyApprovalRow").style.display = "none";
                 }
 
-                // Load existing or initialize new workspace key
                 adDocId = localStorage.getItem("myActiveAdId");
                 if (!adDocId) {
                     genBlock.style.display = "block";
@@ -196,16 +190,17 @@
                 console.error("Error retrieving society tier:", err);
             });
 
-            // Click Handler for Key Generation
+            // FIXED: Added type: "local" to schema payload
             document.getElementById("initializeKeyBtn").addEventListener("click", async () => {
-                const generatedKey = "AD-" + Math.random().toString(36).substr(2, 9).toUpperCase();
+                const generatedKey = generateAdKey("AD-");
                 try {
                     const adDocRef = doc(db, "ads", generatedKey);
                     await setDoc(adDocRef, {
                         societyId: societyId,
                         societyName: societyName,
                         imageUrl: "",
-                        societyApproved: isSocietyPaid ? false : true, // Auto-approved on society side if free
+                        type: "local", // <-- Added this critical query field
+                        societyApproved: isSocietyPaid ? false : true, 
                         owlWatcherApproved: false,
                         createdAt: serverTimestamp(),
                         approvedAt: null
@@ -219,7 +214,6 @@
                     
                     trackKeyApprovals(generatedKey);
                     
-                    // Retrieve guard phone details again to construct the dynamic WhatsApp link mapping
                     const socSnap = await getDoc(doc(db, "societies", societyId));
                     let activeGuardPhone = "919033406816";
                     if (socSnap.exists() && socSnap.data().activeGuardPhone) {
@@ -233,11 +227,8 @@
 
             function trackKeyApprovals(targetKey) {
                 adDocId = targetKey;
-                
-                // Update key text placeholders on both workflow elements
                 const badges = document.querySelectorAll(".adKeyPlaceholder");
                 badges.forEach(el => el.innerText = targetKey);
-                
                 document.getElementById("switchKeyInput").value = targetKey;
 
                 const adDocRef = doc(db, "ads", targetKey);
@@ -277,7 +268,6 @@
                         owlBadge.innerText = data.owlWatcherApproved ? "APPROVED" : "PENDING";
                         owlBadge.className = "status-badge " + (data.owlWatcherApproved ? "approved" : "pending");
 
-                        // If paid society, dual confirmation is needed. If free, only team confirmation matters.
                         const isFullyApproved = isSocietyPaid 
                             ? (data.societyApproved && data.owlWatcherApproved) 
                             : data.owlWatcherApproved;
@@ -300,12 +290,10 @@
             }
 
             function updateWhatsAppLinks(keyToApprove, guardPhone) {
-                // Section 1 Free Link Setup -> Direct pitch to Owl Watcher Central Support Phone
                 const freeTeamPhone = "919033406816";
                 const freeMsg = `Hello Owl Watcher Central Team, I would like to request an Ad slot assignment for the free society: "${societyName}". My requested campaign registration Ad Key is: ${keyToApprove}`;
                 document.getElementById("waTeamBtn").href = `https://wa.me/${freeTeamPhone}?text=${encodeURIComponent(freeMsg)}`;
 
-                // Section 2 Paid Link Setup -> Direct pitch to Local Society Admin Phone
                 const paidMsg = `Hello Admin, I would like to request a premium Ad slot assignment in Owl Watcher for our society: "${societyName}". My requested registration Ad Key is: ${keyToApprove}`;
                 document.getElementById("waAdminBtn").href = `https://wa.me/${guardPhone}?text=${encodeURIComponent(paidMsg)}`;
             }
@@ -376,7 +364,7 @@
             });
         }
 
-        // Handler 2: Global Ad Submission
+        // FIXED: Reconfigured to match security rules (Uses setDoc with GL- prefix, sets correct fields)
         document.getElementById("submitGlobalAdBtn").addEventListener("click", async () => {
             const imgUrl = document.getElementById("globalAdImgUrl").value.trim();
 
@@ -386,23 +374,24 @@
             }
 
             try {
-                const requestId = generateAdKey();
-                await addDoc(collection(db, "ads"), {
-                    requestId: requestId,
+                const requestId = generateAdKey("GL-");
+                const globalAdRef = doc(db, "ads", requestId); 
+                
+                await setDoc(globalAdRef, {
                     societyId: "global",
                     societyName: "Platform-Wide",
                     imageUrl: imgUrl,
                     type: "global",
-                    societyApproved: true, // Auto-approved by community side since it is platform wide
-                    owlWatcherApproved: false, // Pending central admin check
-                    timestamp: new Date()
+                    societyApproved: true, 
+                    owlWatcherApproved: false, 
+                    createdAt: serverTimestamp() 
                 });
 
                 alert(`Success! Global Ad Request created. Write down your Request Key: ${requestId}`);
                 document.getElementById("globalAdImgUrl").value = "";
             } catch (err) {
                 console.error(err);
-                alert("Error submitting global ad request.");
+                alert("Error submitting global ad request: " + err.message);
             }
         });
     </script>
