@@ -77,7 +77,7 @@
             <div id="ad-billboard">
                 <h4 style="margin: 0 0 10px 0; font-family: 'Caveat', cursive; color: #8d6e63;">✨ Offers, Ads, B'Day wishes & More ✨</h4>
                 <div class="ad-slider-container" id="adSlider">
-                    <p id="ad-placeholder" style="color: #a1887f;">Space Available for Ad placement</p>
+                    <p id="ad-placeholder" style="color: #a1887f;">Space Available</p>
                 </div>
                 
                 <div class="ad-controls" id="adControls" style="display: none;">
@@ -86,7 +86,7 @@
                 </div>
 
                 <!-- Updated to target dynamic updates via ID assignment -->
-                <a id="localAdLink" href="#" target="_blank" class="ad-link">Advertise Here!</a>
+                <a id="localAdLink" href="#" target="_blank" class="ad-link">Contact for Posting Paid Content Here!</a>
             </div>
         </div>
         
@@ -357,7 +357,7 @@
             document.getElementById("displaySocietyName").innerText = currentSociety;
             
             // Auto-fetch current society context and dynamically update the WhatsApp advertisement anchor element
-            const encodedText = encodeURIComponent(`Hi I want to apply for local-society ad in Owl Watcher for ${societyName}`);
+            const encodedText = encodeURIComponent(`Hi I want to apply for local-society post in Owl Watcher for ${societyName}`);
             const localAdLink = document.getElementById("localAdLink");
             localAdLink.href = `https://wa.me/919033406816?text=${encodedText}`;
             localAdLink.innerText = `Advertise in ${societyName}!`;
