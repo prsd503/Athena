@@ -22,10 +22,10 @@
         .notice-date { font-size: 0.75rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; }
 
         /* Billboard Slider Styles Optimization for 720x720 Square Artwork */
-        #ad-billboard { margin-top: 25px; padding: 15px; border: 2px dashed #8d6e63; border-radius: 15px; background: #fff8f5; text-align: center; overflow: hidden; position: relative; }
-        .ad-slider-container { width: 100%; height: 340px; display: flex; align-items: center; justify-content: center; position: relative; margin: 0 auto; }
-        .ad-slide { width: 100%; height: 100%; object-fit: cover; display: none; border-radius: 10px; }
-        .ad-slide.active { display: block; }
+        #ad-billboard, #ad-billboard-global { margin-top: 25px; padding: 15px; border: 2px dashed #8d6e63; border-radius: 15px; background: #fff8f5; text-align: center; overflow: hidden; position: relative; }
+        .ad-slider-container, .global-ad-slider-container { width: 100%; height: 340px; display: flex; align-items: center; justify-content: center; position: relative; margin: 0 auto; }
+        .ad-slide, .global-ad-slide { width: 100%; height: 100%; object-fit: cover; display: none; border-radius: 10px; }
+        .ad-slide.active, .global-ad-slide.active { display: block; }
         .ad-link { font-size: 0.9rem; color: #8d6e63; text-decoration: underline; display: inline-block; margin-top: 8px; }
 
         /* Billboard Navigation Controls */
@@ -44,6 +44,20 @@
         <div id="society-verification">
             <input type="text" id="societyInput" placeholder="Enter Society Name">
             <button id="verifyBtn">Proceed</button>
+
+            <!-- Pre-login Global Billboard -->
+            <div id="ad-billboard-global">
+                <h4 style="margin: 0 0 10px 0; font-family: 'Caveat', cursive; color: #8d6e63;">✨ Global Announcements ✨</h4>
+                <div class="global-ad-slider-container" id="globalAdSlider">
+                    <p id="global-ad-placeholder" style="color: #a1887f;">Space Available for Ad placement</p>
+                </div>
+                
+                <div class="ad-controls" id="globalAdControls" style="display: none;">
+                    <button class="ad-nav-btn" id="prevGlobalAdBtn">❮ Prev</button>
+                    <button class="ad-nav-btn" id="nextGlobalAdBtn">Next ❯</button>
+                </div>
+                <a href="ad.html" class="ad-link">Advertise Globally!</a>
+            </div>
         </div>
         
         <div id="vehicle-search" style="display:none;">
@@ -105,10 +119,13 @@
         let currentSociety = "";
         let guardUnsubscribe = null;
         let adInterval = null;
+        let globalAdInterval = null;
         
         // Navigation Tracker States
         let currentIndex = 0;
         let totalSlides = 0;
+        let currentGlobalIndex = 0;
+        let totalGlobalSlides = 0;
 
         function showModal(content) { document.getElementById("result").innerHTML = content; modal.style.display = "block"; }
         window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
@@ -167,6 +184,22 @@
             slides[currentIndex].classList.add("active");
         }
 
+        function changeGlobalSlide(direction) {
+            const slider = document.getElementById("globalAdSlider");
+            const slides = slider.getElementsByClassName("global-ad-slide");
+            if (slides.length <= 1) return;
+
+            slides[currentGlobalIndex].classList.remove("active");
+            
+            if (direction === "next") {
+                currentGlobalIndex = (currentGlobalIndex + 1) % slides.length;
+            } else if (direction === "prev") {
+                currentGlobalIndex = (currentGlobalIndex - 1 + slides.length) % slides.length;
+            }
+            
+            slides[currentGlobalIndex].classList.add("active");
+        }
+
         // Resets the timer interval loops whenever user interactions are recorded
         function startAdTimer() {
             if (adInterval) clearInterval(adInterval);
@@ -180,7 +213,69 @@
             }
         }
 
-        // 3. Rolling Advertisement Billboard System
+        function startGlobalAdTimer() {
+            if (globalAdInterval) clearInterval(globalAdInterval);
+            const slider = document.getElementById("globalAdSlider");
+            const slides = slider.getElementsByClassName("global-ad-slide");
+            
+            if (slides.length > 1) {
+                globalAdInterval = setInterval(() => {
+                    changeGlobalSlide("next");
+                }, 5000);
+            }
+        }
+
+        // Pre-Login Global Ad Banner System
+        async function loadGlobalAdsPreLogin() {
+            const slider = document.getElementById("globalAdSlider");
+            const controls = document.getElementById("globalAdControls");
+            if(globalAdInterval) clearInterval(globalAdInterval);
+
+            try {
+                const globalQuery = query(
+                    collection(db, "ads"),
+                    where("type", "==", "global"),
+                    where("societyApproved", "==", true),
+                    where("owlWatcherApproved", "==", true)
+                );
+                
+                const snap = await getDocs(globalQuery);
+                if (snap.empty) {
+                    slider.innerHTML = `<p id="global-ad-placeholder" style="color: #a1887f;">Space Available for Ad placement</p>`;
+                    controls.style.display = "none";
+                    return;
+                }
+
+                slider.innerHTML = "";
+                snap.forEach((doc) => {
+                    const adData = doc.data();
+                    if (adData.imageUrl) {
+                        slider.innerHTML += `<img src="${adData.imageUrl}" class="global-ad-slide" alt="Global Promotion">`;
+                    }
+                });
+
+                const slides = slider.getElementsByClassName("global-ad-slide");
+                totalGlobalSlides = slides.length;
+                currentGlobalIndex = 0;
+
+                if (totalGlobalSlides > 0) {
+                    slides[currentGlobalIndex].classList.add("active");
+                    if (totalGlobalSlides > 1) {
+                        controls.style.display = "flex";
+                        startGlobalAdTimer();
+                    } else {
+                        controls.style.display = "none";
+                    }
+                } else {
+                    slider.innerHTML = `<p id="global-ad-placeholder" style="color: #a1887f;">Space Available for Ad placement</p>`;
+                    controls.style.display = "none";
+                }
+            } catch (error) {
+                console.error("Error setting up pre-login global ad banner: ", error);
+            }
+        }
+
+        // 3. Rolling Advertisement Billboard System (Post-login Local Society Board)
         async function loadAds(societyId) {
             const slider = document.getElementById("adSlider");
             const controls = document.getElementById("adControls");
@@ -242,12 +337,23 @@
             startAdTimer(); // Reset auto-timer tracking reference clock
         });
 
+        document.getElementById("nextGlobalAdBtn").addEventListener("click", () => {
+            changeGlobalSlide("next");
+            startGlobalAdTimer();
+        });
+
+        document.getElementById("prevGlobalAdBtn").addEventListener("click", () => {
+            changeGlobalSlide("prev");
+            startGlobalAdTimer();
+        });
+
         // Helper function to transition UI screens
         function showSearchScreen(societyName, societyId) {
             currentSociety = societyName;
             document.getElementById("society-verification").style.display = "none";
             document.getElementById("vehicle-search").style.display = "block";
             document.getElementById("displaySocietyName").innerText = currentSociety;
+            if (globalAdInterval) clearInterval(globalAdInterval); // Clear home page global intervals
             setupGuard(societyId);
             loadNotice(societyId);
             loadAds(societyId);
@@ -296,6 +402,7 @@
             document.getElementById("societyInput").value = "";
             document.getElementById("vehicle-search").style.display = "none";
             document.getElementById("society-verification").style.display = "block";
+            loadGlobalAdsPreLogin(); // Reload pre-login global ads on return to verification view
         });
 
         // Lifecycle: Check for persistent session on page load/refresh
@@ -304,6 +411,8 @@
             const savedId = localStorage.getItem("savedSocietyId");
             if (savedName && savedId) {
                 showSearchScreen(savedName, savedId);
+            } else {
+                loadGlobalAdsPreLogin(); // Run if landing on the screen before log-in setup
             }
 
             // Auto-Refresh Logic (Runs every 5 minutes)
