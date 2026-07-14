@@ -16,6 +16,23 @@
         #admin-results { margin-top: 15px; text-align: left; }
         .contact-btn { display: inline-block; background: #8d6e63; color: white; padding: 10px 20px; text-decoration: none; border-radius: 10px; font-size: 1rem; margin-top: 10px; border: 2px solid #5d4037; }
         .contact-btn:hover { background: #5d4037; }
+        
+        /* Green layout styling specifically for WhatsApp Team communication */
+        .whatsapp-btn {
+            display: none; 
+            background: #25d366; 
+            color: white; 
+            padding: 10px 20px; 
+            text-decoration: none; 
+            border-radius: 10px; 
+            font-size: 1.1rem; 
+            margin-top: 12px; 
+            border: 2px solid #1ebe57; 
+            font-weight: bold;
+            box-sizing: border-box;
+            width: 85%;
+        }
+        .whatsapp-btn:hover { background: #1ebe57; }
     </style>
 </head>
 <body>
@@ -74,6 +91,10 @@
             <h2>🎟️ Ad Request Approval</h2>
             <input type="text" id="adApprovalKey" placeholder="Enter Ad Request Key (e.g. AD-XXXXXX)">
             <button id="approveAdBtn" style="background: #27ae60;">Approve Ad Box</button>
+            
+            <a id="adminWaTeamBtn" href="#" target="_blank" class="whatsapp-btn">
+                💬 Send Details to Owl Watcher
+            </a>
         </div>
 
         <hr style="margin:20px 0;">
