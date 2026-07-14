@@ -359,6 +359,21 @@
             loadAds(societyId);
         }
 
+        // Helper function to clear society session and return to main search
+        function clearSocietySession() {
+            localStorage.removeItem("savedSocietyName");
+            localStorage.removeItem("savedSocietyId");
+            localStorage.removeItem("societyLoginTime");
+            if (guardUnsubscribe) guardUnsubscribe();
+            if (adInterval) clearInterval(adInterval);
+            currentSociety = "";
+            document.getElementById("vehicleInput").value = "";
+            document.getElementById("societyInput").value = "";
+            document.getElementById("vehicle-search").style.display = "none";
+            document.getElementById("society-verification").style.display = "block";
+            loadGlobalAdsPreLogin(); // Reload pre-login global ads on return to verification view
+        }
+
         // Logic to Start / Handle Manual Verification
         document.getElementById("verifyBtn").addEventListener("click", async () => {
             const input = document.getElementById("societyInput").value.trim().toLowerCase();
@@ -369,6 +384,7 @@
             if (match) {
                 localStorage.setItem("savedSocietyName", match.data().name);
                 localStorage.setItem("savedSocietyId", match.id);
+                localStorage.setItem("societyLoginTime", Date.now().toString()); // Track login timestamp
                 showSearchScreen(match.data().name, match.id);
             } else { showModal("<p>❌ Society not found.</p>"); }
         });
@@ -393,29 +409,34 @@
 
         // Change/Switch Society button implementation
         document.getElementById("switchSocietyBtn").addEventListener("click", () => {
-            localStorage.removeItem("savedSocietyName");
-            localStorage.removeItem("savedSocietyId");
-            if (guardUnsubscribe) guardUnsubscribe();
-            if (adInterval) clearInterval(adInterval);
-            currentSociety = "";
-            document.getElementById("vehicleInput").value = "";
-            document.getElementById("societyInput").value = "";
-            document.getElementById("vehicle-search").style.display = "none";
-            document.getElementById("society-verification").style.display = "block";
-            loadGlobalAdsPreLogin(); // Reload pre-login global ads on return to verification view
+            clearSocietySession();
         });
 
         // Lifecycle: Check for persistent session on page load/refresh
         window.addEventListener("DOMContentLoaded", () => {
             const savedName = localStorage.getItem("savedSocietyName");
             const savedId = localStorage.getItem("savedSocietyId");
-            if (savedName && savedId) {
-                showSearchScreen(savedName, savedId);
+            const loginTime = localStorage.getItem("societyLoginTime");
+            
+            if (savedName && savedId && loginTime) {
+                const elapsed = Date.now() - parseInt(loginTime, 10);
+                const fifteenMinutes = 15 * 60 * 1000;
+
+                if (elapsed >= fifteenMinutes) {
+                    clearSocietySession();
+                } else {
+                    showSearchScreen(savedName, savedId);
+                    
+                    // Setup a precise timeout to clear the session when the remaining time is up
+                    setTimeout(() => {
+                        clearSocietySession();
+                    }, fifteenMinutes - elapsed);
+                }
             } else {
                 loadGlobalAdsPreLogin(); // Run if landing on the screen before log-in setup
             }
 
-            // Auto-Refresh Logic (Runs every 5 minutes)
+            // Auto-Refresh Logic (Runs every 5 minutes to fetch updated notices and guard details)
             setTimeout(() => {
                 window.location.reload();
             }, 5 * 60 * 1000);
