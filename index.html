@@ -91,7 +91,8 @@
         </div>
         
         <hr style="border: 0; border-top: 1px solid #dcdde1; margin: 20px 0;">
-        <a href="https://prsd503.github.io/Athena/admin.html" target="_self" class="admin-btn">Admin Portal</a>
+        <a href="admin.html" target="_self" class="admin-btn">Admin Portal</a>
+        <a href="guard.html" target="_self" class="admin-btn">Security Guard Portal</a>
     </div>
 
     <div id="resultModal" class="modal">
@@ -409,7 +410,7 @@
                 matches.forEach(found => {
                     const data = found.data();
                     const msg = encodeURIComponent(`(Using: Owl-Watcher) Hello, vehicle ${data.vehicleNumber} of ${data.flatNumber}`);
-                    htmlContent += `<div style="margin-bottom:15px;">✅ Vehicle: <b>${data.vehicleNumber}</b><br>Flat: <b>${data.flatNumber}</b><br><a href="https://wa.me/${data.mobileNumber?.replace(/\D/g, '')}?text=${msg}" target="_blank" class="btn-msg">💬 Message Admin</a></div>`;
+                    htmlContent += `<div style="margin-bottom:15px;">✅ Vehicle: <b>${data.vehicleNumber}</b><br>Flat: <b>${data.flatNumber}</b><br> <div hidden> <a href="https://wa.me/${data.mobileNumber?.replace(/\D/g, '')}?text=${msg}" target="_blank" class="btn-msg">💬 Message Admin</a></div></div>`;
                 });
                 showModal(htmlContent);
             } else { showModal("<p>❌ Vehicle not found.</p>"); }
