@@ -94,3 +94,4 @@ export async function searchVehicle(societyName, vNum) {
         resultDiv.innerHTML = "<p>❌ Vehicle not found.</p>";
     }
 }
+*/
