@@ -341,7 +341,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('gPhone').value = "";
     }); 
 
-    // --- 8. Ad Request Key Approval System ---
+    
+// --- 8. Ad Request Key Approval System ---
     document.getElementById('approveAdBtn')?.addEventListener('click', async () => {
         const adKeyInput = document.getElementById('adApprovalKey');
         if (!adKeyInput) return;
@@ -366,10 +367,35 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             await updateDoc(adDocRef, { societyApproved: true });
-            window.showModal(`Success! Ad Request ${adKey} has been verified and approved.`);
+
+            // Create or update the WhatsApp Link Button dynamically
+            const teamPhone = "919033406816";
+            const message = `Hello Owl Watcher Central Team, I am the admin of "${assignedSociety}". I have approved the Ad Request Key: ${adKey}. Please collect the creative details.`;
+            const waUrl = `https://wa.me/${teamPhone}?text=${encodeURIComponent(message)}`;
+
+            // Create a custom modal confirmation flow with a direct button to chat
+            const modalContent = document.getElementById('customModal');
+            if (modalContent) {
+                window.showModal(`Success! Ad Request ${adKey} has been verified and approved.`);
+                
+                // If you want a button directly visible in the UI after approval,
+                // we'll update/inject a WhatsApp button underneath the input field if it exists:
+                let waButton = document.getElementById('adminWaTeamBtn');
+                if (!waButton) {
+                    waButton = document.createElement('a');
+                    waButton.id = 'adminWaTeamBtn';
+                    waButton.target = '_blank';
+                    waButton.style.cssText = "background:#25d366; color:white; padding:10px 20px; border-radius:10px; text-decoration:none; font-size:1.1rem; display:inline-block; margin-top:10px; font-weight:bold; text-align:center; border: 2px solid #1ebe57; width:80%; box-sizing:border-box;";
+                    adKeyInput.parentNode.appendChild(waButton);
+                }
+                waButton.href = waUrl;
+                waButton.innerText = `💬 Send Approved Key (${adKey}) to Owl Watcher`;
+                waButton.style.display = 'inline-block';
+            }
+
             adKeyInput.value = ""; // Clear input field upon successful updates
         } catch (e) {
             window.showModal("Error approving Ad Key: " + e.message);
         }
-    });
-});
+    });    
+
