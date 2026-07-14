@@ -55,7 +55,7 @@
                     <button class="ad-nav-btn" id="prevGlobalAdBtn">❮ Prev</button>
                     <button class="ad-nav-btn" id="nextGlobalAdBtn">Next ❯</button>
                 </div>
-                <a href="https://wa.me/919033406816?text=Hi%20I%20want%20to%20apply%20for%20global%20ad%20in%20Owl%20Watcher" target="_blank" class="ad-link">Advertise Globally Here!</a>
+                <a href="ad.html" class="ad-link">Advertise Globally Here!</a>
             </div>
         </div>
         
@@ -121,7 +121,7 @@
         let currentIndex = 0;
         let totalSlides = 0;
 
-        // Trackers for New Global Billboard
+        // Trackers for Global Billboard
         let globalAdInterval = null;
         let globalCurrentIndex = 0;
         let globalTotalSlides = 0;
@@ -206,14 +206,13 @@
             }
         }
 
-        // 3. Load Global/Public Advertisements (Landing View)
+        // 3. Load Global Advertisements
         async function loadGlobalAds() {
             const slider = document.getElementById("globalAdSlider");
             const controls = document.getElementById("globalAdControls");
             if (globalAdInterval) clearInterval(globalAdInterval);
 
             try {
-                // Fetch ads explicitly tagged as global ads
                 const q = query(
                     collection(db, "ads"),
                     where("type", "==", "global"),
@@ -255,7 +254,7 @@
             }
         }
 
-        // 4. Load Society-Specific Advertisements (Verified View)
+        // 4. Load Society-Specific Local Advertisements
         async function loadAds(societyId) {
             const slider = document.getElementById("adSlider");
             const controls = document.getElementById("adControls");
@@ -265,7 +264,7 @@
                 const q = query(
                     collection(db, "ads"), 
                     where("societyId", "==", societyId),
-                    where("type", "==", "local"), // Filter to local ads only
+                    where("type", "==", "local"),
                     where("societyApproved", "==", true),
                     where("owlWatcherApproved", "==", true)
                 );
@@ -377,12 +376,12 @@
             document.getElementById("societyInput").value = "";
             document.getElementById("vehicle-search").style.display = "none";
             document.getElementById("society-verification").style.display = "block";
-            loadGlobalAds(); // Make sure global ads load again on fallback screen
+            loadGlobalAds();
         });
 
         // Initialize Lifecycle
         window.addEventListener("DOMContentLoaded", () => {
-            loadGlobalAds(); // Always load global ads first in the background
+            loadGlobalAds(); 
             const savedName = localStorage.getItem("savedSocietyName");
             const savedId = localStorage.getItem("savedSocietyId");
             if (savedName && savedId) {
