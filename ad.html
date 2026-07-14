@@ -20,47 +20,60 @@
         .approval-box { text-align: left; padding: 15px; border: 1px dashed #8d6e63; border-radius: 10px; margin-bottom: 15px; background: #fafafa; }
         .reset-btn { background: #6d4c41; margin-bottom: 12px; font-size: 1rem; padding: 6px 15px; width: auto; display: inline-block; }
         .disclaimer-box { background: #fff5f5; border: 1px dashed #d32f2f; border-radius: 10px; padding: 12px; text-align: left; margin-bottom: 15px; font-family: sans-serif; font-size: 0.9rem; color: #c0392b; line-height: 1.4; }
+        
+        .tier-banner { font-family: sans-serif; font-size: 0.9rem; font-weight: bold; padding: 6px; border-radius: 8px; margin-bottom: 15px; text-transform: uppercase; }
+        .tier-free { background: #e3f2fd; color: #0d47a1; border: 1px solid #90caf9; }
+        .tier-paid { background: #fff8e1; color: #ff6f00; border: 1px solid #ffe082; }
     </style>
 </head>
 <body>
     <div class="card">
         <h1>Advertiser Portal 📢</h1>
-        <p style="font-size: 1.3rem;">Target Society: <b id="targetSociety">None Selected</b></p>
+        <p style="font-size: 1.3rem; margin-bottom: 5px;">Target Society: <b id="targetSociety">None Selected</b></p>
+        <div id="tierBadge" class="tier-banner" style="display: none;"></div>
         
         <div id="no-society-error" style="display:none; color: #d32f2f; margin-bottom: 15px;">
             ⚠️ Please verify a society on the Home Page first!
         </div>
 
         <div id="main-portal-content">
-            <!-- Initial Key Generation Container -->
             <div id="generation-block" class="approval-box" style="text-align: center; display: none;">
                 <h3 style="margin-top:0; border-bottom:1px solid #8d6e63;">Step 1: Provision Workspace</h3>
                 <p style="font-family: sans-serif; font-size:0.95rem; color:#555;">You do not have an active tracking token. Generate a custom identification ledger key to pitch placement spaces.</p>
                 <button id="initializeKeyBtn" style="background: #27ae60; border-color: #219653;">✨ Generate Request Key</button>
             </div>
 
-            <!-- Active Workspace Container -->
             <div id="workspace-block" style="display: none;">
                 <div class="disclaimer-box">
                     <strong>⚠️ Database Lifecycle Policy Notice:</strong> 
-                    <br>• <strong>Unapproved Keys:</strong> Must secure dual validation within <b>15 days</b> of initialization or the entry token will be cleared.
-                    <br>• <strong>Approved Ads:</strong> Once dual verification goes live, your ad banner will run for <b>exactly 12 days</b>. Following this cycle, the document key is automatically deleted from Firebase.
+                    <br>• <strong>Unapproved Keys:</strong> Must secure validation within <b>15 days</b> of initialization or the entry token will be cleared.
+                    <br>• <strong>Approved Ads:</strong> Once verification goes live, your ad banner will run for <b>exactly 12 days</b>. Following this cycle, the document key is automatically deleted.
                 </div>
 
                 <div class="approval-box">
-                    <h3 style="margin-top:0; border-bottom:1px solid #8d6e63;">Step 1: Get Dual Verification</h3>
-                    <p>1. Society Admin: <span id="statusSociety" class="status-badge pending">PENDING</span></p>
+                    <h3 style="margin-top:0; border-bottom:1px solid #8d6e63;">Approval Progress Status</h3>
+                    <div id="societyApprovalRow"><p>1. Society Admin: <span id="statusSociety" class="status-badge pending">PENDING</span></p></div>
                     <p>2. Owl Watcher Team: <span id="statusOwl" class="status-badge pending">PENDING</span></p>
                 </div>
 
-                <div class="approval-box" style="text-align:center;">
+                <div id="free-workflow-section" class="approval-box" style="text-align:center; display: none;">
+                    <h3 style="margin-top:0; border-bottom:1px solid #8d6e63; text-align:left;">Step 2: Pitch Owl Watcher Team</h3>
+                    <p style="font-size:0.95rem; text-align:left; font-family:sans-serif; color:#666;">
+                        This is a free registered society. Ads are designated for display <b>exclusively within this society</b>. Click below to contact the Owl Watcher Team for verification.
+                    </p>
+                    <p>Active Tracking Key: <b class="adKeyPlaceholder">Loading...</b></p>
+                    <button class="newRequestBtn reset-btn" disabled>🔄 Generate New Request Key</button>
+                    <br>
+                    <a id="waTeamBtn" href="#" target="_blank" class="btn-wa">💬 Request Owl Team Approval</a>
+                </div>
+
+                <div id="paid-workflow-section" class="approval-box" style="text-align:center; display: none;">
                     <h3 style="margin-top:0; border-bottom:1px solid #8d6e63; text-align:left;">Step 2: Pitch Society Admin</h3>
                     <p style="font-size:0.95rem; text-align:left; font-family:sans-serif; color:#666;">
-                        Click below to chat with the local administrator via WhatsApp to secure booking confirmation. Provide them with your placeholder Ad Key below.
+                        This is a premium paid society. Click below to chat directly with the local administrator via WhatsApp to secure booking confirmation.
                     </p>
-                    <p>Active Tracking Key: <b id="adKeyDisplay">Loading...</b></p>
-                    
-                    <button id="newRequestBtn" class="reset-btn" disabled>🔄 Generate New Request Key</button>
+                    <p>Active Tracking Key: <b class="adKeyPlaceholder">Loading...</b></p>
+                    <button class="newRequestBtn reset-btn" disabled>🔄 Generate New Request Key</button>
                     <br>
                     <a id="waAdminBtn" href="#" target="_blank" class="btn-wa">💬 Request Admin Approval</a>
                 </div>
@@ -107,6 +120,7 @@
 
         let activeUnsubscribe = null;
         let adDocId = "";
+        let isSocietyPaid = false; // Resolved dynamically via database query
 
         if (!societyName || !societyId) {
             document.getElementById("no-society-error").style.display = "block";
@@ -115,16 +129,52 @@
         } else {
             document.getElementById("targetSociety").innerText = societyName;
             
-            adDocId = localStorage.getItem("myActiveAdId");
-            if (!adDocId) {
-                genBlock.style.display = "block";
-                workspaceBlock.style.display = "none";
-            } else {
-                genBlock.style.display = "none";
-                workspaceBlock.style.display = "block";
-                trackKeyApprovals(adDocId, false);
-                updateWhatsAppLink(adDocId);
-            }
+            // Step 0: Fetch Society details to determine Paid vs Free status
+            const docRef = doc(db, "societies", societyId);
+            getDoc(docRef).then((socSnap) => {
+                const tierBadge = document.getElementById("tierBadge");
+                let activeGuardPhone = "919033406816"; // fallback
+
+                if (socSnap.exists()) {
+                    const data = socSnap.data();
+                    // Supports both 'isPaid' and 'paid' attributes
+                    isSocietyPaid = !!(data.isPaid || data.paid);
+                    if (data.activeGuardPhone) {
+                        activeGuardPhone = data.activeGuardPhone.replace(/\D/g, '');
+                    }
+                }
+
+                // Render UI depending on Paid status
+                tierBadge.style.display = "block";
+                if (isSocietyPaid) {
+                    tierBadge.innerText = "Premium Paid Society 🌟";
+                    tierBadge.className = "tier-banner tier-paid";
+                    document.getElementById("paid-workflow-section").style.display = "block";
+                    document.getElementById("free-workflow-section").style.display = "none";
+                    document.getElementById("societyApprovalRow").style.display = "block";
+                } else {
+                    tierBadge.innerText = "Free Society 📢";
+                    tierBadge.className = "tier-banner tier-free";
+                    document.getElementById("free-workflow-section").style.display = "block";
+                    document.getElementById("paid-workflow-section").style.display = "none";
+                    // Hide local admin approval track since free societies are managed by the team directly
+                    document.getElementById("societyApprovalRow").style.display = "none";
+                }
+
+                // Load existing or initialize new workspace key
+                adDocId = localStorage.getItem("myActiveAdId");
+                if (!adDocId) {
+                    genBlock.style.display = "block";
+                    workspaceBlock.style.display = "none";
+                } else {
+                    genBlock.style.display = "none";
+                    workspaceBlock.style.display = "block";
+                    trackKeyApprovals(adDocId);
+                    updateWhatsAppLinks(adDocId, activeGuardPhone);
+                }
+            }).catch((err) => {
+                console.error("Error retrieving society tier:", err);
+            });
 
             // Click Handler for Key Generation
             document.getElementById("initializeKeyBtn").addEventListener("click", async () => {
@@ -135,10 +185,10 @@
                         societyId: societyId,
                         societyName: societyName,
                         imageUrl: "",
-                        societyApproved: false,
+                        societyApproved: isSocietyPaid ? false : true, // Auto-approved on society side if free
                         owlWatcherApproved: false,
-                        createdAt: serverTimestamp(), // Track initialization for the 15-day policy
-                        approvedAt: null              // Populated when full dual authorization is achieved
+                        createdAt: serverTimestamp(),
+                        approvedAt: null
                     });
                     
                     localStorage.setItem("myActiveAdId", generatedKey);
@@ -147,16 +197,27 @@
                     genBlock.style.display = "none";
                     workspaceBlock.style.display = "block";
                     
-                    trackKeyApprovals(generatedKey, false);
-                    updateWhatsAppLink(generatedKey);
+                    trackKeyApprovals(generatedKey);
+                    
+                    // Retrieve guard phone details again to construct the dynamic WhatsApp link mapping
+                    const socSnap = await getDoc(doc(db, "societies", societyId));
+                    let activeGuardPhone = "919033406816";
+                    if (socSnap.exists() && socSnap.data().activeGuardPhone) {
+                        activeGuardPhone = socSnap.data().activeGuardPhone.replace(/\D/g, '');
+                    }
+                    updateWhatsAppLinks(generatedKey, activeGuardPhone);
                 } catch (e) {
                     alert("Error provisioning ad tracking key: " + e.message);
                 }
             });
 
-            function trackKeyApprovals(targetKey, shouldCreateStub = false) {
+            function trackKeyApprovals(targetKey) {
                 adDocId = targetKey;
-                document.getElementById("adKeyDisplay").innerText = targetKey;
+                
+                // Update key text placeholders on both workflow elements
+                const badges = document.querySelectorAll(".adKeyPlaceholder");
+                badges.forEach(el => el.innerText = targetKey);
+                
                 document.getElementById("switchKeyInput").value = targetKey;
 
                 const adDocRef = doc(db, "ads", targetKey);
@@ -175,7 +236,6 @@
                     if (snap.exists()) {
                         const data = snap.data();
                         
-                        // Client side safety check for the 12-day running campaign limit
                         if (data.approvedAt) {
                             const approvedTime = data.approvedAt.toDate ? data.approvedAt.toDate().getTime() : new Date(data.approvedAt).getTime();
                             const timeDifference = Date.now() - approvedTime;
@@ -197,17 +257,21 @@
                         owlBadge.innerText = data.owlWatcherApproved ? "APPROVED" : "PENDING";
                         owlBadge.className = "status-badge " + (data.owlWatcherApproved ? "approved" : "pending");
 
-                        if (data.societyApproved && data.owlWatcherApproved) {
+                        // If paid society, dual confirmation is needed. If free, only team confirmation matters.
+                        const isFullyApproved = isSocietyPaid 
+                            ? (data.societyApproved && data.owlWatcherApproved) 
+                            : data.owlWatcherApproved;
+
+                        if (isFullyApproved) {
                             document.getElementById("adImageUrl").disabled = false;
                             document.getElementById("uploadAdBtn").disabled = false;
-                            document.getElementById("newRequestBtn").disabled = false; 
+                            document.querySelectorAll(".newRequestBtn").forEach(btn => btn.disabled = false);
                         } else {
                             document.getElementById("adImageUrl").disabled = true;
                             document.getElementById("uploadAdBtn").disabled = true;
-                            document.getElementById("newRequestBtn").disabled = true; 
+                            document.querySelectorAll(".newRequestBtn").forEach(btn => btn.disabled = true);
                         }
                     } else {
-                        // Document has been deleted out of the DB by backend cleanup scripts
                         localStorage.removeItem("myActiveAdId");
                         genBlock.style.display = "block";
                         workspaceBlock.style.display = "none";
@@ -215,15 +279,15 @@
                 });
             }
 
-            function updateWhatsAppLink(keyToApprove) {
-                getDoc(doc(db, "societies", societyId)).then((socSnap) => {
-                    let adminPhone = "910000000000";
-                    if(socSnap.exists() && socSnap.data().activeGuardPhone) {
-                        adminPhone = socSnap.data().activeGuardPhone.replace(/\D/g, '');
-                    }
-                    const rawMsg = `Hello Admin, I would like to request an Ad slot assignment in Owl Watcher for ${societyName}. My requested registration Ad Key is: ${keyToApprove}`;
-                    document.getElementById("waAdminBtn").href = `https://wa.me/${adminPhone}?text=${encodeURIComponent(rawMsg)}`;
-                });
+            function updateWhatsAppLinks(keyToApprove, guardPhone) {
+                // Section 1 Free Link Setup -> Direct pitch to Owl Watcher Central Support Phone
+                const freeTeamPhone = "919033406816";
+                const freeMsg = `Hello Owl Watcher Central Team, I would like to request an Ad slot assignment for the free society: "${societyName}". My requested campaign registration Ad Key is: ${keyToApprove}`;
+                document.getElementById("waTeamBtn").href = `https://wa.me/${freeTeamPhone}?text=${encodeURIComponent(freeMsg)}`;
+
+                // Section 2 Paid Link Setup -> Direct pitch to Local Society Admin Phone
+                const paidMsg = `Hello Admin, I would like to request a premium Ad slot assignment in Owl Watcher for our society: "${societyName}". My requested registration Ad Key is: ${keyToApprove}`;
+                document.getElementById("waAdminBtn").href = `https://wa.me/${guardPhone}?text=${encodeURIComponent(paidMsg)}`;
             }
 
             document.getElementById("switchKeyInput").addEventListener("change", async (e) => {
@@ -245,8 +309,14 @@
                         localStorage.setItem("myActiveAdId", requestedKey);
                         genBlock.style.display = "none";
                         workspaceBlock.style.display = "block";
-                        trackKeyApprovals(requestedKey, false);
-                        updateWhatsAppLink(requestedKey);
+                        trackKeyApprovals(requestedKey);
+                        
+                        const socSnap = await getDoc(doc(db, "societies", societyId));
+                        let activeGuardPhone = "919033406816";
+                        if (socSnap.exists() && socSnap.data().activeGuardPhone) {
+                            activeGuardPhone = socSnap.data().activeGuardPhone.replace(/\D/g, '');
+                        }
+                        updateWhatsAppLinks(requestedKey, activeGuardPhone);
                     } else {
                         alert("No such key found. It may have expired and been deleted automatically.");
                         document.getElementById("switchKeyInput").value = adDocId;
@@ -262,12 +332,11 @@
                 if(!imgUrl) return alert("Please specify a valid source image link.");
                 
                 try {
-                    // Inject timestamp logic if it is the first time publishing live
                     const adSnap = await getDoc(doc(db, "ads", adDocId));
                     const updatePayload = { imageUrl: imgUrl };
                     
                     if (adSnap.exists() && !adSnap.data().approvedAt) {
-                        updatePayload.approvedAt = serverTimestamp(); // Mark the start of the 12-day active live run
+                        updatePayload.approvedAt = serverTimestamp();
                     }
 
                     await setDoc(doc(db, "ads", adDocId), updatePayload, { merge: true });
@@ -277,11 +346,13 @@
                 }
             });
 
-            document.getElementById("newRequestBtn").addEventListener("click", () => {
-                if (confirm("Are you sure you want to start a brand new ad request? Your current local key link mapping will be reset.")) {
-                    localStorage.removeItem("myActiveAdId");
-                    window.location.reload();
-                }
+            document.querySelectorAll(".newRequestBtn").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    if (confirm("Are you sure you want to start a brand new ad request? Your current local key link mapping will be reset.")) {
+                        localStorage.removeItem("myActiveAdId");
+                        window.location.reload();
+                    }
+                });
             });
         }
     </script>
