@@ -180,48 +180,30 @@
             }
         }
 
-        // 3. Rolling Advertisement Billboard System (Handles both Local and Global Ads)
+        // 3. Rolling Advertisement Billboard System
         async function loadAds(societyId) {
             const slider = document.getElementById("adSlider");
             const controls = document.getElementById("adControls");
             if(adInterval) clearInterval(adInterval);
 
             try {
-                // Fetch approved Local Ads for this specific society
-                const localQuery = query(
+                const q = query(
                     collection(db, "ads"), 
                     where("societyId", "==", societyId),
-                    where("type", "==", "local"),
-                    where("societyApproved", "==", true),
-                    where("owlWatcherApproved", "==", true)
-                );
-
-                // Fetch approved Global Ads designed to display across all screens
-                const globalQuery = query(
-                    collection(db, "ads"),
-                    where("type", "==", "global"),
                     where("societyApproved", "==", true),
                     where("owlWatcherApproved", "==", true)
                 );
                 
-                const [localSnap, globalSnap] = await Promise.all([
-                    getDocs(localQuery),
-                    getDocs(globalQuery)
-                ]);
-
-                // Combine local and global ads into a single array
-                const combinedAds = [];
-                localSnap.forEach(doc => combinedAds.push(doc.data()));
-                globalSnap.forEach(doc => combinedAds.push(doc.data()));
-
-                if (combinedAds.length === 0) {
+                const snap = await getDocs(q);
+                if (snap.empty) {
                     slider.innerHTML = `<p id="ad-placeholder" style="color: #a1887f;">Space Available for Ad placement</p>`;
                     controls.style.display = "none";
                     return;
                 }
 
                 slider.innerHTML = "";
-                combinedAds.forEach((adData) => {
+                snap.forEach((doc) => {
+                    const adData = doc.data();
                     if (adData.imageUrl) {
                         slider.innerHTML += `<img src="${adData.imageUrl}" class="ad-slide" alt="Community Ad">`;
                     }
@@ -235,7 +217,7 @@
                     slides[currentIndex].classList.add("active");
 
                     if (totalSlides > 1) {
-                        controls.style.display = "flex"; // Reveal navigation interface if multiple ads exist
+                        controls.style.display = "flex"; // Reveal controls layer if multiple ads exist
                         startAdTimer();
                     } else {
                         controls.style.display = "none";
