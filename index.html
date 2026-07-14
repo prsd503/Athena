@@ -45,7 +45,6 @@
             <input type="text" id="societyInput" placeholder="Enter Society Name">
             <button id="verifyBtn">Proceed</button>
 
-            <!-- Pre-login Global Billboard -->
             <div id="ad-billboard-global">
                 <h4 style="margin: 0 0 10px 0; font-family: 'Caveat', cursive; color: #8d6e63;">✨ Global Announcements ✨</h4>
                 <div class="global-ad-slider-container" id="globalAdSlider">
@@ -340,12 +339,12 @@
 
         document.getElementById("nextGlobalAdBtn").addEventListener("click", () => {
             changeGlobalSlide("next");
-            startGlobalAdTimer();
+            startGlobalAdTimer(); // Reset auto-timer tracking reference clock
         });
 
         document.getElementById("prevGlobalAdBtn").addEventListener("click", () => {
             changeGlobalSlide("prev");
-            startGlobalAdTimer();
+            startGlobalAdTimer(); // Reset auto-timer tracking reference clock
         });
 
         // Helper function to transition UI screens
