@@ -20,6 +20,7 @@
       --bg: #F8F9FA;
       --accent-yellow: #FFE66D;
       --purple: #8E44AD;
+      --brand-brown: #8B4513;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
@@ -34,7 +35,7 @@
       -webkit-overflow-scrolling: touch;
     }
 
-    /* Professional Top-Sticky Application Display Monitor */
+    /* Top-Sticky Application Display Monitor matching feature layout constraints */
     .fixed-header-canvas-view {
       position: -webkit-sticky;
       position: sticky;
@@ -52,23 +53,27 @@
       background: white;
       padding: 10px 15px;
       text-align: center;
+      max-width: 500px;
       width: 100%;
       border-bottom: 1px solid #e2e8f0;
+      border-radius: 0 0 16px 16px;
     }
 
-    .app-header h1 { font-family: 'Caveat', cursive; font-size: 1.8rem; color: var(--brand-red); margin: 0; }
+    .app-header h1 { font-family: 'Caveat', cursive; font-size: 1.8rem; color: var(--brand-brown); margin: 0; }
     .app-header h2 { font-family: 'Caveat', cursive; font-size: 0.95rem; color: #555; font-weight: normal; }
 
     .canvas-section {
       padding: 12px 0;
       display: flex;
       justify-content: center;
+      max-width: 500px;
       width: 100%;
     }
 
     .canvas-container-wrapper {
       display: block;
-      width: 360px !important;
+      width: 100% !important;
+      max-width: 360px;
       height: 360px !important;
       background: #ffffff;
       border-radius: 16px;
