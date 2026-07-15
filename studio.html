@@ -10,13 +10,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Caveat:wght@700&family=Cinzel:wght@700&family=Comfortaa:wght@700&family=Dancing+Script:wght@700&family=Fredoka+One&family=Lobster&family=Montserrat:wght@700&family=Oswald:wght@700&family=Pacifico&family=Permanent+Marker&family=Playfair+Display:ital,wght@0,700;1,700&family=Sacramento&family=Satisfy&display=swap" rel="stylesheet">
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
-  
-  <script>
-    /*! gifshot standalone compression modules */
-    !function(a){"use strict";var b=function(){};b.prototype={images:[],gifWidth:400,gifHeight:400,interval:.1,numFrames:10,sampleInterval:10,numWorkers:2,filter:"",pendingWorkerOutputs:[],workerModule:{},watermark:!1,fontSize:"16px",fontFamily:"sans-serif",fontColor:"#FFF",text:!1,crossOrigin:"Anonymous",video:!1,progressCallback:function(){},saveRenderingContexts:!1,savedRenderingContexts:[],isSupported:function(){return typeof Worker!="undefined"},createGIF:function(b,c){var d=this,e=typeof b=="function"?b:c,f=typeof b=="object"?b:{};d.VERSION="0.4.5",d.loadedImages=0,d.HTMLImages=[],d.activeWorkers=0,d.completeWorkerCount=0,d.errorWorkerCount=0,d.pendingWorkerOutputs=[],d.imageWorkers=[],d.savedRenderingContexts=[],d.canvas=a.document.createElement("canvas"),d.ctx=d.canvas.getContext("2d"),d.setOptions(f),d.images.length?d.processImages(e):e({error:!0})},setOptions:function(a){var b=this;for(var c in a)a.hasOwnProperty(c)&&(b[c]=a[c]);b.canvas.width=b.gifWidth,b.canvas.height=b.gifHeight},processImages:function(b){var c=this,d=b;c.images.forEach(function(b,e){var f=new a.Image;f.crossOrigin=c.crossOrigin,f.onload=function(){c.loadedImages+=1,c.loadedImages===c.images.length&&c.startWorkers(d)},f.onerror=function(){d({error:!0})},f.src=b,c.HTMLImages[e]=f})},startWorkers:function(b){var c=this,d=c.HTMLImages.length;c.ctx.clearRect(0,0,c.gifWidth,c.gifHeight);var e=[];for(var f=0;f<d;f++)c.ctx.drawImage(c.HTMLImages[f],0,0,c.gifWidth,c.gifHeight),e.push(c.ctx.getImageData(0,0,c.gifWidth,c.gifHeight).data);setTimeout(function(){c.pendingWorkerOutputs=[e],c.compileGIF(b)},40)},compileGIF:function(a){var b=this,c=[],d="";b.pendingWorkerOutputs.forEach(function(a){c=c.concat(a)});var e=new NeuQuant(c[0],c[0].length,b.sampleInterval),f=e.process(),g=new LZWEncoder(b.gifWidth,b.gifHeight,f,8);g.setFrameRate(1/b.interval),g.writeHeader(),b.pendingWorkerOutputs[0].forEach(function(a){var c=e.map(a);g.addFrame(c)}),g.finish(),d=g.stream().getData(),a({error:!1,image:"data:image/gif;base64,"+d})},utils:{}};a.gifshot=new b}(window);
-    var NeuQuant=function(a,b,c){return{process:function(){var b=[];for(var c=0;c<256;c++)b.push(a[c*4+2],a[c*4+1],a[c*4]);return b},map:function(a){var b=[];for(var c=0;c<a.length;c+=4)b.push(Math.floor(c/4)%256);return b}}};
-    var LZWEncoder=function(a,b,c,d){var e=a,f=b,g=c,h=Math.max(2,d),i={data:[],write:function(a){this.data.push(String.fromCharCode(a))},getData:function(){return this.data.join("")}};return{writeHeader:function(){i.write(71),i.write(73),i.write(70),i.write(56),i.write(57),i.write(97),i.write(e&255),i.write(e>>8&255),i.write(f&255),i.write(f>>8&255),i.write(247),i.write(0),i.write(0);for(var a=0;a<g.length;a++)i.write(g[a])},addFrame:function(a){i.write(44),i.write(0),i.write(0),i.write(0),i.write(0),i.write(e&255),i.write(e>>8&255),i.write(f&255),i.write(f>>8&255),i.write(0),i.write(h);i.write(a.length&255);for(var b=0;b<a.length;b++)i.write(a[b]&255);i.write(0)},setFrameRate:function(){},finish:function(){i.write(59)},stream:function(){return{getData:function(){return btoa(i.getData())}}}}};
-  </script>
+
+  <!-- Firebase App and Storage SDKs for Dynamic Asset Hosting -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 
   <style>
     :root {
@@ -27,6 +24,7 @@
       --bg: #F8F9FA;
       --accent-yellow: #FFE66D;
       --purple: #8E44AD;
+      --brand-brown: #8B4513;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
@@ -41,7 +39,6 @@
       -webkit-overflow-scrolling: touch;
     }
 
-    /* Professional Top-Sticky Application Display Monitor */
     .fixed-header-canvas-view {
       position: -webkit-sticky;
       position: sticky;
@@ -63,7 +60,7 @@
       border-bottom: 1px solid #e2e8f0;
     }
 
-    .app-header h1 { font-family: 'Caveat', cursive; font-size: 1.8rem; color: var(--brand-red); margin: 0; }
+    .app-header h1 { font-family: 'Caveat', cursive; font-size: 1.8rem; color: var(--brand-brown); margin: 0; }
     .app-header h2 { font-family: 'Caveat', cursive; font-size: 0.95rem; color: #555; font-weight: normal; }
 
     .canvas-section {
@@ -85,7 +82,6 @@
       box-shadow: 0 8px 24px rgba(0,0,0,0.08);
     }
 
-    /* Workspace Content Control Center */
     .scrollable-controls-container {
       flex: 1;
       padding: 15px;
@@ -106,7 +102,7 @@
     h3 {
       margin-bottom: 12px;
       font-size: 1.05rem;
-      border-left: 4px solid var(--brand-red);
+      border-left: 4px solid var(--brand-brown);
       padding-left: 8px;
       color: var(--brand-dark);
       text-transform: uppercase;
@@ -156,7 +152,7 @@
       font-weight: bold;
       color: var(--brand-dark);
     }
-    .thumb-btn.active { border-color: var(--brand-red); background: #fff0f0; }
+    .thumb-btn.active { border-color: var(--brand-brown); background: #fff8f0; }
 
     .sticker-item { font-size: 2rem; cursor: pointer; padding: 5px; }
 
@@ -176,6 +172,7 @@
       min-height: 44px;
     }
     .btn:active { opacity: 0.9; }
+    .btn-brown { background: var(--brand-brown); color: white; }
     .btn-red { background: var(--brand-red); }
     .btn-teal { background: var(--brand-teal); color: var(--brand-dark); }
     .btn-secondary { background: #e2e8f0; color: var(--brand-dark); }
@@ -205,21 +202,20 @@
       background: #f0f0f0; border: 2px solid #e0e0e0; border-radius: 6px;
       width: 36px; height: 40px; font-weight: bold; cursor: pointer;
     }
-    .decor-toggle.active { background: var(--purple); color: white; border-color: var(--purple); }
+    .decor-toggle.active { background: var(--brand-brown); color: white; border-color: var(--brand-brown); }
 
     .color-picker-wrapper { display: flex; gap: 4px; align-items: center; flex: 1; }
     .color-picker-wrapper input[type="color"] { width: 100%; height: 40px; cursor: pointer; border: 1px solid #ddd; border-radius: 6px; }
 
-    .status-log { text-align: center; font-size: 0.85rem; font-weight: 600; color: var(--brand-red); margin-top: 10px; }
+    .status-log { text-align: center; font-size: 0.85rem; font-weight: 600; color: var(--brand-brown); margin-top: 10px; }
 
     .rendering-progress-container {
       position: fixed; bottom: 0; left: 0; right: 0; background: #232323; color: #ffffff;
       padding: 12px; text-align: center; z-index: 2000; display: none; font-weight: bold;
     }
     .progress-bar-track { width: 100%; background: #444; height: 6px; margin-top: 8px; border-radius: 4px; overflow: hidden; }
-    .progress-bar-fill { width: 0%; background: linear-gradient(90deg, var(--brand-teal), var(--brand-red)); height: 100%; }
+    .progress-bar-fill { width: 0%; background: linear-gradient(90deg, var(--brand-teal), var(--brand-brown)); height: 100%; }
 
-    /* Unique URL Output Design Component Box */
     .url-output-box {
       background: #f1f5f9;
       border: 1px dashed #cbd5e1;
@@ -283,7 +279,7 @@
         
         <div class="text-format-bar">
           <div class="color-picker-wrapper"><input type="color" id="textColor" value="#ffffff" onchange="updateCustomText()"></div>
-          <div class="color-picker-wrapper"><input type="color" id="textBgColor" value="#E63946" onchange="changeBannerBgColor()"></div>
+          <div class="color-picker-wrapper"><input type="color" id="textBgColor" value="#8B4513" onchange="changeBannerBgColor()"></div>
           
           <select id="fontStyle" onchange="updateCustomText()">
             <option value="Montserrat" selected>Montserrat</option>
@@ -342,7 +338,7 @@
         <div class="range-flex">
           <span>⏱️ Duration:</span>
           <input type="range" id="videoTimelineDuration" min="2" max="30" step="1" value="6" oninput="updateDurationLabel(this.value)">
-          <b id="durationDisplayLabel" style="min-width:45px; color:var(--purple);">6s</b>
+          <b id="durationDisplayLabel" style="min-width:45px; color:var(--brand-brown);">6s</b>
         </div>
       </div>
 
@@ -361,19 +357,18 @@
       </div>
     </div>
 
-    <div class="card" style="border-top: 4px solid var(--purple);">
-      <h3>💾 Studio Export & Delivery Panel</h3>
+    <div class="card" style="border-top: 4px solid var(--brand-brown);">
+      <h3>💾 Studio Export & Cloud Database Delivery</h3>
       
       <div class="grid-buttons">
         <button class="btn btn-secondary" onclick="downloadCollageImage()">💾 Save JPG</button>
         <button class="btn btn-purple" onclick="exportCanvasToVideoAnimation()">🎥 Save Video (MP4)</button>
       </div>
-      <button class="btn btn-teal" style="width:100%; margin-bottom:12px;" onclick="exportCanvasToAnimatedGif()">🎞️ Download GIF</button>
-      <button class="btn btn-red" style="width:100%; background:linear-gradient(45deg, #FF6B6B, #8E44AD);" onclick="generateUniqueCloudUrl()">🔗 Save & Generate 720x720px Shareable URL</button>
+      <button class="btn btn-brown" style="width:100%; font-weight:bold;" onclick="uploadHighResToFirebase()">🌐 Save & Generate 720x720px Firebase Sharable Link</button>
 
       <div class="url-output-box" id="urlOutputContainer">
-        <span style="font-weight:bold; font-size:0.85rem; color:var(--brand-dark);">Your Unique 720x720px Shareable Link:</span>
-        <div id="generatedUrlLink" style="color:var(--brand-red); font-size:0.9rem; margin-top:6px; font-family:monospace; font-weight:bold;"></div>
+        <span style="font-weight:bold; font-size:0.85rem; color:var(--brand-dark);">Dynamic 720x720px Firebase Access Link:</span>
+        <div id="generatedUrlLink" style="color:var(--brand-brown); font-size:0.9rem; margin-top:6px; font-family:monospace; font-weight:bold;"></div>
         <button class="btn btn-secondary" style="min-height:30px; padding:4px 8px; font-size:0.75rem; margin-top:8px; width:100%;" onclick="copyGeneratedUrl()">📋 Copy URL Link</button>
       </div>
 
@@ -388,6 +383,23 @@
   </div>
 
   <script>
+    // --- START FIREBASE CONFIGURATION ENGINE ---
+    // TO DEPLOY: Replace placeholder constants below with your actual project keys from your Firebase Console panel
+    const firebaseConfig = {
+      apiKey: "YOUR_FIREBASE_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      appId: "YOUR_FIREBASE_APP_ID"
+    };
+    
+    // Initialize Firebase operational instance context safely
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const storageRef = firebase.storage().ref();
+    // --- END FIREBASE CONFIGURATION ENGINE ---
+
     let canvas, uploadedImages = [], themeDecorations = [], textGroupBanner = null; 
     let selectedAudioFileBlob = null, selectedAudioDataUrl = null; 
     let isBold = false, isItalic = false, isUnderline = false;
@@ -429,9 +441,10 @@
       }
     }
 
+    // Appends the absolute brand watermark required in official Owl Watcher Brown hex metrics
     function addBrandWatermark() {
-      const brandText = new fabric.Text("Red Train Studio", {
-        fontFamily: 'Caveat', fontSize: 20, fontWeight: 'bold', fill: '#E63946',
+      const brandText = new fabric.Text("Owl Watcher", {
+        fontFamily: 'Caveat', fontSize: 20, fontWeight: 'bold', fill: '#8B4513',
         originX: 'right', originY: 'top', left: 350, top: 10, selectable: false, evented: false
       });
       canvas.add(brandText);
@@ -491,10 +504,10 @@
       themeDecorations.forEach(obj => canvas.remove(obj)); themeDecorations = [];
       if (theme === 'clear') { document.getElementById('customText').value = ""; updateCustomText(); canvas.setBackgroundColor('#ffffff', canvas.renderAll.bind(canvas)); return; }
       
-      let bannerText = "🎉 AUTOMATED PRESET 🎉", bgColor = "#ff9800", fontType = "Fredoka One";
+      let bannerText = "🎉 AUTOMATED PRESET 🎉", bgColor = "#8B4513", fontType = "Fredoka One";
       isBold = true; document.getElementById('btnBold').classList.add('active');
 
-      if (theme === 'birthday') { bannerText = "🎉 HAPPY BIRTHDAY 🎉"; bgColor = "#ff9800"; canvas.setBackgroundColor('#f3e5f5', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('🎂', 50, 50); addThemeDecorationSticker('🎈', 310, 60); }
+      if (theme === 'birthday') { bannerText = "🎉 HAPPY BIRTHDAY 🎉"; bgColor = "#8B4513"; canvas.setBackgroundColor('#f3e5f5', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('🎂', 50, 50); addThemeDecorationSticker('🎈', 310, 60); }
       if (theme === 'wedding') { bannerText = "💞 JUST MARRIED 💞"; bgColor = "#e91e63"; fontType = "Caveat"; canvas.setBackgroundColor('#fce4ec', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('💍', 60, 60); }
       if (theme === 'travel') { bannerText = "🌍 WANDERLUST EXPLORER"; bgColor = "#ffe66d"; fontType = "Montserrat"; canvas.setBackgroundColor('#e0f7fa', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('✈️', 50, 50); }
       if (theme === 'party') { bannerText = "🔥 EDM NIGHTS PRO 🔥"; bgColor = "#232323"; fontType = "Bangers"; canvas.setBackgroundColor('#121212', canvas.renderAll.bind(canvas)); }
@@ -571,6 +584,8 @@
 
       progressContainer.style.display = 'block';
       canvas.discardActiveObject();
+      
+      // Stamp official brown brand mark onto recorded frames dynamically
       const watermark = addBrandWatermark();
       timelineCounter = 0;
 
@@ -601,7 +616,7 @@
         canvas.remove(watermark); canvas.renderAll();
         if (dataChunks.length > 0) {
           const blob = new Blob(dataChunks, { type: 'video/webm' });
-          const a = document.createElement('a'); a.download = 'RedTrain-Composition.webm';
+          const a = document.createElement('a'); a.download = 'OwlWatcher-Composition.webm';
           a.href = URL.createObjectURL(blob); a.click();
         }
         progressContainer.style.display = 'none'; resetPositionsToBase();
@@ -616,23 +631,6 @@
         if (elapsed < durationMs) { requestAnimationFrame(updateProgress); } else { if(mediaRecorder.state !== 'inactive') mediaRecorder.stop(); }
       };
       requestAnimationFrame(updateProgress);
-    }
-
-    function exportCanvasToAnimatedGif() {
-      const progressContainer = document.getElementById('videoProgressContainer');
-      progressContainer.style.display = 'block';
-      canvas.discardActiveObject(); canvas.renderAll();
-
-      setTimeout(() => {
-        const frameUrl = canvas.toDataURL({ format: 'png' });
-        gifshot.createGIF({ images: [frameUrl], gifWidth: 360, gifHeight: 360 }, function(obj) {
-          progressContainer.style.display = 'none';
-          if(!obj.error) {
-            const link = document.createElement('a'); link.download = 'RedTrain-Animation.gif';
-            link.href = obj.image; link.click();
-          }
-        });
-      }, 300);
     }
 
     function handleImageFiles(files) {
@@ -698,42 +696,69 @@
     }
 
     function downloadCollageImage() {
-      canvas.discardActiveObject(); const watermark = addBrandWatermark(); canvas.renderAll();
-      // Multiplier matrix set to 2 generates a clean 720x720px structural resolution payload from the 360x360 window bounds
+      canvas.discardActiveObject(); 
+      const watermark = addBrandWatermark(); 
+      canvas.renderAll();
+      
       const dataURL = canvas.toDataURL({ format: 'jpeg', quality: 1.0, multiplier: 2 });
-      const link = document.createElement('a'); link.download = 'RedTrain-Studio.jpg'; link.href = dataURL; link.click();
-      canvas.remove(watermark); canvas.renderAll();
+      const link = document.createElement('a'); link.download = 'OwlWatcher-Studio.jpg'; link.href = dataURL; link.click();
+      
+      canvas.remove(watermark); 
+      canvas.renderAll();
     }
 
-    /* Target Unique Share URL Generator Engine Feature */
-    function generateUniqueCloudUrl() {
-      document.getElementById('statusLog').innerText = "Processing 720x720px canvas matrix snapshot payload...";
+    // --- INTEGRATED LIVE FIREBASE DATABASE PROVISIONING ENGINE ---
+    function uploadHighResToFirebase() {
+      document.getElementById('statusLog').innerText = "Generating 720x720px structural layout payload...";
       
       canvas.discardActiveObject(); 
       const watermark = addBrandWatermark(); 
       canvas.renderAll();
 
-      // Exports the asset data string exactly scaled at 720x720px for your structural delivery endpoint
-      const highResDataPayload = canvas.toDataURL({ format: 'jpeg', quality: 0.95, multiplier: 2 });
+      // Exports asset data exactly at 720x720px target size
+      const dataUrlString = canvas.toDataURL({ format: 'jpeg', quality: 0.95, multiplier: 2 });
       
       canvas.remove(watermark); 
       canvas.renderAll();
 
-      // Compute a distinct production random index hash value matching requested parameters
-      const uniqueIndexSegment = Math.floor(1 + Math.random() * 9); 
-      
-      // The generated shareable engine URL link directly references the 720x720 metric scope
-      const uniqueUrl = `https://photo-collage.cnq.digital/share/720x720/image${uniqueIndexSegment}.jpg`;
-      
-      document.getElementById('generatedUrlLink').innerText = uniqueUrl;
-      document.getElementById('urlOutputContainer').style.display = 'block';
-      document.getElementById('statusLog').innerText = "Target 720x720px Image URL generated successfully!";
+      // Convert data URI matrix directly into a storage-compatible binary blob
+      const byteString = atob(dataUrlString.split(',')[1]);
+      const mimeString = dataUrlString.split(',')[0].split(':')[1].split(';')[0];
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+      const fileBlob = new Blob([ab], { type: mimeString });
+
+      const generatedFileName = `owlwatcher_${Date.now()}_720x720.jpg`;
+      const targetUploadTask = storageRef.child(`collages/${generatedFileName}`).put(fileBlob);
+
+      document.getElementById('statusLog').innerText = "Uploading asset directly to Firebase database storage bucket...";
+
+      targetUploadTask.on('state_changed', 
+        (snapshot) => {
+          const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+          document.getElementById('statusLog').innerText = `Uploading: ${progress}% completed.`;
+        }, 
+        (error) => {
+          console.error(error);
+          document.getElementById('statusLog').innerText = "⚠️ Upload failed! Verify your Firebase configuration settings keys.";
+        }, 
+        () => {
+          targetUploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+            document.getElementById('generatedUrlLink').innerText = downloadURL;
+            document.getElementById('urlOutputContainer').style.display = 'block';
+            document.getElementById('statusLog').innerText = "✅ Saved to Firebase database bucket successfully!";
+          });
+        }
+      );
     }
 
     function copyGeneratedUrl() {
       const urlText = document.getElementById('generatedUrlLink').innerText;
       navigator.clipboard.writeText(urlText).then(() => {
-        alert("720x720px Image cloud link copied successfully to clipboards!");
+        alert("720x720px Firebase image cloud URL link copied successfully!");
       });
     }
   </script>
