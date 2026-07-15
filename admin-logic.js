@@ -6,6 +6,8 @@ import { doc, getDoc, setDoc, collection, addDoc, query, where, getDocs, deleteD
 let assignedSociety = "";
 let editingDocId = null;
 let pendingDeleteId = null;
+let teamPhone = "919033406816"; // Default dynamic team phone number
+let isMasterAdminUser = false;
 
 // --- UI Helpers ---
 window.closeModal = () => { document.getElementById('customModal').style.display = 'none'; };
@@ -73,19 +75,123 @@ async function loadNoticeData() {
     }
 }
 
+// --- Dynamic Config Loader ---
+async function loadConfigData() {
+    try {
+        const configDoc = await getDoc(doc(db, "configs", "owlwatcher"));
+        if (configDoc.exists()) {
+            teamPhone = configDoc.data().teamPhone || "919033406816";
+        }
+    } catch (e) {
+        console.error("Error loading configs: ", e);
+    }
+}
+
+// --- Master Admin UI Builder ---
+function setupMasterAdminUI(isMaster) {
+    isMasterAdminUser = isMaster;
+    let masterSection = document.getElementById('master-section');
+    
+    if (!masterSection) {
+        masterSection = document.createElement('div');
+        masterSection.id = 'master-section';
+        masterSection.className = 'card';
+        masterSection.style.cssText = "background: #efebe9; border: 2px solid #8d6e63; border-radius: 16px; padding: 18px; margin-bottom: 15px; display: none;";
+        
+        const target = document.getElementById('search-section');
+        if (target) {
+            target.parentNode.insertBefore(masterSection, target);
+        } else {
+            const container = document.querySelector('.scrollable-controls-container');
+            if (container) container.prepend(masterSection);
+        }
+    }
+
+    if (isMaster) {
+        masterSection.style.display = 'block';
+        masterSection.innerHTML = `
+            <h3 style="border-left: 4px solid #6d4c41; padding-left: 8px; margin-bottom: 12px; color: #5d4037;">👑 Master Control Center</h3>
+            
+            <div class="control-group">
+                <label style="font-weight: bold; font-size: 0.85rem; color: #555;">Selected Workspace Society:</label>
+                <div id="active-society-display" style="font-size: 1.15rem; font-weight: bold; color: #8d6e63; margin: 6px 0 12px 0; background: white; padding: 10px; border-radius: 8px; border: 1px solid #d7ccc8;">
+                    ${assignedSociety || "None Selected"}
+                </div>
+                
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="masterSocietySearch" placeholder="Search / Type Society Name" style="flex: 1; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                    <button id="masterSocietySelectBtn" style="background: #6d4c41; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold;">Select</button>
+                </div>
+            </div>
+            
+            <div style="border-top: 1px solid #d7ccc8; margin-top: 15px; padding-top: 15px;">
+                <label style="font-weight: bold; font-size: 0.85rem; color: #555;">Owl Watcher Central Whatsapp Phone Number:</label>
+                <div style="display: flex; gap: 8px; margin-top: 6px;">
+                    <input type="text" id="teamPhoneInput" value="${teamPhone}" placeholder="e.g., 919033406816" style="flex: 1; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                    <button id="saveTeamPhoneBtn" style="background: #25d366; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold;">Update</button>
+                </div>
+            </div>
+        `;
+
+        // Master UI Event Listeners
+        document.getElementById('masterSocietySelectBtn')?.addEventListener('click', async () => {
+            const sName = document.getElementById('masterSocietySearch').value.trim();
+            if (!sName) return window.showModal("Please enter a society name.");
+            
+            // Verify if society has existing registry records
+            const q = query(collection(db, "vehicles"), where("societyName", "==", sName));
+            const snap = await getDocs(q);
+            
+            assignedSociety = sName;
+            document.getElementById('active-society-display').innerText = assignedSociety;
+            loadNoticeData();
+            
+            if (snap.empty) {
+                window.showModal(`Workspace shifted to "${sName}". (Note: No existing vehicle data found. Ready to import or build)`);
+            } else {
+                window.showModal(`Workspace successfully loaded: "${sName}"!`);
+            }
+        });
+
+        document.getElementById('saveTeamPhoneBtn')?.addEventListener('click', async () => {
+            const newPhone = document.getElementById('teamPhoneInput').value.trim().replace(/\D/g, '');
+            if (!newPhone) return window.showModal("Please enter a valid numeric phone number.");
+            
+            try {
+                await setDoc(doc(db, "configs", "owlwatcher"), { teamPhone: newPhone }, { merge: true });
+                teamPhone = newPhone;
+                window.showModal("Owl Watcher Support Contact saved successfully!");
+            } catch (e) {
+                window.showModal("Error saving dynamic contact: " + e.message);
+            }
+        });
+    } else {
+        masterSection.style.display = 'none';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     // --- 1. Auth & Session Persistence ---
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             try {
+                await loadConfigData(); // Load dynamic Owl Watcher contact
                 const adminDoc = await getDoc(doc(db, "admins", user.email));
                 if (adminDoc.exists()) {
-                    assignedSociety = adminDoc.data().society;
+                    const adminData = adminDoc.data();
+                    assignedSociety = adminData.society || "";
                     
                     // Force display states to maintain layout on refresh
                     document.getElementById('login-section').style.display = 'none';
                     document.getElementById('search-section').style.display = 'block';
                     document.getElementById('data-section').style.display = 'block';
+                    
+                    // Handle Master Admin Interface logic
+                    if (adminData.isMaster === true) {
+                        setupMasterAdminUI(true);
+                    } else {
+                        setupMasterAdminUI(false);
+                    }
                     
                     loadNoticeData();
                 } else {
@@ -100,6 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('login-section').style.display = 'block';
             document.getElementById('search-section').style.display = 'none';
             document.getElementById('data-section').style.display = 'none';
+            setupMasterAdminUI(false);
             assignedSociety = "";
         }
     });
@@ -361,8 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             await updateDoc(adDocRef, { societyApproved: true });
 
-            // Create or update the WhatsApp Link Button dynamically
-            const teamPhone = "919033406816";
+            // Dynamically utilize loaded teamPhone variable
             const message = `Hello Owl Watcher Central Team, I am the admin of "${assignedSociety}". I have approved the Ad Request Key: ${adKey}. Please collect the creative details.`;
             const waUrl = `https://wa.me/${teamPhone}?text=${encodeURIComponent(message)}`;
 
@@ -371,8 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (modalContent) {
                 window.showModal(`Success! Ad Request ${adKey} has been verified and approved.`);
                 
-                // If you want a button directly visible in the UI after approval,
-                // we'll update/inject a WhatsApp button underneath the input field if it exists:
+                // Update/inject WhatsApp button dynamically underneath input field
                 let waButton = document.getElementById('adminWaTeamBtn');
                 if (!waButton) {
                     waButton = document.createElement('a');
