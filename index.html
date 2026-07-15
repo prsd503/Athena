@@ -57,7 +57,7 @@
                     <button class="ad-nav-btn" id="prevGlobalAdBtn">❮ Prev</button>
                     <button class="ad-nav-btn" id="nextGlobalAdBtn">Next ❯</button>
                 </div>
-                <a href="https://wa.me/919033406816?text=Hi%20I%20want%20to%20apply%20for%20global%20ad%20in%20Owl%20Watcher" target="_blank" class="ad-link">Advertise Globally Here!</a>
+                <a id="globalAdLink" href="https://wa.me/919033406816?text=Hi%20I%20want%20to%20apply%20for%20global%20ad%20in%20Owl%20Watcher" target="_blank" class="ad-link">Advertise Globally Here!</a>
                 
             </div>
         </div>
@@ -92,7 +92,7 @@
                     <button class="ad-nav-btn" id="nextAdBtn">Next ❯</button>
                 </div>
 
-                <!-- Updated to target dynamic updates via ID assignment -->
+                <!-- Target for dynamic updates via ID assignment -->
                 <a id="localAdLink" href="#" target="_blank" class="ad-link">Contact for Posting Paid Content Here!</a>
             </div>
             <div style="margin-top: 25px; border-top: 1px solid #dcdde1; padding-top: 15px;">
@@ -135,6 +135,9 @@
         let adInterval = null;
         let globalAdInterval = null;
         
+        // Dynamic Owl Watcher Team Contact State
+        let owlWatcherTeamPhone = "919033406816"; // Default/Fallback Number
+        
         // Navigation Tracker States
         let currentIndex = 0;
         let totalSlides = 0;
@@ -143,6 +146,37 @@
 
         function showModal(content) { document.getElementById("result").innerHTML = content; modal.style.display = "block"; }
         window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
+
+        // Fetch dynamic Owl Watcher Team contact number configured by Master Admin
+        async function fetchTeamPhone() {
+            try {
+                const configSnap = await getDoc(doc(db, "config", "master"));
+                if (configSnap.exists()) {
+                    const data = configSnap.data();
+                    if (data.teamPhone) {
+                        owlWatcherTeamPhone = data.teamPhone.replace(/\D/g, ''); // Ensure safe digits
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to fetch dynamic master admin phone, using fallback.", err);
+            }
+        }
+
+        // Dynamically update link targets using the fetched Master Admin number
+        function updateAdLinks(societyName = "") {
+            const globalAdLink = document.getElementById("globalAdLink");
+            if (globalAdLink) {
+                const globalText = encodeURIComponent("Hi I want to apply for global ad in Owl Watcher");
+                globalAdLink.href = `https://wa.me/${owlWatcherTeamPhone}?text=${globalText}`;
+            }
+
+            const localAdLink = document.getElementById("localAdLink");
+            if (localAdLink && societyName) {
+                const localText = encodeURIComponent(`Hi I want to apply for local-society post in Owl Watcher for ${societyName}`);
+                localAdLink.href = `https://wa.me/${owlWatcherTeamPhone}?text=${localText}`;
+                localAdLink.innerText = `Contact for Posting Paid Content in ${societyName}!`;
+            }
+        }
 
         // 1. Auto-Switching Notice Board with Preview & Read More
         async function loadNotice(societyId) {
@@ -387,11 +421,8 @@
             document.getElementById("vehicle-search").style.display = "block";
             document.getElementById("displaySocietyName").innerText = currentSociety;
             
-            // Auto-fetch current society context and dynamically update the WhatsApp advertisement anchor element
-            const encodedText = encodeURIComponent(`Hi I want to apply for local-society post in Owl Watcher for ${societyName}`);
-            const localAdLink = document.getElementById("localAdLink");
-            localAdLink.href = `https://wa.me/919033406816?text=${encodedText}`;
-            localAdLink.innerText = `Contact for Posting Paid Content in ${societyName}!`;
+            // Auto-fetch dynamic phone variables & configure WhatsApp advertisement tags cleanly
+            updateAdLinks(societyName);
 
             if (globalAdInterval) clearInterval(globalAdInterval); // Clear home page global intervals
             setupGuard(societyId);
@@ -411,6 +442,7 @@
             document.getElementById("societyInput").value = "";
             document.getElementById("vehicle-search").style.display = "none";
             document.getElementById("society-verification").style.display = "block";
+            updateAdLinks(); // Reload layout configurations cleanly
             loadGlobalAdsPreLogin(); // Reload pre-login global ads on return to verification view
         }
 
@@ -457,13 +489,16 @@
             window.open("studio.html", "_self");
         });
 
-        // Place this directly under the "switchSocietyBtn" click event listener
+        // Back to home configuration
         document.getElementById("backToHomeBtn").addEventListener("click", () => {
             clearSocietySession();
         });
         
         // Lifecycle: Check for persistent session on page load/refresh
-        window.addEventListener("DOMContentLoaded", () => {
+        window.addEventListener("DOMContentLoaded", async () => {
+            await fetchTeamPhone(); // Retrieve configurations before updating links
+            updateAdLinks(); // Establish initial clean addresses
+
             const savedName = localStorage.getItem("savedSocietyName");
             const savedId = localStorage.getItem("savedSocietyId");
             const loginTime = localStorage.getItem("societyLoginTime");
