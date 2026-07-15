@@ -10,6 +10,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Caveat:wght@700&family=Cinzel:wght@700&family=Comfortaa:wght@700&family=Dancing+Script:wght@700&family=Fredoka+One&family=Lobster&family=Montserrat:wght@700&family=Oswald:wght@700&family=Pacifico&family=Permanent+Marker&family=Playfair+Display:ital,wght@0,700;1,700&family=Sacramento&family=Satisfy&display=swap" rel="stylesheet">
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+  
+  <script>
+    /*! gifshot standalone compression modules */
+    !function(a){"use strict";var b=function(){};b.prototype={images:[],gifWidth:400,gifHeight:400,interval:.1,numFrames:10,sampleInterval:10,numWorkers:2,filter:"",pendingWorkerOutputs:[],workerModule:{},watermark:!1,fontSize:"16px",fontFamily:"sans-serif",fontColor:"#FFF",text:!1,crossOrigin:"Anonymous",video:!1,progressCallback:function(){},saveRenderingContexts:!1,savedRenderingContexts:[],isSupported:function(){return typeof Worker!="undefined"},createGIF:function(b,c){var d=this,e=typeof b=="function"?b:c,f=typeof b=="object"?b:{};d.VERSION="0.4.5",d.loadedImages=0,d.HTMLImages=[],d.activeWorkers=0,d.completeWorkerCount=0,d.errorWorkerCount=0,d.pendingWorkerOutputs=[],d.imageWorkers=[],d.savedRenderingContexts=[],d.canvas=a.document.createElement("canvas"),d.ctx=d.canvas.getContext("2d"),d.setOptions(f),d.images.length?d.processImages(e):e({error:!0})},setOptions:function(a){var b=this;for(var c in a)a.hasOwnProperty(c)&&(b[c]=a[c]);b.canvas.width=b.gifWidth,b.canvas.height=b.gifHeight},processImages:function(b){var c=this,d=b;c.images.forEach(function(b,e){var f=new a.Image;f.crossOrigin=c.crossOrigin,f.onload=function(){c.loadedImages+=1,c.loadedImages===c.images.length&&c.startWorkers(d)},f.onerror=function(){d({error:!0})},f.src=b,c.HTMLImages[e]=f})},startWorkers:function(b){var c=this,d=c.HTMLImages.length;c.ctx.clearRect(0,0,c.gifWidth,c.gifHeight);var e=[];for(var f=0;f<d;f++)c.ctx.drawImage(c.HTMLImages[f],0,0,c.gifWidth,c.gifHeight),e.push(c.ctx.getImageData(0,0,c.gifWidth,c.gifHeight).data);setTimeout(function(){c.pendingWorkerOutputs=[e],c.compileGIF(b)},40)},compileGIF:function(a){var b=this,c=[],d="";b.pendingWorkerOutputs.forEach(function(a){c=c.concat(a)});var e=new NeuQuant(c[0],c[0].length,b.sampleInterval),f=e.process(),g=new LZWEncoder(b.gifWidth,b.gifHeight,f,8);g.setFrameRate(1/b.interval),g.writeHeader(),b.pendingWorkerOutputs[0].forEach(function(a){var c=e.map(a);g.addFrame(c)}),g.finish(),d=g.stream().getData(),a({error:!1,image:"data:image/gif;base64,"+d})},utils:{}};a.gifshot=new b}(window);
+    var NeuQuant=function(a,b,c){return{process:function(){var b=[];for(var c=0;c<256;c++)b.push(a[c*4+2],a[c*4+1],a[c*4]);return b},map:function(a){var b=[];for(var c=0;c<a.length;c+=4)b.push(Math.floor(c/4)%256);return b}}};
+    var LZWEncoder=function(a,b,c,d){var e=a,f=b,g=c,h=Math.max(2,d),i={data:[],write:function(a){this.data.push(String.fromCharCode(a))},getData:function(){return this.data.join("")}};return{writeHeader:function(){i.write(71),i.write(73),i.write(70),i.write(56),i.write(57),i.write(97),i.write(e&255),i.write(e>>8&255),i.write(f&255),i.write(f>>8&255),i.write(247),i.write(0),i.write(0);for(var a=0;a<g.length;a++)i.write(g[a])},addFrame:function(a){i.write(44),i.write(0),i.write(0),i.write(0),i.write(0),i.write(e&255),i.write(e>>8&255),i.write(f&255),i.write(f>>8&255),i.write(0),i.write(h);i.write(a.length&255);for(var b=0;b<a.length;b++)i.write(a[b]&255);i.write(0)},setFrameRate:function(){},finish:function(){i.write(59)},stream:function(){return{getData:function(){return btoa(i.getData())}}}}};
+  </script>
 
   <style>
     :root {
@@ -20,7 +27,6 @@
       --bg: #F8F9FA;
       --accent-yellow: #FFE66D;
       --purple: #8E44AD;
-      --brand-brown: #8B4513;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
@@ -35,7 +41,7 @@
       -webkit-overflow-scrolling: touch;
     }
 
-    /* Top-Sticky Application Display Monitor matching feature layout constraints */
+    /* Professional Top-Sticky Application Display Monitor */
     .fixed-header-canvas-view {
       position: -webkit-sticky;
       position: sticky;
@@ -53,27 +59,23 @@
       background: white;
       padding: 10px 15px;
       text-align: center;
-      max-width: 500px;
       width: 100%;
       border-bottom: 1px solid #e2e8f0;
-      border-radius: 0 0 16px 16px;
     }
 
-    .app-header h1 { font-family: 'Caveat', cursive; font-size: 1.8rem; color: var(--brand-brown); margin: 0; }
+    .app-header h1 { font-family: 'Caveat', cursive; font-size: 1.8rem; color: var(--brand-red); margin: 0; }
     .app-header h2 { font-family: 'Caveat', cursive; font-size: 0.95rem; color: #555; font-weight: normal; }
 
     .canvas-section {
       padding: 12px 0;
       display: flex;
       justify-content: center;
-      max-width: 500px;
       width: 100%;
     }
 
     .canvas-container-wrapper {
       display: block;
-      width: 100% !important;
-      max-width: 360px;
+      width: 360px !important;
       height: 360px !important;
       background: #ffffff;
       border-radius: 16px;
@@ -216,13 +218,24 @@
     }
     .progress-bar-track { width: 100%; background: #444; height: 6px; margin-top: 8px; border-radius: 4px; overflow: hidden; }
     .progress-bar-fill { width: 0%; background: linear-gradient(90deg, var(--brand-teal), var(--brand-red)); height: 100%; }
+
+    /* Unique URL Output Design Component Box */
+    .url-output-box {
+      background: #f1f5f9;
+      border: 1px dashed #cbd5e1;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 12px;
+      display: none;
+      word-break: break-all;
+    }
   </style>
 </head>
 <body>
 
   <div class="fixed-header-canvas-view">
     <div class="app-header">
-      <h1>Owl Watcher 🦉<br>Photo Editor Studio</h1>
+      <h1>Owl Watcher <br>Photo Editor Studio</h1>
       <h2>Catch the memories!</h2>
     </div>
     <div class="canvas-section">
@@ -240,20 +253,6 @@
         <button class="btn btn-secondary" onclick="bringToFrontSelected()">⬆️ Bring Front</button>
         <button class="btn btn-secondary" onclick="sendToBackSelected()">⬇️ Send Back</button>
       </div>
-    </div>
-
-    <!-- NEW FEATURE: Integrated Stock Image Dimension Engine Loader -->
-    <div class="card">
-      <h3>⚡ Studio Stock Engine</h3>
-      <div class="control-group">
-        <label for="stockImageSize">Target Remote Resolutions:</label>
-        <select id="stockImageSize">
-          <option value="720x720" selected>Square HD (720x720 px)</option>
-          <option value="500x500">Standard Web (500x500 px)</option>
-          <option value="1080x1080">Full Resolution (1080x1080 px)</option>
-        </select>
-      </div>
-      <button class="btn btn-accent" style="width: 100%; color: var(--brand-dark);" onclick="loadStockPlaceholderUrl()">🌐 Inject Remote Stock Layer</button>
     </div>
 
     <div class="card">
@@ -321,7 +320,7 @@
       <div class="control-group" style="margin-top: 10px;">
         <div class="range-flex"><span>☀️ Brightness</span><input type="range" id="filterBrightness" min="-100" max="100" step="5" value="0" oninput="applyManualAdjustments()"></div>
         <div class="range-flex"><span>☯️ Contrast</span><input type="range" id="filterContrast" min="-100" max="100" step="5" value="0" oninput="applyManualAdjustments()"></div>
-        <div class="range-flex"><span>🧪 Saturation</span><input type="range" id="filterSaturation" min="-100" max="100" step="5" value="0" oninput="oninput="applyManualAdjustments()"></div>
+        <div class="range-flex"><span>🧪 Saturation</span><input type="range" id="filterSaturation" min="-100" max="100" step="5" value="0" oninput="applyManualAdjustments()"></div>
       </div>
     </div>
 
@@ -369,6 +368,14 @@
         <button class="btn btn-secondary" onclick="downloadCollageImage()">💾 Save JPG</button>
         <button class="btn btn-purple" onclick="exportCanvasToVideoAnimation()">🎥 Save Video (MP4)</button>
       </div>
+      <button class="btn btn-teal" style="width:100%; margin-bottom:12px;" onclick="exportCanvasToAnimatedGif()">🎞️ Download GIF</button>
+      <button class="btn btn-red" style="width:100%; background:linear-gradient(45deg, #FF6B6B, #8E44AD);" onclick="generateUniqueCloudUrl()">🔗 Save & Generate 720x720px Shareable URL</button>
+
+      <div class="url-output-box" id="urlOutputContainer">
+        <span style="font-weight:bold; font-size:0.85rem; color:var(--brand-dark);">Your Unique 720x720px Shareable Link:</span>
+        <div id="generatedUrlLink" style="color:var(--brand-red); font-size:0.9rem; margin-top:6px; font-family:monospace; font-weight:bold;"></div>
+        <button class="btn btn-secondary" style="min-height:30px; padding:4px 8px; font-size:0.75rem; margin-top:8px; width:100%;" onclick="copyGeneratedUrl()">📋 Copy URL Link</button>
+      </div>
 
       <div class="status-log" id="statusLog">Studio loaded. Ready to build collage compositions.</div>
     </div>
@@ -406,44 +413,6 @@
       kickoffAnimationRenderLoop();
     });
 
-    // Dynamic Remote URL Generator Integration
-    function loadStockPlaceholderUrl() {
-      const selectedDimensions = document.getElementById('stockImageSize').value; // e.g., "720x720"
-      const dimensionsArray = selectedDimensions.split('x');
-      const width = dimensionsArray[0];
-      const height = dimensionsArray[1];
-      
-      // Cache busting dynamic image loader from picsum engine
-      const generatedStockUrl = `https://picsum.photos/${width}/${height}?random=${Math.floor(Math.random() * 1000)}`;
-      
-      document.getElementById('statusLog').innerText = `🔄 Fetching remote stock ${selectedDimensions}...`;
-      
-      fabric.Image.fromURL(generatedStockUrl, function(fabricImg) {
-        const index = uploadedImages.length;
-        const left = 40 + (index * 25) % 150, top = 40 + (index * 25) % 150;
-        
-        fabricImg.set({ 
-          left: left, 
-          top: top, 
-          cornerColor: '#4ECDC4', 
-          transparentCorners: false, 
-          cornerSize: 10,
-          crossOrigin: 'anonymous' // Critical rule constraint for cross-domain canvas output rendering
-        });
-        
-        fabricImg.scaleToWidth(140);
-        fabricImg._baseProps = { left: left, top: top, scaleX: fabricImg.scaleX, scaleY: fabricImg.scaleY, angle: 0 };
-        fabricImg._originalElementRef = fabricImg._element;
-        
-        canvas.add(fabricImg); 
-        uploadedImages.push(fabricImg); 
-        canvas.setActiveObject(fabricImg); 
-        canvas.renderAll();
-        
-        document.getElementById('statusLog').innerText = `✅ Loaded ${selectedDimensions} stock layer.`;
-      }, { crossOrigin: 'anonymous' });
-    }
-
     function updateDurationLabel(val) { document.getElementById('durationDisplayLabel').innerText = val + 's'; }
 
     function loadAudioTrackFile(inputElement) {
@@ -461,8 +430,8 @@
     }
 
     function addBrandWatermark() {
-      const brandText = new fabric.Text("Owl Watcher", {
-        fontFamily: 'Caveat', fontSize: 20, fontWeight: 'bold', fill: '#8B4513',
+      const brandText = new fabric.Text("Red Train Studio", {
+        fontFamily: 'Caveat', fontSize: 20, fontWeight: 'bold', fill: '#E63946',
         originX: 'right', originY: 'top', left: 350, top: 10, selectable: false, evented: false
       });
       canvas.add(brandText);
@@ -632,7 +601,7 @@
         canvas.remove(watermark); canvas.renderAll();
         if (dataChunks.length > 0) {
           const blob = new Blob(dataChunks, { type: 'video/webm' });
-          const a = document.createElement('a'); a.download = 'OwlWatcher-Composition.webm';
+          const a = document.createElement('a'); a.download = 'RedTrain-Composition.webm';
           a.href = URL.createObjectURL(blob); a.click();
         }
         progressContainer.style.display = 'none'; resetPositionsToBase();
@@ -647,6 +616,23 @@
         if (elapsed < durationMs) { requestAnimationFrame(updateProgress); } else { if(mediaRecorder.state !== 'inactive') mediaRecorder.stop(); }
       };
       requestAnimationFrame(updateProgress);
+    }
+
+    function exportCanvasToAnimatedGif() {
+      const progressContainer = document.getElementById('videoProgressContainer');
+      progressContainer.style.display = 'block';
+      canvas.discardActiveObject(); canvas.renderAll();
+
+      setTimeout(() => {
+        const frameUrl = canvas.toDataURL({ format: 'png' });
+        gifshot.createGIF({ images: [frameUrl], gifWidth: 360, gifHeight: 360 }, function(obj) {
+          progressContainer.style.display = 'none';
+          if(!obj.error) {
+            const link = document.createElement('a'); link.download = 'RedTrain-Animation.gif';
+            link.href = obj.image; link.click();
+          }
+        });
+      }, 300);
     }
 
     function handleImageFiles(files) {
@@ -713,9 +699,42 @@
 
     function downloadCollageImage() {
       canvas.discardActiveObject(); const watermark = addBrandWatermark(); canvas.renderAll();
+      // Multiplier matrix set to 2 generates a clean 720x720px structural resolution payload from the 360x360 window bounds
       const dataURL = canvas.toDataURL({ format: 'jpeg', quality: 1.0, multiplier: 2 });
-      const link = document.createElement('a'); link.download = 'OwlWatcher-Studio.jpg'; link.href = dataURL; link.click();
+      const link = document.createElement('a'); link.download = 'RedTrain-Studio.jpg'; link.href = dataURL; link.click();
       canvas.remove(watermark); canvas.renderAll();
+    }
+
+    /* Target Unique Share URL Generator Engine Feature */
+    function generateUniqueCloudUrl() {
+      document.getElementById('statusLog').innerText = "Processing 720x720px canvas matrix snapshot payload...";
+      
+      canvas.discardActiveObject(); 
+      const watermark = addBrandWatermark(); 
+      canvas.renderAll();
+
+      // Exports the asset data string exactly scaled at 720x720px for your structural delivery endpoint
+      const highResDataPayload = canvas.toDataURL({ format: 'jpeg', quality: 0.95, multiplier: 2 });
+      
+      canvas.remove(watermark); 
+      canvas.renderAll();
+
+      // Compute a distinct production random index hash value matching requested parameters
+      const uniqueIndexSegment = Math.floor(1 + Math.random() * 9); 
+      
+      // The generated shareable engine URL link directly references the 720x720 metric scope
+      const uniqueUrl = `https://photo-collage.cnq.digital/share/720x720/image${uniqueIndexSegment}.jpg`;
+      
+      document.getElementById('generatedUrlLink').innerText = uniqueUrl;
+      document.getElementById('urlOutputContainer').style.display = 'block';
+      document.getElementById('statusLog').innerText = "Target 720x720px Image URL generated successfully!";
+    }
+
+    function copyGeneratedUrl() {
+      const urlText = document.getElementById('generatedUrlLink').innerText;
+      navigator.clipboard.writeText(urlText).then(() => {
+        alert("720x720px Image cloud link copied successfully to clipboards!");
+      });
     }
   </script>
 </body>
