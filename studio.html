@@ -214,6 +214,27 @@
     }
     .progress-bar-track { width: 100%; background: #444; height: 6px; margin-top: 8px; border-radius: 4px; overflow: hidden; }
     .progress-bar-fill { width: 0%; background: linear-gradient(90deg, var(--brand-teal), var(--brand-brown)); height: 100%; }
+
+    /* Brown themed styles for Back to HOME button */
+    .admin-btn {
+      display: block;
+      background-color: var(--brand-brown);
+      color: white;
+      text-decoration: none;
+      padding: 12px 15px;
+      border-radius: 10px;
+      font-weight: bold;
+      text-align: center;
+      margin: 15px auto 30px auto;
+      max-width: 500px;
+      width: calc(100% - 30px);
+      box-sizing: border-box;
+      font-size: 0.9rem;
+      transition: opacity 0.2s ease;
+    }
+    .admin-btn:active, .admin-btn:hover {
+      opacity: 0.9;
+    }
   </style>
 </head>
 <body>
@@ -676,8 +697,6 @@
 
     function bringToFrontSelected() { const a = canvas.getActiveObject(); if(a) { canvas.bringToFront(a); canvas.renderAll(); } }
     
-    function sendToBackSelected() { const a = canvas.getActiveObject(); if(a) { canvas.sendToBack(a); canvas.renderAll(); } }
-
     // Deletes any actively selected user-imported element, emoji, or text banner group
     function deleteSelectedObject() {
       const activeObject = canvas.getActiveObject();
@@ -718,6 +737,6 @@
     }
   </script>
   <hr style="border: 0; border-top: 1px solid #dcdde1; margin: 20px 0;">
-        <a href="index.html" target="_self" class="admin-btn">Back to HOME</a>
+  <a href="index.html" target="_self" class="admin-btn">Back to HOME</a>
 </body>
 </html>
