@@ -16,7 +16,12 @@ async function initializeGuardPortal(email) {
         const q = query(collection(db, "guards"), where("email", "==", email));
         const snap = await getDocs(q);
         
-        if (snap.empty) return;
+        if (snap.empty) {
+            // Log out unauthorized user immediately and trigger registration modal alert
+            await signOut(auth);
+            window.showModal("Not Registered as Security Guard");
+            return;
+        }
         
         const guardData = snap.docs[0].data();
         assignedSociety = guardData.society; 
