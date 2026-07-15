@@ -20,6 +20,7 @@
       --accent-yellow: #FFE66D;
       --purple: #8E44AD;
       --brand-brown: #8B4513;
+      --danger-red: #C0392B;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
@@ -124,6 +125,13 @@
       margin-bottom: 12px;
     }
 
+    .triple-grid-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
     .horizontal-scroll {
       display: flex;
       gap: 10px;
@@ -133,7 +141,7 @@
     }
 
     .thumb-btn {
-      flex: 0 0 100px;
+      flex: 0 0 110px;
       height: 70px;
       background: #f0f4f8;
       border: 2px solid transparent;
@@ -168,6 +176,7 @@
     }
     .btn:active { opacity: 0.9; }
     .btn-secondary { background: #e2e8f0; color: var(--brand-dark); }
+    .btn-danger { background: var(--danger-red); color: white; }
     .hidden-input { display: none; }
 
     .range-flex {
@@ -224,30 +233,19 @@
   <div class="scrollable-controls-container">
     
     <div class="card">
-      <h3>📑 Layer Management</h3>
-      <div class="quick-layer-controls grid-buttons">
-        <button class="btn btn-secondary" onclick="bringToFrontSelected()">⬆️ Bring Front</button>
-        <button class="btn btn-secondary" onclick="sendToBackSelected()">⬇️ Send Back</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>🎉 Default Event Themes</h3>
-      <div class="horizontal-scroll">
-        <button class="thumb-btn" style="background:#fff3e0;" onclick="applyPresetTheme('birthday')">🎂 Birthday</button>
-        <button class="thumb-btn" style="background:#fce4ec;" onclick="applyPresetTheme('wedding')">💍 Wedding</button>
-        <button class="thumb-btn" style="background:#e8f5e9;" onclick="applyPresetTheme('travel')">✈️ Travel</button>
-        <button class="thumb-btn" style="background:#e1f5fe;" onclick="applyPresetTheme('party')">🎆 Neon Party</button>
-        <button class="thumb-btn" style="background:#f5f5f5;" onclick="applyPresetTheme('clear')">🍃 None</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>📸 Media Import & Build Layout</h3>
+      <h3>📸 Media Import & Layout</h3>
       <div class="grid-buttons">
         <button class="btn" onclick="document.getElementById('galleryLoader').click()">🖼️ Add Gallery</button>
         <button class="btn" onclick="document.getElementById('cameraInput').click()">📸 Camera Snap</button>
       </div>
+      
+      <label>Layer & Canvas Actions</label>
+      <div class="triple-grid-buttons">
+        <button class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px;" onclick="bringToFrontSelected()">⬆️ Front</button>
+        <button class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px;" onclick="sendToBackSelected()">⬇️ Back</button>
+        <button class="btn btn-danger" style="font-size: 0.8rem; padding: 6px;" onclick="deleteSelectedObject()">🗑️ Delete</button>
+      </div>
+
       <button class="btn btn-secondary" style="width:100%; margin-bottom:12px;" onclick="clearAllImages()">🚨 Reset Canvas Workspace</button>
       
       <input type="file" id="galleryLoader" class="hidden-input" accept="image/*" multiple>
@@ -281,6 +279,21 @@
           </div>
         </div>
         <button class="btn" style="width:100%; margin-top:8px; min-height:36px; padding:6px;" onclick="alignAndSnapTextBackground()">🎯 Align & Snap Text Banner</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🎉 Default Event Themes</h3>
+      <div class="horizontal-scroll">
+        <button class="thumb-btn" style="background:#fff3e0;" onclick="applyPresetTheme('birthday')">🎂 Birthday</button>
+        <button class="thumb-btn" style="background:#fce4ec;" onclick="applyPresetTheme('wedding')">💍 Wedding</button>
+        <button class="thumb-btn" style="background:#fffde7;" onclick="applyPresetTheme('anniversary')">❤️ Anniversary</button>
+        <button class="thumb-btn" style="background:#e8eaf6;" onclick="applyPresetTheme('graduation')">🎓 Graduation</button>
+        <button class="thumb-btn" style="background:#efebe9;" onclick="applyPresetTheme('game')">🎮 Game Winner</button>
+        <button class="thumb-btn" style="background:#eceff1;" onclick="applyPresetTheme('newyear')">✨ New Year</button>
+        <button class="thumb-btn" style="background:#e8f5e9;" onclick="applyPresetTheme('travel')">✈️ Travel</button>
+        <button class="thumb-btn" style="background:#e1f5fe;" onclick="applyPresetTheme('party')">🎆 Neon Party</button>
+        <button class="thumb-btn" style="background:#f5f5f5;" onclick="applyPresetTheme('clear')">🍃 None</button>
       </div>
     </div>
 
@@ -378,6 +391,17 @@
 
       document.getElementById('galleryLoader').addEventListener('change', (e) => handleImageFiles(e.target.files));
       document.getElementById('cameraInput').addEventListener('change', (e) => handleImageFiles(e.target.files));
+      
+      // Physical key binding to delete selections as well
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+          // If the user is typing in the input box, don't trigger deletion
+          if (document.activeElement.tagName !== 'INPUT') {
+            deleteSelectedObject();
+          }
+        }
+      });
+
       kickoffAnimationRenderLoop();
     });
 
@@ -465,6 +489,13 @@
 
       if (theme === 'birthday') { bannerText = "🎉 HAPPY BIRTHDAY 🎉"; bgColor = "#8B4513"; canvas.setBackgroundColor('#f3e5f5', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('🎂', 50, 50); addThemeDecorationSticker('🎈', 310, 60); }
       if (theme === 'wedding') { bannerText = "💞 JUST MARRIED 💞"; bgColor = "#8B4513"; fontType = "Caveat"; canvas.setBackgroundColor('#fce4ec', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('💍', 60, 60); }
+      
+      // --- Newly requested themes ---
+      if (theme === 'anniversary') { bannerText = "💖 HAPPY ANNIVERSARY 💖"; bgColor = "#c2185b"; fontType = "Dancing Script"; canvas.setBackgroundColor('#fdf2f4', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('💑', 60, 60); addThemeDecorationSticker('✨', 300, 70); }
+      if (theme === 'graduation') { bannerText = "🎓 CONGRATS GRADUATE 🎓"; bgColor = "#1a237e"; fontType = "Cinzel"; canvas.setBackgroundColor('#e8eaf6', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('📜', 50, 50); addThemeDecorationSticker('⭐', 310, 60); }
+      if (theme === 'game') { bannerText = "🏆 VICTORY ROYALE 🏆"; bgColor = "#e65100"; fontType = "Bangers"; canvas.setBackgroundColor('#263238', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('🎮', 60, 60); addThemeDecorationSticker('🔥', 300, 60); }
+      if (theme === 'newyear') { bannerText = "🎆 HAPPY NEW YEAR 🎆"; bgColor = "#311b92"; fontType = "Montserrat"; canvas.setBackgroundColor('#1a0c2e', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('🍾', 60, 60); addThemeDecorationSticker('🥳', 300, 60); }
+      
       if (theme === 'travel') { bannerText = "🌍 WANDERLUST EXPLORER"; bgColor = "#8B4513"; fontType = "Montserrat"; canvas.setBackgroundColor('#e0f7fa', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('✈️', 50, 50); }
       if (theme === 'party') { bannerText = "🔥 EDM NIGHTS PRO 🔥"; bgColor = "#8B4513"; fontType = "Bangers"; canvas.setBackgroundColor('#121212', canvas.renderAll.bind(canvas)); }
 
@@ -644,7 +675,30 @@
     }
 
     function bringToFrontSelected() { const a = canvas.getActiveObject(); if(a) { canvas.bringToFront(a); canvas.renderAll(); } }
+    
     function sendToBackSelected() { const a = canvas.getActiveObject(); if(a) { canvas.sendToBack(a); canvas.renderAll(); } }
+
+    // Deletes any actively selected user-imported element, emoji, or text banner group
+    function deleteSelectedObject() {
+      const activeObject = canvas.getActiveObject();
+      if (!activeObject) {
+        document.getElementById('statusLog').innerText = "⚠️ Please select a photo or emoji on the canvas to delete.";
+        return;
+      }
+      
+      // Filter out from the uploaded tracking arrays
+      uploadedImages = uploadedImages.filter(img => img !== activeObject);
+      themeDecorations = themeDecorations.filter(dec => dec !== activeObject);
+      if (activeObject === textGroupBanner) {
+        textGroupBanner = null;
+        document.getElementById('customText').value = "";
+      }
+
+      canvas.remove(activeObject);
+      canvas.discardActiveObject();
+      canvas.renderAll();
+      document.getElementById('statusLog').innerText = "🗑️ Selected item deleted successfully.";
+    }
 
     function clearAllImages() {
       canvas.clear(); uploadedImages = []; themeDecorations = []; textGroupBanner = null; animationEffect = 'none';
