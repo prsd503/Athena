@@ -91,7 +91,6 @@
                     <button class="ad-nav-btn" id="nextAdBtn">Next ❯</button>
                 </div>
 
-                <!-- Updated to target dynamic updates via ID assignment -->
                 <a id="localAdLink" href="#" target="_blank" class="ad-link">Contact for Posting Paid Content Here!</a>
             </div>
            <div style="margin-top: 25px; border-top: 1px solid #dcdde1; padding-top: 15px;">
@@ -142,7 +141,6 @@
         function showModal(content) { document.getElementById("result").innerHTML = content; modal.style.display = "block"; }
         window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
 
-        // 1. Auto-Switching Notice Board
         // 1. Auto-Switching Notice Board with Preview & Read More
         async function loadNotice(societyId) {
             const noticeDiv = document.getElementById('notice-content');
@@ -161,14 +159,12 @@
                 }
 
                 if (displayMsg) {
-                    // Character limit approximation for a clean preview snippet
                     const characterLimit = 60; 
                     let previewText = displayMsg;
                     let readMoreLink = "";
 
                     if (displayMsg.length > characterLimit) {
                         previewText = displayMsg.substring(0, characterLimit).trim() + "...";
-                        // Passing societyId as a query parameter so notice.html knows which notice to fetch
                         readMoreLink = ` <a href="notice.html?id=${societyId}" style="color: #8d6e63; font-weight: bold; text-decoration: underline; font-family: sans-serif; font-size: 0.9rem;">Read More</a>`;
                     }
 
@@ -331,7 +327,8 @@
                 snap.forEach((doc) => {
                     const adData = doc.data();
                     if (adData.imageUrl) {
-                        slider.innerHTML += `<img src="${adData.imageUrl}" class="ad-slide" alt="Community Ad" crossorigin="anonymous">`;
+                        // FIXED: No hardcoded crossOrigin parameters to allow unblocked visual renderings
+                        slider.innerHTML += `<img src="${adData.imageUrl}" class="ad-slide" alt="Community Ad">`;
                     }
                 });
 
@@ -341,7 +338,7 @@
 
                 if (totalSlides > 0) {
                     slides[currentIndex].classList.add("active");
-                    controls.style.display = "flex"; // Show controls when local ads are loaded to access Save feature
+                    controls.style.display = "flex"; 
 
                     if (totalSlides > 1) {
                         startAdTimer();
@@ -358,15 +355,15 @@
         // Attach action events directly to the navigation elements
         document.getElementById("nextAdBtn").addEventListener("click", () => {
             changeSlide("next");
-            startAdTimer(); // Reset auto-timer tracking reference clock
+            startAdTimer(); 
         });
 
         document.getElementById("prevAdBtn").addEventListener("click", () => {
             changeSlide("prev");
-            startAdTimer(); // Reset auto-timer tracking reference clock
+            startAdTimer(); 
         });
 
-        // Brand-Watermarked Image Export Logic
+        // FIXED: Brand-Watermarked Image Export Logic with Canvas Fallbacks
         document.getElementById("saveAdBtn").addEventListener("click", () => {
             const activeSlide = document.querySelector("#adSlider .ad-slide.active");
             if (!activeSlide) return;
@@ -379,21 +376,17 @@
                 const canvas = document.createElement("canvas");
                 const ctx = canvas.getContext("2d");
 
-                // Set canvas size matching the high quality image source dimension
                 canvas.width = img.naturalWidth || 720;
                 canvas.height = img.naturalHeight || 720;
 
-                // Draw base image frame
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-                // Setup Brand Watermark Label Parameters
                 const badgeWidth = canvas.width * 0.28; 
                 const badgeHeight = canvas.height * 0.07;
                 const badgeX = canvas.width - badgeWidth - (canvas.width * 0.03);
                 const badgeY = canvas.height * 0.03;
                 const cornerRadius = 8;
 
-                // Draw Watermark Background Tag Frame
                 ctx.fillStyle = "#8d6e63";
                 ctx.beginPath();
                 ctx.moveTo(badgeX + cornerRadius, badgeY);
@@ -408,29 +401,36 @@
                 ctx.closePath();
                 ctx.fill();
 
-                // Add Brand Title Text
                 ctx.fillStyle = "#ffffff";
                 ctx.font = `bold ${Math.floor(badgeHeight * 0.45)}px sans-serif`;
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
                 ctx.fillText("Owl Watcher 🦉", badgeX + (badgeWidth / 2), badgeY + (badgeHeight / 2));
 
-                // Process Native System Download Hook
                 const link = document.createElement("a");
                 link.download = `OwlWatcher_Ad_${Date.now()}.png`;
                 link.href = canvas.toDataURL("image/png");
+                link.click();
+            };
+
+            // Safe fallback rule triggers if external server drops CORS canvas requests
+            img.onerror = function() {
+                console.warn("Direct canvas drawing blocked by CORS headers. Downloading fallback reference.");
+                const link = document.createElement("a");
+                link.download = `OwlWatcher_Ad_${Date.now()}.jpg`;
+                link.href = activeSlide.src;
                 link.click();
             };
         });
 
         document.getElementById("nextGlobalAdBtn").addEventListener("click", () => {
             changeGlobalSlide("next");
-            startGlobalAdTimer(); // Reset auto-timer tracking reference clock
+            startGlobalAdTimer(); 
         });
 
         document.getElementById("prevGlobalAdBtn").addEventListener("click", () => {
             changeGlobalSlide("prev");
-            startGlobalAdTimer(); // Reset auto-timer tracking reference clock
+            startGlobalAdTimer(); 
         });
 
         // Helper function to transition UI screens
@@ -440,13 +440,12 @@
             document.getElementById("vehicle-search").style.display = "block";
             document.getElementById("displaySocietyName").innerText = currentSociety;
             
-            // Auto-fetch current society context and dynamically update the WhatsApp advertisement anchor element
             const encodedText = encodeURIComponent(`Hi I want to apply for local-society post in Owl Watcher for ${societyName}`);
             const localAdLink = document.getElementById("localAdLink");
             localAdLink.href = `https://wa.me/919033406816?text=${encodedText}`;
             localAdLink.innerText = `Contact for Posting Paid Content in ${societyName}!`;
 
-            if (globalAdInterval) clearInterval(globalAdInterval); // Clear home page global intervals
+            if (globalAdInterval) clearInterval(globalAdInterval); 
             setupGuard(societyId);
             loadNotice(societyId);
             loadAds(societyId);
@@ -464,7 +463,7 @@
             document.getElementById("societyInput").value = "";
             document.getElementById("vehicle-search").style.display = "none";
             document.getElementById("society-verification").style.display = "block";
-            loadGlobalAdsPreLogin(); // Reload pre-login global ads on return to verification view
+            loadGlobalAdsPreLogin(); 
         }
 
         // Logic to Start / Handle Manual Verification
@@ -477,7 +476,7 @@
             if (match) {
                 localStorage.setItem("savedSocietyName", match.data().name);
                 localStorage.setItem("savedSocietyId", match.id);
-                localStorage.setItem("societyLoginTime", Date.now().toString()); // Track login timestamp
+                localStorage.setItem("societyLoginTime", Date.now().toString()); 
                 showSearchScreen(match.data().name, match.id);
             } else { showModal("<p>❌ Society not found.</p>"); }
         });
@@ -500,12 +499,10 @@
             } else { showModal("<p>❌ Vehicle not found.</p>"); }
         });
 
-        // Change/Switch Society button implementation
         document.getElementById("switchSocietyBtn").addEventListener("click", () => {
             clearSocietySession();
         });
 
-        // Place this directly under the "switchSocietyBtn" click event listener
         document.getElementById("backToHomeBtn").addEventListener("click", () => {
             clearSocietySession();
         });
@@ -525,16 +522,14 @@
                 } else {
                     showSearchScreen(savedName, savedId);
                     
-                    // Setup a precise timeout to clear the session when the remaining time is up
                     setTimeout(() => {
                         clearSocietySession();
                     }, fifteenMinutes - elapsed);
                 }
             } else {
-                loadGlobalAdsPreLogin(); // Run if landing on the screen before log-in setup
+                loadGlobalAdsPreLogin(); 
             }
 
-            // Auto-Refresh Logic (Runs every 5 minutes to fetch updated notices and guard details)
             setTimeout(() => {
                 window.location.reload();
             }, 5 * 60 * 1000);
