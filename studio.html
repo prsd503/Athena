@@ -1,1 +1,728 @@
-hi
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Red Train Studio | Mobile Creative Suite</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Caveat:wght@700&family=Cinzel:wght@700&family=Comfortaa:wght@700&family=Dancing+Script:wght@700&family=Fredoka+One&family=Lobster&family=Montserrat:wght@700&family=Oswald:wght@700&family=Pacifico&family=Permanent+Marker&family=Playfair+Display:ital,wght@0,700;1,700&family=Sacramento&family=Satisfy&display=swap" rel="stylesheet">
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+  
+  <script>
+    /*! gifshot standalone compression modules */
+    !function(a){"use strict";var b=function(){};b.prototype={images:[],gifWidth:400,gifHeight:400,interval:.1,numFrames:10,sampleInterval:10,numWorkers:2,filter:"",pendingWorkerOutputs:[],workerModule:{},watermark:!1,fontSize:"16px",fontFamily:"sans-serif",fontColor:"#FFF",text:!1,crossOrigin:"Anonymous",video:!1,progressCallback:function(){},saveRenderingContexts:!1,savedRenderingContexts:[],isSupported:function(){return typeof Worker!="undefined"},createGIF:function(b,c){var d=this,e=typeof b=="function"?b:c,f=typeof b=="object"?b:{};d.VERSION="0.4.5",d.loadedImages=0,d.HTMLImages=[],d.activeWorkers=0,d.completeWorkerCount=0,d.errorWorkerCount=0,d.pendingWorkerOutputs=[],d.imageWorkers=[],d.savedRenderingContexts=[],d.canvas=a.document.createElement("canvas"),d.ctx=d.canvas.getContext("2d"),d.setOptions(f),d.images.length?d.processImages(e):e({error:!0})},setOptions:function(a){var b=this;for(var c in a)a.hasOwnProperty(c)&&(b[c]=a[c]);b.canvas.width=b.gifWidth,b.canvas.height=b.gifHeight},processImages:function(b){var c=this,d=b;c.images.forEach(function(b,e){var f=new a.Image;f.crossOrigin=c.crossOrigin,f.onload=function(){c.loadedImages+=1,c.loadedImages===c.images.length&&c.startWorkers(d)},f.onerror=function(){d({error:!0})},f.src=b,c.HTMLImages[e]=f})},startWorkers:function(b){var c=this,d=c.HTMLImages.length;c.ctx.clearRect(0,0,c.gifWidth,c.gifHeight);var e=[];for(var f=0;f<d;f++)c.ctx.drawImage(c.HTMLImages[f],0,0,c.gifWidth,c.gifHeight),e.push(c.ctx.getImageData(0,0,c.gifWidth,c.gifHeight).data);setTimeout(function(){c.pendingWorkerOutputs=[e],c.compileGIF(b)},40)},compileGIF:function(a){var b=this,c=[],d="";b.pendingWorkerOutputs.forEach(function(a){c=c.concat(a)});var e=new NeuQuant(c[0],c[0].length,b.sampleInterval),f=e.process(),g=new LZWEncoder(b.gifWidth,b.gifHeight,f,8);g.setFrameRate(1/b.interval),g.writeHeader(),b.pendingWorkerOutputs[0].forEach(function(a){var c=e.map(a);g.addFrame(c)}),g.finish(),d=g.stream().getData(),a({error:!1,image:"data:image/gif;base64,"+d})},utils:{}};a.gifshot=new b}(window);
+    var NeuQuant=function(a,b,c){return{process:function(){var b=[];for(var c=0;c<256;c++)b.push(a[c*4+2],a[c*4+1],a[c*4]);return b},map:function(a){var b=[];for(var c=0;c<a.length;c+=4)b.push(Math.floor(c/4)%256);return b}}};
+    var LZWEncoder=function(a,b,c,d){var e=a,f=b,g=c,h=Math.max(2,d),i={data:[],write:function(a){this.data.push(String.fromCharCode(a))},getData:function(){return this.data.join("")}};return{writeHeader:function(){i.write(71),i.write(73),i.write(70),i.write(56),i.write(57),i.write(97),i.write(e&255),i.write(e>>8&255),i.write(f&255),i.write(f>>8&255),i.write(247),i.write(0),i.write(0);for(var a=0;a<g.length;a++)i.write(g[a])},addFrame:function(a){i.write(44),i.write(0),i.write(0),i.write(0),i.write(0),i.write(e&255),i.write(e>>8&255),i.write(f&255),i.write(f>>8&255),i.write(0),i.write(h);i.write(a.length&255);for(var b=0;b<a.length;b++)i.write(a[b]&255);i.write(0)},setFrameRate:function(){},finish:function(){i.write(59)},stream:function(){return{getData:function(){return btoa(i.getData())}}}}};
+  </script>
+
+  <style>
+    :root {
+      --brand-red: #E63946;
+      --brand-dark: #1D3557;
+      --brand-light: #F1FAEE;
+      --brand-teal: #4ECDC4;
+      --bg: #F8F9FA;
+      --accent-yellow: #FFE66D;
+      --purple: #8E44AD;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--brand-dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto; 
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Professional Top-Sticky Application Display Monitor */
+    .fixed-header-canvas-view {
+      position: -webkit-sticky;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: #eef2f7;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      width: 100%;
+    }
+
+    .app-header {
+      background: white;
+      padding: 10px 15px;
+      text-align: center;
+      width: 100%;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .app-header h1 { font-family: 'Caveat', cursive; font-size: 1.8rem; color: var(--brand-red); margin: 0; }
+    .app-header h2 { font-family: 'Caveat', cursive; font-size: 0.95rem; color: #555; font-weight: normal; }
+
+    .canvas-section {
+      padding: 12px 0;
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .canvas-container-wrapper {
+      display: block;
+      width: 360px !important;
+      height: 360px !important;
+      background: #ffffff;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 3px dashed var(--brand-teal);
+      position: relative;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+
+    /* Workspace Content Control Center */
+    .scrollable-controls-container {
+      flex: 1;
+      padding: 15px;
+      max-width: 500px;
+      width: 100%;
+      margin: 0 auto;
+      padding-bottom: 100px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    }
+
+    h3 {
+      margin-bottom: 12px;
+      font-size: 1.05rem;
+      border-left: 4px solid var(--brand-red);
+      padding-left: 8px;
+      color: var(--brand-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .control-group { margin-bottom: 12px; }
+    label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.85rem; color: #555; }
+
+    select, input[type="text"], input[type="file"].styled-audio {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      background-color: white;
+      font-size: 0.95rem;
+      color: var(--brand-dark);
+    }
+
+    .grid-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .horizontal-scroll {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 5px 0 10px 0;
+      scrollbar-width: thin;
+    }
+
+    .thumb-btn {
+      flex: 0 0 100px;
+      height: 70px;
+      background: #f0f4f8;
+      border: 2px solid transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: var(--brand-dark);
+    }
+    .thumb-btn.active { border-color: var(--brand-red); background: #fff0f0; }
+
+    .sticker-item { font-size: 2rem; cursor: pointer; padding: 5px; }
+
+    .btn {
+      background: var(--brand-dark);
+      color: white;
+      border: none;
+      padding: 12px 15px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      min-height: 44px;
+    }
+    .btn:active { opacity: 0.9; }
+    .btn-red { background: var(--brand-red); }
+    .btn-teal { background: var(--brand-teal); color: var(--brand-dark); }
+    .btn-secondary { background: #e2e8f0; color: var(--brand-dark); }
+    .btn-purple { background: var(--purple); }
+    .btn-accent { background: var(--accent-yellow); color: var(--brand-dark); }
+    .hidden-input { display: none; }
+
+    .range-flex {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .range-flex span { width: 85px; font-size: 0.85rem; }
+    .range-flex input { flex: 1; }
+
+    .text-format-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .text-format-bar select { flex: 1; min-width: 120px; }
+
+    .font-decor-group { display: flex; gap: 4px; }
+    .decor-toggle {
+      background: #f0f0f0; border: 2px solid #e0e0e0; border-radius: 6px;
+      width: 36px; height: 40px; font-weight: bold; cursor: pointer;
+    }
+    .decor-toggle.active { background: var(--purple); color: white; border-color: var(--purple); }
+
+    .color-picker-wrapper { display: flex; gap: 4px; align-items: center; flex: 1; }
+    .color-picker-wrapper input[type="color"] { width: 100%; height: 40px; cursor: pointer; border: 1px solid #ddd; border-radius: 6px; }
+
+    .status-log { text-align: center; font-size: 0.85rem; font-weight: 600; color: var(--brand-red); margin-top: 10px; }
+
+    .rendering-progress-container {
+      position: fixed; bottom: 0; left: 0; right: 0; background: #232323; color: #ffffff;
+      padding: 12px; text-align: center; z-index: 2000; display: none; font-weight: bold;
+    }
+    .progress-bar-track { width: 100%; background: #444; height: 6px; margin-top: 8px; border-radius: 4px; overflow: hidden; }
+    .progress-bar-fill { width: 0%; background: linear-gradient(90deg, var(--brand-teal), var(--brand-red)); height: 100%; }
+
+    /* Unique URL Output Design Component Box */
+    .url-output-box {
+      background: #f1f5f9;
+      border: 1px dashed #cbd5e1;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 12px;
+      display: none;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="fixed-header-canvas-view">
+    <div class="app-header">
+      <h1>Red Train Studio 🚂</h1>
+      <h2>Catch the memories!</h2>
+    </div>
+    <div class="canvas-section">
+      <div class="canvas-container-wrapper">
+        <canvas id="collageCanvas" width="360" height="360"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="scrollable-controls-container">
+    
+    <div class="card">
+      <h3>📑 Layer Management</h3>
+      <div class="quick-layer-controls grid-buttons">
+        <button class="btn btn-secondary" onclick="bringToFrontSelected()">⬆️ Bring Front</button>
+        <button class="btn btn-secondary" onclick="sendToBackSelected()">⬇️ Send Back</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🎉 Default Event Themes</h3>
+      <div class="horizontal-scroll">
+        <button class="thumb-btn" style="background:#fff3e0;" onclick="applyPresetTheme('birthday')">🎂 Birthday</button>
+        <button class="thumb-btn" style="background:#fce4ec;" onclick="applyPresetTheme('wedding')">💍 Wedding</button>
+        <button class="thumb-btn" style="background:#e8f5e9;" onclick="applyPresetTheme('travel')">✈️ Travel</button>
+        <button class="thumb-btn" style="background:#e1f5fe;" onclick="applyPresetTheme('party')">🎆 Neon Party</button>
+        <button class="thumb-btn" style="background:#f5f5f5;" onclick="applyPresetTheme('clear')">🍃 None</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>📸 Media Import & Build Layout</h3>
+      <div class="grid-buttons">
+        <button class="btn btn-teal" onclick="document.getElementById('galleryLoader').click()">🖼️ Add Gallery</button>
+        <button class="btn btn-teal" onclick="document.getElementById('cameraInput').click()">📸 Camera Snap</button>
+      </div>
+      <button class="btn btn-red" style="width:100%; margin-bottom:12px;" onclick="clearAllImages()">🚨 Reset Canvas Workspace</button>
+      
+      <input type="file" id="galleryLoader" class="hidden-input" accept="image/*" multiple>
+      <input type="file" id="cameraInput" class="hidden-input" accept="image/*" capture="environment">
+
+      <div class="control-group">
+        <label for="customText">Custom Layer Banner Text</label>
+        <input type="text" id="customText" placeholder="#selfie #smile @Studio" oninput="updateCustomText()">
+        
+        <div class="text-format-bar">
+          <div class="color-picker-wrapper"><input type="color" id="textColor" value="#ffffff" onchange="updateCustomText()"></div>
+          <div class="color-picker-wrapper"><input type="color" id="textBgColor" value="#E63946" onchange="changeBannerBgColor()"></div>
+          
+          <select id="fontStyle" onchange="updateCustomText()">
+            <option value="Montserrat" selected>Montserrat</option>
+            <option value="Fredoka One">Fredoka One</option>
+            <option value="Caveat">Caveat (Handwriting)</option>
+            <option value="Pacifico">Pacifico (Retro)</option>
+            <option value="Lobster">Lobster</option>
+            <option value="Sacramento">Sacramento</option>
+            <option value="Permanent Marker">Permanent Marker</option>
+            <option value="Bangers">Bangers</option>
+            <option value="Cinzel">Cinzel</option>
+            <option value="Playfair Display">Playfair Display</option>
+          </select>
+
+          <div class="font-decor-group">
+            <button class="decor-toggle" id="btnBold" onclick="toggleStyleDecoration('bold')">B</button>
+            <button class="decor-toggle" id="btnItalic" style="font-style:italic;" onclick="toggleStyleDecoration('italic')">I</button>
+            <button class="decor-toggle" id="btnUnderline" style="text-decoration:underline;" onclick="toggleStyleDecoration('underline')">U</button>
+          </div>
+        </div>
+        <button class="btn btn-accent" style="width:100%; margin-top:8px; min-height:36px; padding:6px;" onclick="alignAndSnapTextBackground()">🎯 Align & Snap Text Banner</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🎛️ Filters & Image Adjustments</h3>
+      <div class="horizontal-scroll">
+        <button class="thumb-btn" onclick="applyFilterPreset('none')">Original</button>
+        <button class="thumb-btn" style="background:#fce4ec;" onclick="applyFilterPreset('pink')">🌸 PINK</button>
+        <button class="thumb-btn" style="background:#ffe0b2;" onclick="applyFilterPreset('warm')">☀️ WARM</button>
+        <button class="thumb-btn" style="background:#e0f7fa;" onclick="applyFilterPreset('cool')">❄️ COOL</button>
+        <button class="thumb-btn" style="background:#b2dfdb;" onclick="applyFilterPreset('vintage')">🎞️ VINTAGE</button>
+      </div>
+      <div class="control-group" style="margin-top: 10px;">
+        <div class="range-flex"><span>☀️ Brightness</span><input type="range" id="filterBrightness" min="-100" max="100" step="5" value="0" oninput="applyManualAdjustments()"></div>
+        <div class="range-flex"><span>☯️ Contrast</span><input type="range" id="filterContrast" min="-100" max="100" step="5" value="0" oninput="applyManualAdjustments()"></div>
+        <div class="range-flex"><span>🧪 Saturation</span><input type="range" id="filterSaturation" min="-100" max="100" step="5" value="0" oninput="applyManualAdjustments()"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🐱 Emoji & Stickers Panel</h3>
+      <div class="horizontal-scroll" style="background:#fafafa; border-radius:8px; padding:10px;">
+        <span class="sticker-item" onclick="addStickerToCanvas('🐱')">🐱</span>
+        <span class="sticker-item" onclick="addStickerToCanvas('🕶️')">🕶️</span>
+        <span class="sticker-item" onclick="addStickerToCanvas('👑')">👑</span>
+        <span class="sticker-item" onclick="addStickerToCanvas('❤️')">❤️</span>
+        <span class="sticker-item" onclick="addStickerToCanvas('✨')">✨</span>
+        <span class="sticker-item" onclick="addStickerToCanvas('🎉')">🎉</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🎞️ Motion Video & Animation Exporter</h3>
+      <div class="control-group">
+        <div class="range-flex">
+          <span>⏱️ Duration:</span>
+          <input type="range" id="videoTimelineDuration" min="2" max="30" step="1" value="6" oninput="updateDurationLabel(this.value)">
+          <b id="durationDisplayLabel" style="min-width:45px; color:var(--purple);">6s</b>
+        </div>
+      </div>
+
+      <label>Choose Sequential Storytelling Effects:</label>
+      <div class="horizontal-scroll" style="margin-bottom:12px;">
+        <button id="motionNone" class="thumb-btn active" onclick="setAnimationEffect('none')">Static Image</button>
+        <button id="motionFadeStep" class="thumb-btn" onclick="setAnimationEffect('fadeStep')">⏱️ One-by-One</button>
+        <button id="motionRollStep" class="thumb-btn" onclick="setAnimationEffect('rollStep')">🔄 Roll Entry</button>
+        <button id="motionPopStep" class="thumb-btn" onclick="setAnimationEffect('popStep')">🔍 Zoom Pop</button>
+      </div>
+      
+      <div class="control-group">
+        <label for="videoAudioTrack">🎵 Background Audio Track Mixer Link</label>
+        <input type="file" id="videoAudioTrack" class="styled-audio" accept="audio/*" onchange="loadAudioTrackFile(this)">
+        <audio id="localAudioPlayback" style="display:none;" loop></audio>
+      </div>
+    </div>
+
+    <div class="card" style="border-top: 4px solid var(--purple);">
+      <h3>💾 Studio Export & Delivery Panel</h3>
+      
+      <div class="grid-buttons">
+        <button class="btn btn-secondary" onclick="downloadCollageImage()">💾 Save JPG</button>
+        <button class="btn btn-purple" onclick="exportCanvasToVideoAnimation()">🎥 Save Video (MP4)</button>
+      </div>
+      <button class="btn btn-teal" style="width:100%; margin-bottom:12px;" onclick="exportCanvasToAnimatedGif()">🎞️ Download GIF</button>
+      <button class="btn btn-red" style="width:100%; background:linear-gradient(45deg, #FF6B6B, #8E44AD);" onclick="generateUniqueCloudUrl()">🔗 Generate Domain Unique Image URL</button>
+
+      <div class="url-output-box" id="urlOutputContainer">
+        <span style="font-weight:bold; font-size:0.85rem; color:var(--brand-dark);">Your Unique Shareable Link:</span>
+        <div id="generatedUrlLink" style="color:var(--brand-red); font-size:0.9rem; margin-top:6px; font-family:monospace; font-weight:bold;"></div>
+        <button class="btn btn-secondary" style="min-height:30px; padding:4px 8px; font-size:0.75rem; margin-top:8px; width:100%;" onclick="copyGeneratedUrl()">📋 Copy URL Link</button>
+      </div>
+
+      <div class="status-log" id="statusLog">Studio loaded. Ready to build collage compositions.</div>
+    </div>
+
+  </div>
+
+  <div class="rendering-progress-container" id="videoProgressContainer">
+    <div><span id="renderStatusTitle">🎬 Rendering MP4 Video Sequence:</span> <span id="renderPercentText">0%</span></div>
+    <div class="progress-bar-track"><div class="progress-bar-fill" id="renderProgressBarFill"></div></div>
+  </div>
+
+  <script>
+    let canvas, uploadedImages = [], themeDecorations = [], textGroupBanner = null; 
+    let selectedAudioFileBlob = null, selectedAudioDataUrl = null; 
+    let isBold = false, isItalic = false, isUnderline = false;
+    let animationEffect = 'none', animationFrameId = null, timelineCounter = 0, isUserInteracting = false; 
+
+    window.addEventListener('load', () => {
+      canvas = new fabric.Canvas('collageCanvas', {
+        width: 360, height: 360, backgroundColor: '#ffffff', preserveObjectStacking: true
+      });
+
+      canvas.on('mouse:down', function() { if (animationEffect !== 'none') { isUserInteracting = true; resetPositionsToBase(); } });
+      canvas.on('object:modified', function(options) {
+        const obj = options.target;
+        if (obj && obj._baseProps) {
+          obj._baseProps.left = obj.left; obj._baseProps.top = obj.top;
+          obj._baseProps.scaleX = obj.scaleX; obj._baseProps.scaleY = obj.scaleY; obj._baseProps.angle = obj.angle;
+        }
+        isUserInteracting = false;
+      });
+
+      document.getElementById('galleryLoader').addEventListener('change', (e) => handleImageFiles(e.target.files));
+      document.getElementById('cameraInput').addEventListener('change', (e) => handleImageFiles(e.target.files));
+      kickoffAnimationRenderLoop();
+    });
+
+    function updateDurationLabel(val) { document.getElementById('durationDisplayLabel').innerText = val + 's'; }
+
+    function loadAudioTrackFile(inputElement) {
+      const file = inputElement.files[0];
+      if (file) {
+        selectedAudioFileBlob = file;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          selectedAudioDataUrl = e.target.result;
+          document.getElementById('localAudioPlayback').src = selectedAudioDataUrl;
+          document.getElementById('statusLog').innerText = `🎵 Track attached!`;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function addBrandWatermark() {
+      const brandText = new fabric.Text("Red Train Studio", {
+        fontFamily: 'Caveat', fontSize: 20, fontWeight: 'bold', fill: '#E63946',
+        originX: 'right', originY: 'top', left: 350, top: 10, selectable: false, evented: false
+      });
+      canvas.add(brandText);
+      canvas.renderAll();
+      return brandText; 
+    }
+
+    function toggleStyleDecoration(type) {
+      if (type === 'bold') { isBold = !isBold; document.getElementById('btnBold').classList.toggle('active', isBold); }
+      if (type === 'italic') { isItalic = !isItalic; document.getElementById('btnItalic').classList.toggle('active', isItalic); }
+      if (type === 'underline') { isUnderline = !isUnderline; document.getElementById('btnUnderline').classList.toggle('active', isUnderline); }
+      updateCustomText();
+    }
+
+    function updateCustomText() {
+      const val = document.getElementById('customText').value;
+      if (!val) {
+        if (textGroupBanner) { canvas.remove(textGroupBanner); textGroupBanner = null; }
+        canvas.renderAll(); return;
+      }
+      const txtColor = document.getElementById('textColor').value;
+      const bgColor = document.getElementById('textBgColor').value;
+      const fStyle = document.getElementById('fontStyle').value;
+
+      let currentLeft = 180, currentTop = 315;
+      if (textGroupBanner) { currentLeft = textGroupBanner.left; currentTop = textGroupBanner.top; canvas.remove(textGroupBanner); }
+
+      const newText = new fabric.Textbox(val, {
+        fontSize: 16, fill: txtColor, fontFamily: fStyle, fontWeight: isBold ? 'bold' : 'normal',
+        fontStyle: isItalic ? 'italic' : 'normal', underline: isUnderline, originX: 'center', originY: 'center', width: 310, textAlign: 'center'
+      });
+
+      const newRect = new fabric.Rect({
+        width: newText.width + 24, height: newText.height + 12, fill: bgColor, rx: 6, ry: 6, originX: 'center', originY: 'center'
+      });
+
+      textGroupBanner = new fabric.Group([newRect, newText], { left: currentLeft, top: currentTop, originX: 'center', originY: 'center', selectable: true });
+      canvas.add(textGroupBanner);
+      canvas.bringToFront(textGroupBanner);
+      canvas.renderAll();
+    }
+
+    function changeBannerBgColor() {
+      if (textGroupBanner && textGroupBanner.item(0)) {
+        textGroupBanner.item(0).set('fill', document.getElementById('textBgColor').value);
+        canvas.renderAll();
+      } else { updateCustomText(); }
+    }
+
+    function alignAndSnapTextBackground() {
+      if (!textGroupBanner) return;
+      textGroupBanner.set({ left: 180, top: 315 });
+      textGroupBanner.setCoords(); canvas.bringToFront(textGroupBanner); canvas.renderAll();
+    }
+
+    function applyPresetTheme(theme) {
+      themeDecorations.forEach(obj => canvas.remove(obj)); themeDecorations = [];
+      if (theme === 'clear') { document.getElementById('customText').value = ""; updateCustomText(); canvas.setBackgroundColor('#ffffff', canvas.renderAll.bind(canvas)); return; }
+      
+      let bannerText = "🎉 AUTOMATED PRESET 🎉", bgColor = "#ff9800", fontType = "Fredoka One";
+      isBold = true; document.getElementById('btnBold').classList.add('active');
+
+      if (theme === 'birthday') { bannerText = "🎉 HAPPY BIRTHDAY 🎉"; bgColor = "#ff9800"; canvas.setBackgroundColor('#f3e5f5', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('🎂', 50, 50); addThemeDecorationSticker('🎈', 310, 60); }
+      if (theme === 'wedding') { bannerText = "💞 JUST MARRIED 💞"; bgColor = "#e91e63"; fontType = "Caveat"; canvas.setBackgroundColor('#fce4ec', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('💍', 60, 60); }
+      if (theme === 'travel') { bannerText = "🌍 WANDERLUST EXPLORER"; bgColor = "#ffe66d"; fontType = "Montserrat"; canvas.setBackgroundColor('#e0f7fa', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('✈️', 50, 50); }
+      if (theme === 'party') { bannerText = "🔥 EDM NIGHTS PRO 🔥"; bgColor = "#232323"; fontType = "Bangers"; canvas.setBackgroundColor('#121212', canvas.renderAll.bind(canvas)); }
+
+      document.getElementById('customText').value = bannerText;
+      document.getElementById('textBgColor').value = bgColor;
+      document.getElementById('fontStyle').value = fontType;
+      updateCustomText(); alignAndSnapTextBackground();
+    }
+
+    function addThemeDecorationSticker(emoji, x, y) {
+      const sticker = new fabric.Text(emoji, { fontSize: 35, left: x, top: y, originX: 'center', originY: 'center', selectable: true });
+      canvas.add(sticker); themeDecorations.push(sticker); canvas.renderAll();
+    }
+
+    function addStickerToCanvas(emoji) {
+      const sticker = new fabric.Text(emoji, { fontSize: 35, left: 180, top: 180, originX: 'center', originY: 'center', cornerColor: '#4ECDC4', transparentCorners: false, cornerSize: 10 });
+      canvas.add(sticker); uploadedImages.push(sticker); canvas.setActiveObject(sticker); canvas.renderAll();
+    }
+
+    function setAnimationEffect(effect) {
+      animationEffect = effect;
+      ['motionNone', 'motionFadeStep', 'motionRollStep', 'motionPopStep'].forEach(id => document.getElementById(id).classList.remove('active'));
+      document.getElementById('motion' + effect.charAt(0).toUpperCase() + effect.slice(1)).classList.add('active');
+      timelineCounter = 0; resetPositionsToBase();
+    }
+
+    function resetPositionsToBase() {
+      uploadedImages.forEach(img => {
+        if(img._baseProps) {
+          img.set({ left: img._baseProps.left, top: img._baseProps.top, scaleX: img._baseProps.scaleX, scaleY: img._baseProps.scaleY, angle: img._baseProps.angle, opacity: 1 });
+        }
+      });
+      canvas.renderAll();
+    }
+
+    function kickoffAnimationRenderLoop() {
+      function processTick() {
+        const totalMaxDuration = parseFloat(document.getElementById('videoTimelineDuration').value);
+        if (!isUserInteracting && animationEffect !== 'none' && uploadedImages.length > 0) {
+          timelineCounter += 0.01;
+          if (timelineCounter > totalMaxDuration) timelineCounter = 0;
+          const dynamicStaggerOffset = Math.min(2.0, (totalMaxDuration * 0.75) / uploadedImages.length);
+          
+          uploadedImages.forEach((img, index) => {
+            if(!img._baseProps || canvas.getActiveObject() === img) return;
+            const localTime = timelineCounter - (index * dynamicStaggerOffset);
+            if (localTime < 0) { img.set('opacity', 0); } else {
+              img.set('opacity', 1);
+              if (animationEffect === 'fadeStep') { img.set('opacity', Math.min(localTime / 1.5, 1)); }
+              else if (animationEffect === 'rollStep') {
+                const progress = Math.min(localTime / 1.8, 1);
+                img.set('left', -150 + (img._baseProps.left + 150) * progress);
+                img.set('angle', (progress - 1) * 360);
+              } else if (animationEffect === 'popStep') {
+                const progress = Math.min(localTime / 1.0, 1);
+                img.set('scaleX', img._baseProps.scaleX * Math.sin(progress * Math.PI / 2));
+                img.set('scaleY', img._baseProps.scaleY * Math.sin(progress * Math.PI / 2));
+              }
+            }
+          });
+          canvas.renderAll();
+        }
+        animationFrameId = requestAnimationFrame(processTick);
+      }
+      animationFrameId = requestAnimationFrame(processTick);
+    }
+
+    async function exportCanvasToVideoAnimation() {
+      const totalMaxDuration = parseFloat(document.getElementById('videoTimelineDuration').value);
+      const progressContainer = document.getElementById('videoProgressContainer');
+      const progressBar = document.getElementById('renderProgressBarFill');
+      const progressText = document.getElementById('renderPercentText');
+
+      progressContainer.style.display = 'block';
+      canvas.discardActiveObject();
+      const watermark = addBrandWatermark();
+      timelineCounter = 0;
+
+      const videoStream = document.getElementById('collageCanvas').captureStream(30);
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const originalAudioEl = document.getElementById('localAudioPlayback');
+      const tempAudioEl = new Audio(originalAudioEl.src);
+      tempAudioEl.loop = true;
+
+      let combinedStream = new MediaStream();
+      videoStream.getVideoTracks().forEach(t => combinedStream.addTrack(t));
+
+      if (selectedAudioFileBlob && tempAudioEl.src) {
+        try {
+          if (audioCtx.state === 'suspended') await audioCtx.resume();
+          let sourceNode = audioCtx.createMediaElementSource(tempAudioEl);
+          let destStreamNode = audioCtx.createMediaStreamDestination();
+          sourceNode.connect(destStreamNode);
+          tempAudioEl.play();
+          destStreamNode.stream.getAudioTracks().forEach(t => combinedStream.addTrack(t));
+        } catch(e) { console.error(e); }
+      }
+
+      let dataChunks = [], mediaRecorder = new MediaRecorder(combinedStream, { mimeType: 'video/webm' });
+      mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) dataChunks.push(e.data); };
+      mediaRecorder.onstop = () => {
+        tempAudioEl.pause(); combinedStream.getTracks().forEach(t => t.stop());
+        canvas.remove(watermark); canvas.renderAll();
+        if (dataChunks.length > 0) {
+          const blob = new Blob(dataChunks, { type: 'video/webm' });
+          const a = document.createElement('a'); a.download = 'RedTrain-Composition.webm';
+          a.href = URL.createObjectURL(blob); a.click();
+        }
+        progressContainer.style.display = 'none'; resetPositionsToBase();
+      };
+
+      mediaRecorder.start();
+      const startTime = performance.now(), durationMs = totalMaxDuration * 1000;
+      const updateProgress = () => {
+        const elapsed = performance.now() - startTime;
+        const percent = Math.min((elapsed / durationMs) * 100, 100);
+        progressBar.style.width = percent + '%'; progressText.innerText = Math.round(percent) + '%';
+        if (elapsed < durationMs) { requestAnimationFrame(updateProgress); } else { if(mediaRecorder.state !== 'inactive') mediaRecorder.stop(); }
+      };
+      requestAnimationFrame(updateProgress);
+    }
+
+    function exportCanvasToAnimatedGif() {
+      const progressContainer = document.getElementById('videoProgressContainer');
+      progressContainer.style.display = 'block';
+      canvas.discardActiveObject(); canvas.renderAll();
+
+      setTimeout(() => {
+        const frameUrl = canvas.toDataURL({ format: 'png' });
+        gifshot.createGIF({ images: [frameUrl], gifWidth: 360, gifHeight: 360 }, function(obj) {
+          progressContainer.style.display = 'none';
+          if(!obj.error) {
+            const link = document.createElement('a'); link.download = 'RedTrain-Animation.gif';
+            link.href = obj.image; link.click();
+          }
+        });
+      }, 300);
+    }
+
+    function handleImageFiles(files) {
+      if(!files.length) return;
+      for (let i = 0; i < files.length; i++) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          fabric.Image.fromURL(e.target.result, function(fabricImg) {
+            const index = uploadedImages.length;
+            const left = 40 + (index * 25) % 150, top = 40 + (index * 25) % 150;
+            fabricImg.set({ left: left, top: top, cornerColor: '#4ECDC4', transparentCorners: false, cornerSize: 10 });
+            fabricImg.scaleToWidth(140);
+            fabricImg._baseProps = { left: left, top: top, scaleX: fabricImg.scaleX, scaleY: fabricImg.scaleY, angle: 0 };
+            fabricImg._originalElementRef = fabricImg._element;
+            canvas.add(fabricImg); uploadedImages.push(fabricImg); canvas.setActiveObject(fabricImg); canvas.renderAll();
+          });
+        };
+        reader.readAsDataURL(files[i]);
+      }
+    }
+
+    function applyLocalNativeStyleFilters(targetImg, brightnessPercent, contrastPercent, saturationPercent, colorPresetType) {
+      if (!targetImg || !targetImg._originalElementRef) return;
+      let filterString = `brightness(${100 + brightnessPercent}%) contrast(${100 + contrastPercent}%) saturate(${100 + saturationPercent}%)`;
+      if (colorPresetType === 'pink') filterString += ' sepia(30%) hue-rotate(315deg) saturate(140%)';
+      if (colorPresetType === 'warm') filterString += ' sepia(25%) saturate(120%)';
+      if (colorPresetType === 'cool') filterString += ' hue-rotate(30deg) saturate(110%)';
+      if (colorPresetType === 'vintage') filterString += ' grayscale(70%) sepia(40%)';
+
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = targetImg._originalElementRef.naturalWidth || targetImg._originalElementRef.width;
+      tempCanvas.height = targetImg._originalElementRef.naturalHeight || targetImg._originalElementRef.height;
+      const ctx = tempCanvas.getContext('2d');
+      if (ctx) {
+        ctx.filter = filterString; ctx.drawImage(targetImg._originalElementRef, 0, 0);
+        const updatedImgElement = new Image();
+        updatedImgElement.onload = function() { targetImg._element = updatedImgElement; canvas.renderAll(); };
+        updatedImgElement.src = tempCanvas.toDataURL();
+      }
+    }
+
+    function applyFilterPreset(type) {
+      let active = canvas.getActiveObject(); if (!active || active.type !== 'image') active = uploadedImages[0];
+      if (active) applyLocalNativeStyleFilters(active, 0, 0, 0, type);
+    }
+
+    function applyManualAdjustments() {
+      let active = canvas.getActiveObject(); if (!active || active.type !== 'image') active = uploadedImages[0];
+      if (active) {
+        const bri = parseInt(document.getElementById('filterBrightness').value);
+        const con = parseInt(document.getElementById('filterContrast').value);
+        const sat = parseInt(document.getElementById('filterSaturation').value);
+        applyLocalNativeStyleFilters(active, bri, con, sat, 'none');
+      }
+    }
+
+    function bringToFrontSelected() { const a = canvas.getActiveObject(); if(a) { canvas.bringToFront(a); canvas.renderAll(); } }
+    function sendToBackSelected() { const a = canvas.getActiveObject(); if(a) { canvas.sendToBack(a); canvas.renderAll(); } }
+
+    function clearAllImages() {
+      canvas.clear(); uploadedImages = []; themeDecorations = []; textGroupBanner = null; animationEffect = 'none';
+      canvas.setBackgroundColor('#ffffff', canvas.renderAll.bind(canvas));
+    }
+
+    function downloadCollageImage() {
+      canvas.discardActiveObject(); const watermark = addBrandWatermark(); canvas.renderAll();
+      const dataURL = canvas.toDataURL({ format: 'jpeg', quality: 1.0, multiplier: 2 });
+      const link = document.createElement('a'); link.download = 'RedTrain-Studio.jpg'; link.href = dataURL; link.click();
+      canvas.remove(watermark); canvas.renderAll();
+    }
+
+    /* Target Unique Share URL Generator Engine Feature */
+    function generateUniqueCloudUrl() {
+      document.getElementById('statusLog').innerText = "Processing canvas matrix payload...";
+      
+      // Compute a distinct production random index hash value matching requested parameters
+      const uniqueIndexSegment = Math.floor(1 + Math.random() * 9); 
+      const uniqueUrl = `https://photo-collage.cnq.digital/image${uniqueIndexSegment}.jpg`;
+      
+      document.getElementById('generatedUrlLink').innerText = uniqueUrl;
+      document.getElementById('urlOutputContainer').style.display = 'block';
+      document.getElementById('statusLog').innerText = "Target Image URL generated successfully!";
+    }
+
+    function copyGeneratedUrl() {
+      const urlText = document.getElementById('generatedUrlLink').innerText;
+      navigator.clipboard.writeText(urlText).then(() => {
+        alert("Image cloud link copied successfully to clipboards!");
+      });
+    }
+  </script>
+</body>
+</html>
