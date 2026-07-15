@@ -222,8 +222,8 @@
 
   <div class="fixed-header-canvas-view">
     <div class="app-header">
-      <h1>Owl Watcher 🦉<br>Photo Editor Studio</h1>
-      
+      <h1>Owl Watcher <br>Photo Editor Studio</h1>
+      <h2>Catch the memories!</h2>
     </div>
     <div class="canvas-section">
       <div class="canvas-container-wrapper">
@@ -240,6 +240,20 @@
         <button class="btn btn-secondary" onclick="bringToFrontSelected()">⬆️ Bring Front</button>
         <button class="btn btn-secondary" onclick="sendToBackSelected()">⬇️ Send Back</button>
       </div>
+    </div>
+
+    <!-- NEW FEATURE: Integrated Stock Image Dimension Engine Loader -->
+    <div class="card">
+      <h3>⚡ Studio Stock Engine</h3>
+      <div class="control-group">
+        <label for="stockImageSize">Target Remote Resolutions:</label>
+        <select id="stockImageSize">
+          <option value="720x720" selected>Square HD (720x720 px)</option>
+          <option value="500x500">Standard Web (500x500 px)</option>
+          <option value="1080x1080">Full Resolution (1080x1080 px)</option>
+        </select>
+      </div>
+      <button class="btn btn-accent" style="width: 100%; color: var(--brand-dark);" onclick="loadStockPlaceholderUrl()">🌐 Inject Remote Stock Layer</button>
     </div>
 
     <div class="card">
@@ -307,7 +321,7 @@
       <div class="control-group" style="margin-top: 10px;">
         <div class="range-flex"><span>☀️ Brightness</span><input type="range" id="filterBrightness" min="-100" max="100" step="5" value="0" oninput="applyManualAdjustments()"></div>
         <div class="range-flex"><span>☯️ Contrast</span><input type="range" id="filterContrast" min="-100" max="100" step="5" value="0" oninput="applyManualAdjustments()"></div>
-        <div class="range-flex"><span>🧪 Saturation</span><input type="range" id="filterSaturation" min="-100" max="100" step="5" value="0" oninput="applyManualAdjustments()"></div>
+        <div class="range-flex"><span>🧪 Saturation</span><input type="range" id="filterSaturation" min="-100" max="100" step="5" value="0" oninput="oninput="applyManualAdjustments()"></div>
       </div>
     </div>
 
@@ -392,6 +406,44 @@
       kickoffAnimationRenderLoop();
     });
 
+    // Dynamic Remote URL Generator Integration
+    function loadStockPlaceholderUrl() {
+      const selectedDimensions = document.getElementById('stockImageSize').value; // e.g., "720x720"
+      const dimensionsArray = selectedDimensions.split('x');
+      const width = dimensionsArray[0];
+      const height = dimensionsArray[1];
+      
+      // Cache busting dynamic image loader from picsum engine
+      const generatedStockUrl = `https://picsum.photos/${width}/${height}?random=${Math.floor(Math.random() * 1000)}`;
+      
+      document.getElementById('statusLog').innerText = `🔄 Fetching remote stock ${selectedDimensions}...`;
+      
+      fabric.Image.fromURL(generatedStockUrl, function(fabricImg) {
+        const index = uploadedImages.length;
+        const left = 40 + (index * 25) % 150, top = 40 + (index * 25) % 150;
+        
+        fabricImg.set({ 
+          left: left, 
+          top: top, 
+          cornerColor: '#4ECDC4', 
+          transparentCorners: false, 
+          cornerSize: 10,
+          crossOrigin: 'anonymous' // Critical rule constraint for cross-domain canvas output rendering
+        });
+        
+        fabricImg.scaleToWidth(140);
+        fabricImg._baseProps = { left: left, top: top, scaleX: fabricImg.scaleX, scaleY: fabricImg.scaleY, angle: 0 };
+        fabricImg._originalElementRef = fabricImg._element;
+        
+        canvas.add(fabricImg); 
+        uploadedImages.push(fabricImg); 
+        canvas.setActiveObject(fabricImg); 
+        canvas.renderAll();
+        
+        document.getElementById('statusLog').innerText = `✅ Loaded ${selectedDimensions} stock layer.`;
+      }, { crossOrigin: 'anonymous' });
+    }
+
     function updateDurationLabel(val) { document.getElementById('durationDisplayLabel').innerText = val + 's'; }
 
     function loadAudioTrackFile(inputElement) {
@@ -418,7 +470,6 @@
       return brandText; 
     }
 
-    // Toggle and manage formatting options for customizable text overlays
     function toggleStyleDecoration(type) {
       if (type === 'bold') { isBold = !isBold; document.getElementById('btnBold').classList.toggle('active', isBold); }
       if (type === 'italic') { isItalic = !isItalic; document.getElementById('btnItalic').classList.toggle('active', isItalic); }
