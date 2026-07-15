@@ -10,13 +10,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Caveat:wght@700&family=Cinzel:wght@700&family=Comfortaa:wght@700&family=Dancing+Script:wght@700&family=Fredoka+One&family=Lobster&family=Montserrat:wght@700&family=Oswald:wght@700&family=Pacifico&family=Permanent+Marker&family=Playfair+Display:ital,wght@0,700;1,700&family=Sacramento&family=Satisfy&display=swap" rel="stylesheet">
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
-  
-  <script>
-    /*! gifshot standalone compression modules */
-    !function(a){"use strict";var b=function(){};b.prototype={images:[],gifWidth:400,gifHeight:400,interval:.1,numFrames:10,sampleInterval:10,numWorkers:2,filter:"",pendingWorkerOutputs:[],workerModule:{},watermark:!1,fontSize:"16px",fontFamily:"sans-serif",fontColor:"#FFF",text:!1,crossOrigin:"Anonymous",video:!1,progressCallback:function(){},saveRenderingContexts:!1,savedRenderingContexts:[],isSupported:function(){return typeof Worker!="undefined"},createGIF:function(b,c){var d=this,e=typeof b=="function"?b:c,f=typeof b=="object"?b:{};d.VERSION="0.4.5",d.loadedImages=0,d.HTMLImages=[],d.activeWorkers=0,d.completeWorkerCount=0,d.errorWorkerCount=0,d.pendingWorkerOutputs=[],d.imageWorkers=[],d.savedRenderingContexts=[],d.canvas=a.document.createElement("canvas"),d.ctx=d.canvas.getContext("2d"),d.setOptions(f),d.images.length?d.processImages(e):e({error:!0})},setOptions:function(a){var b=this;for(var c in a)a.hasOwnProperty(c)&&(b[c]=a[c]);b.canvas.width=b.gifWidth,b.canvas.height=b.gifHeight},processImages:function(b){var c=this,d=b;c.images.forEach(function(b,e){var f=new a.Image;f.crossOrigin=c.crossOrigin,f.onload=function(){c.loadedImages+=1,c.loadedImages===c.images.length&&c.startWorkers(d)},f.onerror=function(){d({error:!0})},f.src=b,c.HTMLImages[e]=f})},startWorkers:function(b){var c=this,d=c.HTMLImages.length;c.ctx.clearRect(0,0,c.gifWidth,c.gifHeight);var e=[];for(var f=0;f<d;f++)c.ctx.drawImage(c.HTMLImages[f],0,0,c.gifWidth,c.gifHeight),e.push(c.ctx.getImageData(0,0,c.gifWidth,c.gifHeight).data);setTimeout(function(){c.pendingWorkerOutputs=[e],c.compileGIF(b)},40)},compileGIF:function(a){var b=this,c=[],d="";b.pendingWorkerOutputs.forEach(function(a){c=c.concat(a)});var e=new NeuQuant(c[0],c[0].length,b.sampleInterval),f=e.process(),g=new LZWEncoder(b.gifWidth,b.gifHeight,f,8);g.setFrameRate(1/b.interval),g.writeHeader(),b.pendingWorkerOutputs[0].forEach(function(a){var c=e.map(a);g.addFrame(c)}),g.finish(),d=g.stream().getData(),a({error:!1,image:"data:image/gif;base64,"+d})},utils:{}};a.gifshot=new b}(window);
-    var NeuQuant=function(a,b,c){return{process:function(){var b=[];for(var c=0;c<256;c++)b.push(a[c*4+2],a[c*4+1],a[c*4]);return b},map:function(a){var b=[];for(var c=0;c<a.length;c+=4)b.push(Math.floor(c/4)%256);return b}}};
-    var LZWEncoder=function(a,b,c,d){var e=a,f=b,g=c,h=Math.max(2,d),i={data:[],write:function(a){this.data.push(String.fromCharCode(a))},getData:function(){return this.data.join("")}};return{writeHeader:function(){i.write(71),i.write(73),i.write(70),i.write(56),i.write(57),i.write(97),i.write(e&255),i.write(e>>8&255),i.write(f&255),i.write(f>>8&255),i.write(247),i.write(0),i.write(0);for(var a=0;a<g.length;a++)i.write(g[a])},addFrame:function(a){i.write(44),i.write(0),i.write(0),i.write(0),i.write(0),i.write(e&255),i.write(e>>8&255),i.write(f&255),i.write(f>>8&255),i.write(0),i.write(h);i.write(a.length&255);for(var b=0;b<a.length;b++)i.write(a[b]&255);i.write(0)},setFrameRate:function(){},finish:function(){i.write(59)},stream:function(){return{getData:function(){return btoa(i.getData())}}}}};
-  </script>
 
   <style>
     :root {
@@ -218,24 +211,13 @@
     }
     .progress-bar-track { width: 100%; background: #444; height: 6px; margin-top: 8px; border-radius: 4px; overflow: hidden; }
     .progress-bar-fill { width: 0%; background: linear-gradient(90deg, var(--brand-teal), var(--brand-red)); height: 100%; }
-
-    /* Unique URL Output Design Component Box */
-    .url-output-box {
-      background: #f1f5f9;
-      border: 1px dashed #cbd5e1;
-      padding: 12px;
-      border-radius: 8px;
-      margin-top: 12px;
-      display: none;
-      word-break: break-all;
-    }
   </style>
 </head>
 <body>
 
   <div class="fixed-header-canvas-view">
     <div class="app-header">
-      <h1>Owl WAtcher <br>Photo Editor Studio</h1>
+      <h1>Owl Watcher <br>Photo Editor Studio</h1>
       <h2>Catch the memories!</h2>
     </div>
     <div class="canvas-section">
@@ -368,14 +350,6 @@
         <button class="btn btn-secondary" onclick="downloadCollageImage()">💾 Save JPG</button>
         <button class="btn btn-purple" onclick="exportCanvasToVideoAnimation()">🎥 Save Video (MP4)</button>
       </div>
-      <button class="btn btn-teal" style="width:100%; margin-bottom:12px;" onclick="exportCanvasToAnimatedGif()">🎞️ Download GIF</button>
-      <button class="btn btn-red" style="width:100%; background:linear-gradient(45deg, #FF6B6B, #8E44AD);" onclick="generateUniqueCloudUrl()">🔗 Generate Domain Unique Image URL</button>
-
-      <div class="url-output-box" id="urlOutputContainer">
-        <span style="font-weight:bold; font-size:0.85rem; color:var(--brand-dark);">Your Unique Shareable Link:</span>
-        <div id="generatedUrlLink" style="color:var(--brand-red); font-size:0.9rem; margin-top:6px; font-family:monospace; font-weight:bold;"></div>
-        <button class="btn btn-secondary" style="min-height:30px; padding:4px 8px; font-size:0.75rem; margin-top:8px; width:100%;" onclick="copyGeneratedUrl()">📋 Copy URL Link</button>
-      </div>
 
       <div class="status-log" id="statusLog">Studio loaded. Ready to build collage compositions.</div>
     </div>
@@ -430,7 +404,7 @@
     }
 
     function addBrandWatermark() {
-      const brandText = new fabric.Text("Red Train Studio", {
+      const brandText = new fabric.Text("Owl Watcher", {
         fontFamily: 'Caveat', fontSize: 20, fontWeight: 'bold', fill: '#E63946',
         originX: 'right', originY: 'top', left: 350, top: 10, selectable: false, evented: false
       });
@@ -439,6 +413,7 @@
       return brandText; 
     }
 
+    // Toggle and manage formatting options for customizable text overlays
     function toggleStyleDecoration(type) {
       if (type === 'bold') { isBold = !isBold; document.getElementById('btnBold').classList.toggle('active', isBold); }
       if (type === 'italic') { isItalic = !isItalic; document.getElementById('btnItalic').classList.toggle('active', isItalic); }
@@ -601,7 +576,7 @@
         canvas.remove(watermark); canvas.renderAll();
         if (dataChunks.length > 0) {
           const blob = new Blob(dataChunks, { type: 'video/webm' });
-          const a = document.createElement('a'); a.download = 'RedTrain-Composition.webm';
+          const a = document.createElement('a'); a.download = 'OwlWatcher-Composition.webm';
           a.href = URL.createObjectURL(blob); a.click();
         }
         progressContainer.style.display = 'none'; resetPositionsToBase();
@@ -616,23 +591,6 @@
         if (elapsed < durationMs) { requestAnimationFrame(updateProgress); } else { if(mediaRecorder.state !== 'inactive') mediaRecorder.stop(); }
       };
       requestAnimationFrame(updateProgress);
-    }
-
-    function exportCanvasToAnimatedGif() {
-      const progressContainer = document.getElementById('videoProgressContainer');
-      progressContainer.style.display = 'block';
-      canvas.discardActiveObject(); canvas.renderAll();
-
-      setTimeout(() => {
-        const frameUrl = canvas.toDataURL({ format: 'png' });
-        gifshot.createGIF({ images: [frameUrl], gifWidth: 360, gifHeight: 360 }, function(obj) {
-          progressContainer.style.display = 'none';
-          if(!obj.error) {
-            const link = document.createElement('a'); link.download = 'RedTrain-Animation.gif';
-            link.href = obj.image; link.click();
-          }
-        });
-      }, 300);
     }
 
     function handleImageFiles(files) {
@@ -700,28 +658,8 @@
     function downloadCollageImage() {
       canvas.discardActiveObject(); const watermark = addBrandWatermark(); canvas.renderAll();
       const dataURL = canvas.toDataURL({ format: 'jpeg', quality: 1.0, multiplier: 2 });
-      const link = document.createElement('a'); link.download = 'RedTrain-Studio.jpg'; link.href = dataURL; link.click();
+      const link = document.createElement('a'); link.download = 'OwlWatcher-Studio.jpg'; link.href = dataURL; link.click();
       canvas.remove(watermark); canvas.renderAll();
-    }
-
-    /* Target Unique Share URL Generator Engine Feature */
-    function generateUniqueCloudUrl() {
-      document.getElementById('statusLog').innerText = "Processing canvas matrix payload...";
-      
-      // Compute a distinct production random index hash value matching requested parameters
-      const uniqueIndexSegment = Math.floor(1 + Math.random() * 9); 
-      const uniqueUrl = `https://photo-collage.cnq.digital/image${uniqueIndexSegment}.jpg`;
-      
-      document.getElementById('generatedUrlLink').innerText = uniqueUrl;
-      document.getElementById('urlOutputContainer').style.display = 'block';
-      document.getElementById('statusLog').innerText = "Target Image URL generated successfully!";
-    }
-
-    function copyGeneratedUrl() {
-      const urlText = document.getElementById('generatedUrlLink').innerText;
-      navigator.clipboard.writeText(urlText).then(() => {
-        alert("Image cloud link copied successfully to clipboards!");
-      });
     }
   </script>
 </body>
