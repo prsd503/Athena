@@ -78,7 +78,7 @@
             </div>
 
             <div id="ad-billboard">
-                <h4 style="margin: 0 0 10px 0; font-family: 'Caveat', cursive; color: #8d6e63;">Birthday/Anniversay Wishes, Offers, Ads & More</h4>
+                <h4 style="margin: 0 0 10px 0; font-family: 'Caveat', cursive; color: #8d6e63;">Birthday/Anniversary Wishes, Offers, Ads & More</h4>
                 <div class="ad-slider-container" id="adSlider">
                     <p id="ad-placeholder" style="color: #a1887f;">Space Available</p>
                     <br>
@@ -87,6 +87,7 @@
                 
                 <div class="ad-controls" id="adControls" style="display: none;">
                     <button class="ad-nav-btn" id="prevAdBtn">❮ Prev</button>
+                    <button class="ad-nav-btn" id="saveAdBtn" style="background:#5d4037;">💾 Save Image</button>
                     <button class="ad-nav-btn" id="nextAdBtn">Next ❯</button>
                 </div>
 
@@ -330,7 +331,7 @@
                 snap.forEach((doc) => {
                     const adData = doc.data();
                     if (adData.imageUrl) {
-                        slider.innerHTML += `<img src="${adData.imageUrl}" class="ad-slide" alt="Community Ad">`;
+                        slider.innerHTML += `<img src="${adData.imageUrl}" class="ad-slide" alt="Community Ad" crossorigin="anonymous">`;
                     }
                 });
 
@@ -340,12 +341,10 @@
 
                 if (totalSlides > 0) {
                     slides[currentIndex].classList.add("active");
+                    controls.style.display = "flex"; // Show controls when local ads are loaded to access Save feature
 
                     if (totalSlides > 1) {
-                        controls.style.display = "flex"; // Reveal controls layer if multiple ads exist
                         startAdTimer();
-                    } else {
-                        controls.style.display = "none";
                     }
                 } else {
                     slider.innerHTML = `<p id="ad-placeholder" style="color: #a1887f;">Space Available for Your Content</p>`;
@@ -365,6 +364,63 @@
         document.getElementById("prevAdBtn").addEventListener("click", () => {
             changeSlide("prev");
             startAdTimer(); // Reset auto-timer tracking reference clock
+        });
+
+        // Brand-Watermarked Image Export Logic
+        document.getElementById("saveAdBtn").addEventListener("click", () => {
+            const activeSlide = document.querySelector("#adSlider .ad-slide.active");
+            if (!activeSlide) return;
+
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.src = activeSlide.src;
+
+            img.onload = function() {
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+
+                // Set canvas size matching the high quality image source dimension
+                canvas.width = img.naturalWidth || 720;
+                canvas.height = img.naturalHeight || 720;
+
+                // Draw base image frame
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                // Setup Brand Watermark Label Parameters
+                const badgeWidth = canvas.width * 0.28; 
+                const badgeHeight = canvas.height * 0.07;
+                const badgeX = canvas.width - badgeWidth - (canvas.width * 0.03);
+                const badgeY = canvas.height * 0.03;
+                const cornerRadius = 8;
+
+                // Draw Watermark Background Tag Frame
+                ctx.fillStyle = "#8d6e63";
+                ctx.beginPath();
+                ctx.moveTo(badgeX + cornerRadius, badgeY);
+                ctx.lineTo(badgeX + badgeWidth - cornerRadius, badgeY);
+                ctx.quadraticCurveTo(badgeX + badgeWidth, badgeY, badgeX + badgeWidth, badgeY + cornerRadius);
+                ctx.lineTo(badgeX + badgeWidth, badgeY + badgeHeight - cornerRadius);
+                ctx.quadraticCurveTo(badgeX + badgeWidth, badgeY + badgeHeight, badgeX + badgeWidth - cornerRadius, badgeY + badgeHeight);
+                ctx.lineTo(badgeX + cornerRadius, badgeY + badgeHeight);
+                ctx.quadraticCurveTo(badgeX, badgeY + badgeHeight, badgeX, badgeY + badgeHeight - cornerRadius);
+                ctx.lineTo(badgeX, badgeY + cornerRadius);
+                ctx.quadraticCurveTo(badgeX, badgeY, badgeX + cornerRadius, badgeY);
+                ctx.closePath();
+                ctx.fill();
+
+                // Add Brand Title Text
+                ctx.fillStyle = "#ffffff";
+                ctx.font = `bold ${Math.floor(badgeHeight * 0.45)}px sans-serif`;
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText("Owl Watcher 🦉", badgeX + (badgeWidth / 2), badgeY + (badgeHeight / 2));
+
+                // Process Native System Download Hook
+                const link = document.createElement("a");
+                link.download = `OwlWatcher_Ad_${Date.now()}.png`;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+            };
         });
 
         document.getElementById("nextGlobalAdBtn").addEventListener("click", () => {
