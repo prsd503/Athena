@@ -59,7 +59,16 @@ document.getElementById('loginBtn')?.addEventListener('click', async () => {
     try {
         await signInWithEmailAndPassword(auth, email, pass);
     } catch (e) {
-        window.showModal("Login failed: " + e.message);
+        // Intercept standard Firebase auth error codes and show user-friendly message
+        if (e.code === 'auth/invalid-email' || 
+            e.code === 'auth/invalid-credential' || 
+            e.code === 'auth/user-not-found' || 
+            e.code === 'auth/wrong-password') {
+            window.showModal("Invalid Credentials");
+        } else {
+            // Fallback for unexpected errors (e.g., network timeout)
+            window.showModal("Login failed: " + e.message);
+        }
     }
 });
 
