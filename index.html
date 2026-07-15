@@ -24,7 +24,9 @@
         /* Billboard Slider Styles Optimization for 720x720 Square Artwork */
         #ad-billboard, #ad-billboard-global { margin-top: 25px; padding: 15px; border: 2px dashed #8d6e63; border-radius: 15px; background: #fff8f5; text-align: center; overflow: hidden; position: relative; }
         .ad-slider-container, .global-ad-slider-container { width: 100%; height: 340px; display: flex; align-items: center; justify-content: center; position: relative; margin: 0 auto; }
-        .ad-slide, .global-ad-slide { width: 100%; height: 100%; object-fit: cover; display: none; border-radius: 10px; }
+        
+        /* Modified to contain the image gracefully inside the box bounds */
+        .ad-slide, .global-ad-slide { width: 100%; height: 100%; object-fit: contain; display: none; border-radius: 10px; background: #fafafa; }
         .ad-slide.active, .global-ad-slide.active { display: block; }
         .ad-link { font-size: 0.9rem; color: #8d6e63; text-decoration: underline; display: inline-block; margin-top: 8px; }
 
