@@ -10,7 +10,7 @@
         #customModal > div { border: 2px solid #8d6e63; text-align: center; }
         body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
         .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; box-shadow: 5px 5px 0px #8d6e63; max-width: 400px; margin: auto; margin-bottom: 25px; }
-        input, textarea { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; box-sizing: border-box; }
+        input, textarea, select { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; box-sizing: border-box; }
         button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; margin-top: 10px; border: 2px solid #5d4037; }
         button:hover { background: #5d4037; }
         #admin-results { margin-top: 15px; text-align: left; }
@@ -36,16 +36,22 @@
     </style>
 </head>
 <body>
-    <div class="card"><h1>Owl Watcher 🦉</h1><p>Admin Portal</p></div>
+    <div class="card">
+        <h1>Owl Watcher 🦉</h1>
+        <p>Admin Portal</p>
+    </div>
     
     <div class="card" id="login-section">
         <h2>Admin Login</h2>
-        <input type="email" id="email" placeholder="Email"><input type="password" id="pass" placeholder="Password">
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="pass" placeholder="Password">
         <button id="loginBtn">Login</button>
         <hr style="border: 0; border-top: 1px solid #dcdde1; margin: 20px 0;">
         <a href="guard.html" class="contact-btn" target="_self">Security Guard Portal</a>
         <a href="index.html" class="contact-btn" target="_self">Back to HOME</a>
     </div>
+
+    <div id="master-admin-panel" style="max-width: 440px; margin: auto;"></div>
 
     <div class="card" id="search-section" style="display:none;">
         <h2>Search & Manage</h2>
@@ -60,7 +66,7 @@
         <input type="text" id="vNum" placeholder="Vehicle Number">
         <input type="text" id="fNum" placeholder="Flat Number">
         <input type="text" id="mNum" placeholder="Mobile Number">
-        <select id="vType" style="width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px;">
+        <select id="vType">
             <option value="2-Wheeler">2-Wheeler</option>
             <option value="3-Wheeler">3-Wheeler</option>
             <option value="4-Wheeler">4-Wheeler</option>
@@ -87,7 +93,7 @@
 
         <hr style="margin:20px 0;">
 
-       <div hidden> <div class="card" style="border-color: #27ae60;">
+        <div class="card" style="border-color: #27ae60;">
             <h2>🎟️ Ad Request Approval</h2>
             <input type="text" id="adApprovalKey" placeholder="Enter Ad Request Key (e.g. AD-XXXXXX)">
             <button id="approveAdBtn" style="background: #27ae60;">Approve Ad Box</button>
@@ -95,7 +101,7 @@
             <a id="adminWaTeamBtn" href="#" target="_blank" class="whatsapp-btn">
                 💬 Send Details to Owl Watcher
             </a>
-        </div> </div>
+        </div>
 
         <hr style="margin:20px 0;">
 
@@ -116,6 +122,8 @@
         <h3>Bulk Vehicle Management</h3>
         <input type="file" id="excelInput" accept=".csv">
         <button id="importBtn">Bulk Import CSV</button>
+        <button id="bulkDeleteBtn" style="background: #d32f2f;">Bulk Delete CSV Data</button>
+        <button id="exportBtn" style="background: #27ae60;">Download Full Vehicle CSV</button>
         <button id="downloadTemplateBtn" style="background:#6d4c41;">Download CSV Template</button>
 
         <hr style="margin:20px 0;">
@@ -156,6 +164,8 @@
                 document.getElementById("login-section").style.display = "block";
                 document.getElementById("search-section").style.display = "none";
                 document.getElementById("data-section").style.display = "none";
+                const masterPanel = document.getElementById("master-admin-panel");
+                if (masterPanel) masterPanel.innerHTML = "";
             });
         });
 
