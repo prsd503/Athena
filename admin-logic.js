@@ -249,13 +249,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('postNoticeBtn')?.addEventListener('click', async () => {
         const today = document.getElementById('todayMsg').value;
         const tomorrow = document.getElementById('tomorrowMsg').value;
-        
-        const countWords = (str) => str.trim().split(/\s+/).filter(w => w.length > 0).length;
-
-        if (countWords(today) > 60 || countWords(tomorrow) > 60) {
-            alert("Notice exceeds the 60-word limit for one or both fields!");
-            return; 
-        }
 
         if (!assignedSociety) return alert("Society not loaded.");
 
@@ -398,4 +391,4 @@ document.addEventListener('DOMContentLoaded', () => {
             window.showModal("Error approving Ad Key: " + e.message);
         }
     });    
-}); 
+});
