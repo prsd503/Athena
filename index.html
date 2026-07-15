@@ -93,9 +93,10 @@
                 <!-- Updated to target dynamic updates via ID assignment -->
                 <a id="localAdLink" href="#" target="_blank" class="ad-link">Contact for Posting Paid Content Here!</a>
             </div>
-           <div style="margin-top: 25px; border-top: 1px solid #dcdde1; padding-top: 15px;">
-    <button id="backToHomeBtn" style="font-family: 'Caveat', cursive; width: 85%;">Back to Home</button>
-</div>
+            <div style="margin-top: 25px; border-top: 1px solid #dcdde1; padding-top: 15px;">
+                <button id="studioPortalBtn" style="font-family: 'Caveat', cursive; width: 85%; margin-bottom: 10px; background: #8d6e63;">Studio Portal</button>
+                <button id="backToHomeBtn" style="font-family: 'Caveat', cursive; width: 85%;">Back to Home</button>
+            </div>
         </div>
         
         <hr style="border: 0; border-top: 1px solid #dcdde1; margin: 20px 0;">
@@ -141,7 +142,6 @@
         function showModal(content) { document.getElementById("result").innerHTML = content; modal.style.display = "block"; }
         window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
 
-        // 1. Auto-Switching Notice Board
         // 1. Auto-Switching Notice Board with Preview & Read More
         async function loadNotice(societyId) {
             const noticeDiv = document.getElementById('notice-content');
@@ -214,6 +214,7 @@
             slides[currentIndex].classList.add("active");
         }
 
+        // Helper tracker module to switch global layout frames cleanly
         function changeGlobalSlide(direction) {
             const slider = document.getElementById("globalAdSlider");
             const slides = slider.getElementsByClassName("global-ad-slide");
@@ -447,6 +448,11 @@
         // Change/Switch Society button implementation
         document.getElementById("switchSocietyBtn").addEventListener("click", () => {
             clearSocietySession();
+        });
+
+        // Studio Portal button navigation setup
+        document.getElementById("studioPortalBtn").addEventListener("click", () => {
+            window.open("studio.html", "_self");
         });
 
         // Place this directly under the "switchSocietyBtn" click event listener
