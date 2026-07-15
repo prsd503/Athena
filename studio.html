@@ -11,13 +11,8 @@
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
 
-  <!-- Firebase App and Storage SDKs for Dynamic Asset Hosting -->
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
-
   <style>
     :root {
-      --brand-red: #E63946;
       --brand-dark: #1D3557;
       --brand-light: #F1FAEE;
       --brand-teal: #4ECDC4;
@@ -77,7 +72,7 @@
       background: #ffffff;
       border-radius: 16px;
       overflow: hidden;
-      border: 3px dashed var(--brand-teal);
+      border: 3px dashed var(--brand-brown);
       position: relative;
       box-shadow: 0 8px 24px rgba(0,0,0,0.08);
     }
@@ -157,7 +152,7 @@
     .sticker-item { font-size: 2rem; cursor: pointer; padding: 5px; }
 
     .btn {
-      background: var(--brand-dark);
+      background: var(--brand-brown);
       color: white;
       border: none;
       padding: 12px 15px;
@@ -172,12 +167,7 @@
       min-height: 44px;
     }
     .btn:active { opacity: 0.9; }
-    .btn-brown { background: var(--brand-brown); color: white; }
-    .btn-red { background: var(--brand-red); }
-    .btn-teal { background: var(--brand-teal); color: var(--brand-dark); }
     .btn-secondary { background: #e2e8f0; color: var(--brand-dark); }
-    .btn-purple { background: var(--purple); }
-    .btn-accent { background: var(--accent-yellow); color: var(--brand-dark); }
     .hidden-input { display: none; }
 
     .range-flex {
@@ -215,16 +205,6 @@
     }
     .progress-bar-track { width: 100%; background: #444; height: 6px; margin-top: 8px; border-radius: 4px; overflow: hidden; }
     .progress-bar-fill { width: 0%; background: linear-gradient(90deg, var(--brand-teal), var(--brand-brown)); height: 100%; }
-
-    .url-output-box {
-      background: #f1f5f9;
-      border: 1px dashed #cbd5e1;
-      padding: 12px;
-      border-radius: 8px;
-      margin-top: 12px;
-      display: none;
-      word-break: break-all;
-    }
   </style>
 </head>
 <body>
@@ -265,10 +245,10 @@
     <div class="card">
       <h3>📸 Media Import & Build Layout</h3>
       <div class="grid-buttons">
-        <button class="btn btn-teal" onclick="document.getElementById('galleryLoader').click()">🖼️ Add Gallery</button>
-        <button class="btn btn-teal" onclick="document.getElementById('cameraInput').click()">📸 Camera Snap</button>
+        <button class="btn" onclick="document.getElementById('galleryLoader').click()">🖼️ Add Gallery</button>
+        <button class="btn" onclick="document.getElementById('cameraInput').click()">📸 Camera Snap</button>
       </div>
-      <button class="btn btn-red" style="width:100%; margin-bottom:12px;" onclick="clearAllImages()">🚨 Reset Canvas Workspace</button>
+      <button class="btn btn-secondary" style="width:100%; margin-bottom:12px;" onclick="clearAllImages()">🚨 Reset Canvas Workspace</button>
       
       <input type="file" id="galleryLoader" class="hidden-input" accept="image/*" multiple>
       <input type="file" id="cameraInput" class="hidden-input" accept="image/*" capture="environment">
@@ -300,7 +280,7 @@
             <button class="decor-toggle" id="btnUnderline" style="text-decoration:underline;" onclick="toggleStyleDecoration('underline')">U</button>
           </div>
         </div>
-        <button class="btn btn-accent" style="width:100%; margin-top:8px; min-height:36px; padding:6px;" onclick="alignAndSnapTextBackground()">🎯 Align & Snap Text Banner</button>
+        <button class="btn" style="width:100%; margin-top:8px; min-height:36px; padding:6px;" onclick="alignAndSnapTextBackground()">🎯 Align & Snap Text Banner</button>
       </div>
     </div>
 
@@ -358,18 +338,11 @@
     </div>
 
     <div class="card" style="border-top: 4px solid var(--brand-brown);">
-      <h3>💾 Studio Export & Cloud Database Delivery</h3>
+      <h3>💾 Studio Export</h3>
       
       <div class="grid-buttons">
-        <button class="btn btn-secondary" onclick="downloadCollageImage()">💾 Save JPG</button>
-        <button class="btn btn-purple" onclick="exportCanvasToVideoAnimation()">🎥 Save Video (MP4)</button>
-      </div>
-      <button class="btn btn-brown" style="width:100%; font-weight:bold;" onclick="uploadHighResToFirebase()">🌐 Save & Generate 720x720px Firebase Sharable Link</button>
-
-      <div class="url-output-box" id="urlOutputContainer">
-        <span style="font-weight:bold; font-size:0.85rem; color:var(--brand-dark);">Dynamic 720x720px Firebase Access Link:</span>
-        <div id="generatedUrlLink" style="color:var(--brand-brown); font-size:0.9rem; margin-top:6px; font-family:monospace; font-weight:bold;"></div>
-        <button class="btn btn-secondary" style="min-height:30px; padding:4px 8px; font-size:0.75rem; margin-top:8px; width:100%;" onclick="copyGeneratedUrl()">📋 Copy URL Link</button>
+        <button class="btn" onclick="downloadCollageImage()">💾 Save JPG</button>
+        <button class="btn btn-secondary" onclick="exportCanvasToVideoAnimation()">🎥 Save Video (MP4)</button>
       </div>
 
       <div class="status-log" id="statusLog">Studio loaded. Ready to build collage compositions.</div>
@@ -383,23 +356,6 @@
   </div>
 
   <script>
-    // --- START FIREBASE CONFIGURATION ENGINE ---
-    // TO DEPLOY: Replace placeholder constants below with your actual project keys from your Firebase Console panel
-    const firebaseConfig = {
-      apiKey: "YOUR_FIREBASE_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      appId: "YOUR_FIREBASE_APP_ID"
-    };
-    
-    // Initialize Firebase operational instance context safely
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
-    const storageRef = firebase.storage().ref();
-    // --- END FIREBASE CONFIGURATION ENGINE ---
-
     let canvas, uploadedImages = [], themeDecorations = [], textGroupBanner = null; 
     let selectedAudioFileBlob = null, selectedAudioDataUrl = null; 
     let isBold = false, isItalic = false, isUnderline = false;
@@ -441,7 +397,7 @@
       }
     }
 
-    // Appends the absolute brand watermark required in official Owl Watcher Brown hex metrics
+    // Appends the absolute brand watermark in official Owl Watcher Brown hex metrics
     function addBrandWatermark() {
       const brandText = new fabric.Text("Owl Watcher", {
         fontFamily: 'Caveat', fontSize: 20, fontWeight: 'bold', fill: '#8B4513',
@@ -508,9 +464,9 @@
       isBold = true; document.getElementById('btnBold').classList.add('active');
 
       if (theme === 'birthday') { bannerText = "🎉 HAPPY BIRTHDAY 🎉"; bgColor = "#8B4513"; canvas.setBackgroundColor('#f3e5f5', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('🎂', 50, 50); addThemeDecorationSticker('🎈', 310, 60); }
-      if (theme === 'wedding') { bannerText = "💞 JUST MARRIED 💞"; bgColor = "#e91e63"; fontType = "Caveat"; canvas.setBackgroundColor('#fce4ec', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('💍', 60, 60); }
-      if (theme === 'travel') { bannerText = "🌍 WANDERLUST EXPLORER"; bgColor = "#ffe66d"; fontType = "Montserrat"; canvas.setBackgroundColor('#e0f7fa', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('✈️', 50, 50); }
-      if (theme === 'party') { bannerText = "🔥 EDM NIGHTS PRO 🔥"; bgColor = "#232323"; fontType = "Bangers"; canvas.setBackgroundColor('#121212', canvas.renderAll.bind(canvas)); }
+      if (theme === 'wedding') { bannerText = "💞 JUST MARRIED 💞"; bgColor = "#8B4513"; fontType = "Caveat"; canvas.setBackgroundColor('#fce4ec', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('💍', 60, 60); }
+      if (theme === 'travel') { bannerText = "🌍 WANDERLUST EXPLORER"; bgColor = "#8B4513"; fontType = "Montserrat"; canvas.setBackgroundColor('#e0f7fa', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('✈️', 50, 50); }
+      if (theme === 'party') { bannerText = "🔥 EDM NIGHTS PRO 🔥"; bgColor = "#8B4513"; fontType = "Bangers"; canvas.setBackgroundColor('#121212', canvas.renderAll.bind(canvas)); }
 
       document.getElementById('customText').value = bannerText;
       document.getElementById('textBgColor').value = bgColor;
@@ -524,7 +480,7 @@
     }
 
     function addStickerToCanvas(emoji) {
-      const sticker = new fabric.Text(emoji, { fontSize: 35, left: 180, top: 180, originX: 'center', originY: 'center', cornerColor: '#4ECDC4', transparentCorners: false, cornerSize: 10 });
+      const sticker = new fabric.Text(emoji, { fontSize: 35, left: 180, top: 180, originX: 'center', originY: 'center', cornerColor: '#8B4513', transparentCorners: false, cornerSize: 10 });
       canvas.add(sticker); uploadedImages.push(sticker); canvas.setActiveObject(sticker); canvas.renderAll();
     }
 
@@ -641,7 +597,7 @@
           fabric.Image.fromURL(e.target.result, function(fabricImg) {
             const index = uploadedImages.length;
             const left = 40 + (index * 25) % 150, top = 40 + (index * 25) % 150;
-            fabricImg.set({ left: left, top: top, cornerColor: '#4ECDC4', transparentCorners: false, cornerSize: 10 });
+            fabricImg.set({ left: left, top: top, cornerColor: '#8B4513', transparentCorners: false, cornerSize: 10 });
             fabricImg.scaleToWidth(140);
             fabricImg._baseProps = { left: left, top: top, scaleX: fabricImg.scaleX, scaleY: fabricImg.scaleY, angle: 0 };
             fabricImg._originalElementRef = fabricImg._element;
@@ -705,61 +661,6 @@
       
       canvas.remove(watermark); 
       canvas.renderAll();
-    }
-
-    // --- INTEGRATED LIVE FIREBASE DATABASE PROVISIONING ENGINE ---
-    function uploadHighResToFirebase() {
-      document.getElementById('statusLog').innerText = "Generating 720x720px structural layout payload...";
-      
-      canvas.discardActiveObject(); 
-      const watermark = addBrandWatermark(); 
-      canvas.renderAll();
-
-      // Exports asset data exactly at 720x720px target size
-      const dataUrlString = canvas.toDataURL({ format: 'jpeg', quality: 0.95, multiplier: 2 });
-      
-      canvas.remove(watermark); 
-      canvas.renderAll();
-
-      // Convert data URI matrix directly into a storage-compatible binary blob
-      const byteString = atob(dataUrlString.split(',')[1]);
-      const mimeString = dataUrlString.split(',')[0].split(':')[1].split(';')[0];
-      const ab = new ArrayBuffer(byteString.length);
-      const ia = new Uint8Array(ab);
-      for (let i = 0; i < byteString.length; i++) {
-        ia[i] = byteString.charCodeAt(i);
-      }
-      const fileBlob = new Blob([ab], { type: mimeString });
-
-      const generatedFileName = `owlwatcher_${Date.now()}_720x720.jpg`;
-      const targetUploadTask = storageRef.child(`collages/${generatedFileName}`).put(fileBlob);
-
-      document.getElementById('statusLog').innerText = "Uploading asset directly to Firebase database storage bucket...";
-
-      targetUploadTask.on('state_changed', 
-        (snapshot) => {
-          const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-          document.getElementById('statusLog').innerText = `Uploading: ${progress}% completed.`;
-        }, 
-        (error) => {
-          console.error(error);
-          document.getElementById('statusLog').innerText = "⚠️ Upload failed! Verify your Firebase configuration settings keys.";
-        }, 
-        () => {
-          targetUploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
-            document.getElementById('generatedUrlLink').innerText = downloadURL;
-            document.getElementById('urlOutputContainer').style.display = 'block';
-            document.getElementById('statusLog').innerText = "✅ Saved to Firebase database bucket successfully!";
-          });
-        }
-      );
-    }
-
-    function copyGeneratedUrl() {
-      const urlText = document.getElementById('generatedUrlLink').innerText;
-      navigator.clipboard.writeText(urlText).then(() => {
-        alert("720x720px Firebase image cloud URL link copied successfully!");
-      });
     }
   </script>
 </body>
