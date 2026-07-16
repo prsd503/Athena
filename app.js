@@ -1,10 +1,15 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { 
+    initializeAuth, 
+    indexedDBLocalPersistence, 
+    browserLocalPersistence 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+// FIXED: Cleaned up authDomain to remove protocols/slashes and pointed to the correct handler
 const firebaseConfig = {
   apiKey: "AIzaSyBEYKHQpy_VjmgjYIwQOPjXth1bghYsf9M",
-  authDomain: "https://finder-owl.firebase.google.com/",
+  authDomain: "finder-owl.firebaseapp.com", 
   projectId: "finder-owl",
   storageBucket: "finder-owl.firebasestorage.app",
   messagingSenderId: "1011347100861",
@@ -13,7 +18,20 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
-export const auth = getAuth(app);
+
+// --- CAPACITOR PERSISTENCE FIX ---
+// Uses indexedDB for native iOS/Android packages to prevent local session storage loss and CORS errors
+let authInstance;
+if (window.location.href.includes("capacitor://")) {
+    authInstance = initializeAuth(app, {
+        persistence: indexedDBLocalPersistence
+    });
+} else {
+    authInstance = initializeAuth(app, {
+        persistence: browserLocalPersistence
+    });
+}
+export const auth = authInstance;
 
 // Public Search Listener
 const findBtn = document.getElementById('findBtn');
@@ -31,7 +49,6 @@ if (findBtn) {
         if (!querySnapshot.empty) {
             querySnapshot.forEach(doc => {
                 const data = doc.data();
-                // Updated to include the society name from the database
                 display.innerHTML = `
                     Found!<br>
                     Flat: <b>${data.flatNumber}</b><br>
