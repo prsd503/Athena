@@ -55,7 +55,13 @@ async function initializeGuardPortal(email) {
         
         if (loginSec) loginSec.style.display = 'none';
         if (portalSec) portalSec.style.display = 'block';
-        if (logoutBtn) logoutBtn.style.display = 'block';
+        
+        // Centering the logout button dynamically
+        if (logoutBtn) {
+            logoutBtn.style.display = 'block';
+            logoutBtn.style.margin = '20px auto'; // Centers the button horizontally with top/bottom margin
+            logoutBtn.style.width = 'fit-content'; // Ensures it doesn't stretch to full width
+        }
         
     } catch (e) { 
         console.error("Initialization error: ", e); 
