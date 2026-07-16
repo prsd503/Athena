@@ -102,6 +102,17 @@ async function loadConfigData() {
 function setupMasterAdminUI(isMaster) {
     isMasterAdminUser = isMaster;
     const masterSection = document.getElementById('master-section');
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    const exportBtn = document.getElementById('exportBtn');
+
+    // Toggle Master-only utility buttons
+    if (bulkDeleteBtn) {
+        bulkDeleteBtn.style.display = isMaster ? 'inline-block' : 'none';
+    }
+    if (exportBtn) {
+        exportBtn.style.display = isMaster ? 'inline-block' : 'none';
+    }
+
     if (!masterSection) return;
 
     if (isMaster) {
@@ -223,7 +234,15 @@ document.addEventListener('DOMContentLoaded', () => {
         try { 
             await signInWithEmailAndPassword(auth, email, pass); 
         } catch (e) { 
-            window.showModal("Login error: " + e.message); 
+            // Intercept standard authentication errors and output user-friendly message
+            if (e.code === 'auth/invalid-email' || 
+                e.code === 'auth/invalid-credential' || 
+                e.code === 'auth/user-not-found' || 
+                e.code === 'auth/wrong-password') {
+                window.showModal("Invalid Credentials");
+            } else {
+                window.showModal("Login failed: " + e.message); 
+            }
         }
     });
 
