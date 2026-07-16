@@ -120,12 +120,13 @@
         
         <hr style="margin:20px 0;">
         <h3>Bulk Vehicle Management</h3>
-        <input type="file" id="excelInput" accept=".csv">
-        <button id="importBtn">Bulk Import CSV</button>
-        <button id="bulkDeleteBtn" style="background: #d32f2f;">Bulk Delete CSV Data</button>
-        <button id="exportBtn" style="background: #27ae60;">Download Full Vehicle CSV</button>
-        <button id="downloadTemplateBtn" style="background:#6d4c41;">Download CSV Template</button>
-
+        <div id="bulk-section" style="display: none;">
+    <input type="file" id="excelInput">
+    <button id="importBtn">Import CSV</button>
+    <button id="bulkDeleteBtn">Bulk Delete</button>
+    <button id="downloadTemplateBtn">Download Template</button>
+    <button id="exportBtn">Export All Data</button>
+</div>
         <hr style="margin:20px 0;">
         <a href="deletedata.html" class="contact-btn" target="_blank">Bulk Data Delete</a>
         <a href="delete.html" class="contact-btn" target="_blank">Delete Full Account</a>
