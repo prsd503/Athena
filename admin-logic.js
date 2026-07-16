@@ -91,6 +91,12 @@ async function loadConfigData() {
 function setupMasterAdminUI(isMaster) {
     isMasterAdminUser = isMaster;
     let masterSection = document.getElementById('master-section');
+
+    // 2. NEW: Toggle Bulk Management visibility
+    const bulkSection = document.getElementById('bulk-section'); // Ensure your HTML has this ID
+    if (bulkSection) {
+        bulkSection.style.display = isMaster ? 'block' : 'none';
+    }
     
     if (!masterSection) {
         masterSection = document.createElement('div');
