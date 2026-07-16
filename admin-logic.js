@@ -211,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- 2. Login/Logout ---
+ // --- 2. Login/Logout ---
     document.getElementById('loginBtn')?.addEventListener('click', async () => {
         const email = document.getElementById('email').value.trim();
         const pass = document.getElementById('pass').value.trim();
@@ -219,7 +219,12 @@ document.addEventListener('DOMContentLoaded', () => {
         try { 
             await signInWithEmailAndPassword(auth, email, pass); 
         } catch (e) { 
-            window.showModal("Login error: " + e.message); 
+            // Check specifically for invalid credential error codes from Firebase
+            if (e.code === 'auth/invalid-credential' || e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password') {
+                window.showModal("Invalid Credentials. Please check your email and password.");
+            } else {
+                window.showModal("Login error: " + e.message);
+            }
         }
     });
 
