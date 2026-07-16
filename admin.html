@@ -6,6 +6,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
     <title>Owl Watcher | Admin</title>
     <style>
+        #customModal { z-index: 1000; }
+        #customModal > div { border: 2px solid #8d6e63; text-align: center; }
         body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
         .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; box-shadow: 5px 5px 0px #8d6e63; max-width: 400px; margin: auto; margin-bottom: 25px; }
         input, textarea, select { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; box-sizing: border-box; }
@@ -13,7 +15,24 @@
         button:hover { background: #5d4037; }
         #admin-results { margin-top: 15px; text-align: left; }
         .contact-btn { display: inline-block; background: #8d6e63; color: white; padding: 10px 20px; text-decoration: none; border-radius: 10px; font-size: 1rem; margin-top: 10px; border: 2px solid #5d4037; }
-        #customModal { z-index: 1000; display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+        .contact-btn:hover { background: #5d4037; }
+        
+        /* Green layout styling specifically for WhatsApp Team communication */
+        .whatsapp-btn {
+            display: none; 
+            background: #25d366; 
+            color: white; 
+            padding: 10px 20px; 
+            text-decoration: none; 
+            border-radius: 10px; 
+            font-size: 1.1rem; 
+            margin-top: 12px; 
+            border: 2px solid #1ebe57; 
+            font-weight: bold;
+            box-sizing: border-box;
+            width: 85%;
+        }
+        .whatsapp-btn:hover { background: #1ebe57; }
     </style>
 </head>
 <body>
@@ -27,6 +46,9 @@
         <input type="email" id="email" placeholder="Email">
         <input type="password" id="pass" placeholder="Password">
         <button id="loginBtn">Login</button>
+        <hr style="border: 0; border-top: 1px solid #dcdde1; margin: 20px 0;">
+        <a href="guard.html" class="contact-btn" target="_self">Security Guard Portal</a>
+        <a href="index.html" class="contact-btn" target="_self">Back to HOME</a>
     </div>
 
     <div id="master-section" style="display: none;"></div>
@@ -40,35 +62,125 @@
     </div>
 
     <div class="card" id="data-section" style="display:none;">
-        <h2>Registry Management</h2>
+        <h2>Add Vehicle</h2>
         <input type="text" id="vNum" placeholder="Vehicle Number">
         <input type="text" id="fNum" placeholder="Flat Number">
         <input type="text" id="mNum" placeholder="Mobile Number">
         <select id="vType">
             <option value="2-Wheeler">2-Wheeler</option>
+            <option value="3-Wheeler">3-Wheeler</option>
             <option value="4-Wheeler">4-Wheeler</option>
         </select>
         <button id="saveBtn">Save to Registry</button>
 
         <hr style="margin:20px 0;">
 
-        <h3>Bulk Operations</h3>
+        <div class="card" style="border-style: dashed;">
+            <h2>📢 Notice Board</h2>
+            
+            <label>Today's Notice:</label>
+            <textarea id="todayMsg" placeholder="Visible now..." rows="3"></textarea>
+            
+            <label>Tomorrow's Notice:</label>
+            <textarea id="tomorrowMsg" placeholder="Set for tomorrow..." rows="3"></textarea>
+            <p style="font-size: 10px; color: #888; margin-top: 10px;">
+                <br>⚠️ Disclaimer: Publicly visible. Do not upload personal data.
+            </p>
+            <button id="postNoticeBtn">Update Notices</button>
+            <button id="deleteNoticeBtn" style="background: #d32f2f;">Clear All Notices</button>
+        </div>
+
+        <hr style="margin:20px 0;">
+
+        <div hidden> 
+            <div class="card" style="border-color: #27ae60;">
+                <h2>🎟️ Ad Request Approval</h2>
+                <input type="text" id="adApprovalKey" placeholder="Enter Ad Request Key (e.g. AD-XXXXXX)">
+                <button id="approveAdBtn" style="background: #27ae60;">Approve Ad Box</button> 
+                
+                <a id="adminWaTeamBtn" href="#" target="_blank" class="whatsapp-btn">
+                    💬 Send Details to Owl Watcher
+                </a>
+            </div> 
+        </div>
+
+        <hr style="margin:20px 0;">
+
+        <div class="card">
+            <h2>Manage Security Guards</h2>
+            <input type="text" id="searchGuardName" placeholder="Search by Name...">
+            <button id="searchGuardBtn" style="background: #5d4037;">Search</button>
+            <input type="email" id="gEmail" placeholder="Guard Email (ID)">
+            <input type="text" id="gName" placeholder="Guard Full Name">
+            <input type="text" id="gPhone" placeholder="Guard Mobile Number">
+            <div style="display: flex; gap: 5px;">
+                <button id="addGuardBtn" style="flex:1;">Save Guard</button>
+                <button id="deleteGuardBtn" style="flex:1; background: #d32f2f;">Delete</button>
+            </div>
+        </div>
+        
+        <hr style="margin:20px 0;">
+
+        <h3>Bulk Vehicle Management</h3>
         <input type="file" id="excelInput" accept=".csv">
-        <button id="importBtn">Import CSV</button>
-        <button id="downloadTemplateBtn">Download Template</button>
+        <button id="importBtn">Bulk Import CSV</button>
+        <button id="bulkDeleteBtn" style="background: #d32f2f;">Bulk Delete CSV Data</button>
+        <button id="exportBtn" style="background: #27ae60;">Download Full Vehicle CSV</button>
+        <button id="downloadTemplateBtn" style="background:#6d4c41;">Download CSV Template</button>
+
+        <hr style="margin:20px 0;">
+        <a href="deletedata.html" class="contact-btn" target="_blank">Bulk Data Delete</a>
+        <a href="delete.html" class="contact-btn" target="_blank">Delete Full Account</a>
     </div>
 
-    <div id="customModal">
-        <div style="background:white; margin: 20% auto; padding:20px; width:80%; max-width:300px; border-radius:20px; border: 2px solid #8d6e63;">
+    <div id="customModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);">
+        <div style="background:white; margin: 20% auto; padding:20px; width:80%; max-width:300px; border-radius:20px;">
             <p id="modalMessage"></p>
             <button onclick="closeModal()">Close</button>
-            <button id="confirmDeleteBtn" onclick="window.confirmDelete()" style="display:none; background:#d32f2f;">Confirm</button>
+            <button id="confirmDeleteBtn" onclick="window.confirmDelete()" style="display:none; background:#d32f2f; color:white;">Confirm Delete</button>
         </div>
     </div>
 
-    <script type="module" src="admin-logic.js"></script>
     <script>
-        function closeModal() { document.getElementById('customModal').style.display = 'none'; }
+        // Use standard memory logic first to prevent structural layout popping
+        if (localStorage.getItem("adminLoggedIn") === "true") {
+            document.getElementById("login-section").style.display = "none";
+            document.getElementById("search-section").style.display = "block";
+            document.getElementById("data-section").style.display = "block";
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            // Save state memory immediately following validation
+            document.getElementById("loginBtn")?.addEventListener("click", () => {
+                setTimeout(() => {
+                    if (document.getElementById("login-section").style.display === "none") {
+                        localStorage.setItem("adminLoggedIn", "true");
+                    }
+                }, 1000);
+            });
+
+            // Revert interface view cleanly on logout action
+            document.getElementById("logoutBtn")?.addEventListener("click", () => {
+                localStorage.removeItem("adminLoggedIn");
+                document.getElementById("login-section").style.display = "block";
+                document.getElementById("search-section").style.display = "none";
+                document.getElementById("data-section").style.display = "none";
+                
+                // Safely hide and clear dynamic Master Admin structures
+                const masterSection = document.getElementById("master-section");
+                if (masterSection) {
+                    masterSection.style.display = "none";
+                    masterSection.innerHTML = "";
+                }
+            });
+        });
+
+        // Unified closing function for modal components
+        function closeModal() { 
+            document.getElementById('customModal').style.display = 'none'; 
+        }
     </script>
+
+    <script type="module" src="admin-logic.js"></script>
 </body>
 </html>
