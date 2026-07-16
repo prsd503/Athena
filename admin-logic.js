@@ -212,15 +212,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
  // --- 2. Login/Logout ---
-    document.getElementById('loginBtn')?.addEventListener('click', async () => {
+   document.getElementById('loginBtn')?.addEventListener('click', async () => {
         const email = document.getElementById('email').value.trim();
         const pass = document.getElementById('pass').value.trim();
         if (!email || !pass) return window.showModal("Enter Email and Password.");
         try { 
             await signInWithEmailAndPassword(auth, email, pass); 
         } catch (e) { 
-            // Check specifically for invalid credential error codes from Firebase
-            if (e.code === 'auth/invalid-credential' || e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password') {
+            // Handle different Firebase Auth error cases
+            if (e.code === 'auth/invalid-email') {
+                window.showModal("Please enter a valid email address.");
+            } else if (e.code === 'auth/invalid-credential' || e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password') {
                 window.showModal("Invalid Credentials. Please check your email and password.");
             } else {
                 window.showModal("Login error: " + e.message);
