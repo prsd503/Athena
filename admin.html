@@ -51,7 +51,7 @@
         <a href="index.html" class="contact-btn" target="_self">Back to HOME</a>
     </div>
 
-    <div id="master-admin-panel" style="max-width: 440px; margin: auto;"></div>
+    <div id="master-section" style="display: none;"></div>
 
     <div class="card" id="search-section" style="display:none;">
         <h2>Search & Manage</h2>
@@ -84,7 +84,6 @@
             <label>Tomorrow's Notice:</label>
             <textarea id="tomorrowMsg" placeholder="Set for tomorrow..." rows="3"></textarea>
             <p style="font-size: 10px; color: #888; margin-top: 10px;">
-               
                 <br>⚠️ Disclaimer: Publicly visible. Do not upload personal data.
             </p>
             <button id="postNoticeBtn">Update Notices</button>
@@ -93,15 +92,17 @@
 
         <hr style="margin:20px 0;">
 
-      <div hidden>  <div class="card" style="border-color: #27ae60;">
-            <h2>🎟️ Ad Request Approval</h2>
-            <input type="text" id="adApprovalKey" placeholder="Enter Ad Request Key (e.g. AD-XXXXXX)">
-            <button id="approveAdBtn" style="background: #27ae60;">Approve Ad Box</button> 
-            
-            <a id="adminWaTeamBtn" href="#" target="_blank" class="whatsapp-btn">
-                💬 Send Details to Owl Watcher
-            </a>
-        </div> </div>
+        <div hidden> 
+            <div class="card" style="border-color: #27ae60;">
+                <h2>🎟️ Ad Request Approval</h2>
+                <input type="text" id="adApprovalKey" placeholder="Enter Ad Request Key (e.g. AD-XXXXXX)">
+                <button id="approveAdBtn" style="background: #27ae60;">Approve Ad Box</button> 
+                
+                <a id="adminWaTeamBtn" href="#" target="_blank" class="whatsapp-btn">
+                    💬 Send Details to Owl Watcher
+                </a>
+            </div> 
+        </div>
 
         <hr style="margin:20px 0;">
 
@@ -119,6 +120,7 @@
         </div>
         
         <hr style="margin:20px 0;">
+
         <h3>Bulk Vehicle Management</h3>
         <input type="file" id="excelInput" accept=".csv">
         <button id="importBtn">Bulk Import CSV</button>
@@ -140,7 +142,7 @@
     </div>
 
     <script>
-        // Check local storage immediately upon parser load to reduce screen flash
+        // Use standard memory logic first to prevent structural layout popping
         if (localStorage.getItem("adminLoggedIn") === "true") {
             document.getElementById("login-section").style.display = "none";
             document.getElementById("search-section").style.display = "block";
@@ -148,9 +150,8 @@
         }
 
         window.addEventListener("DOMContentLoaded", () => {
-            // Intercept manual login click to save persistence key
-            document.getElementById("loginBtn").addEventListener("click", () => {
-                // We add a tiny delay so it verifies with your Firebase logic script first
+            // Save state memory immediately following validation
+            document.getElementById("loginBtn")?.addEventListener("click", () => {
                 setTimeout(() => {
                     if (document.getElementById("login-section").style.display === "none") {
                         localStorage.setItem("adminLoggedIn", "true");
@@ -158,18 +159,26 @@
                 }, 1000);
             });
 
-            // Intercept logout button to clear validation state
-            document.getElementById("logoutBtn").addEventListener("click", () => {
+            // Revert interface view cleanly on logout action
+            document.getElementById("logoutBtn")?.addEventListener("click", () => {
                 localStorage.removeItem("adminLoggedIn");
                 document.getElementById("login-section").style.display = "block";
                 document.getElementById("search-section").style.display = "none";
                 document.getElementById("data-section").style.display = "none";
-                const masterPanel = document.getElementById("master-admin-panel");
-                if (masterPanel) masterPanel.innerHTML = "";
+                
+                // Safely hide and clear dynamic Master Admin structures
+                const masterSection = document.getElementById("master-section");
+                if (masterSection) {
+                    masterSection.style.display = "none";
+                    masterSection.innerHTML = "";
+                }
             });
         });
 
-        function closeModal() { document.getElementById('customModal').style.display='none'; }
+        // Unified closing function for modal components
+        function closeModal() { 
+            document.getElementById('customModal').style.display = 'none'; 
+        }
     </script>
 
     <script type="module" src="admin-logic.js"></script>
