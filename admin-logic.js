@@ -230,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('logoutBtn')?.addEventListener('click', async () => { 
         try {
             await signOut(auth);
-            handleCapacitorRouting("login.html");
+            handleCapacitorRouting("admin.html");
         } catch (e) {
             window.showModal("Logout error: " + e.message);
         }
