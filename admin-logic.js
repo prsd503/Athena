@@ -9,6 +9,17 @@ let pendingDeleteId = null;
 let teamPhone = "919033406816"; // Default dynamic team phone number
 let isMasterAdminUser = false;
 
+// --- Capacitor Navigation Helper ---
+function handleCapacitorRouting(targetPage) {
+    // If the application is executing inside the native Capacitor iOS web view scheme wrapper
+    if (window.location.href.includes("capacitor://")) {
+        window.location.href = "capacitor://localhost/" + targetPage;
+    } else {
+        // Fallback for standard web browser environments / GitHub Pages
+        window.location.href = targetPage;
+    }
+}
+
 // --- UI Helpers ---
 window.closeModal = () => { document.getElementById('customModal').style.display = 'none'; };
 window.showModal = (msg, showConfirm = false) => {
@@ -182,9 +193,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     assignedSociety = adminData.society || "";
                     
                     // Force display states to maintain layout on refresh
-                    document.getElementById('login-section').style.display = 'none';
-                    document.getElementById('search-section').style.display = 'block';
-                    document.getElementById('data-section').style.display = 'block';
+                    if (document.getElementById('login-section')) document.getElementById('login-section').style.display = 'none';
+                    if (document.getElementById('search-section')) document.getElementById('search-section').style.display = 'block';
+                    if (document.getElementById('data-section')) document.getElementById('data-section').style.display = 'block';
                     
                     // Handle Master Admin Interface logic
                     if (adminData.isMaster === true) {
@@ -194,6 +205,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     
                     loadNoticeData();
+
+                    // If user is validated but stuck inside an isolated login.html template layout context, 
+                    // route them straight through to the administrative management screen container dashboard.
+                    if (window.location.pathname.includes("login.html") || window.location.pathname.endsWith("/")) {
+                        handleCapacitorRouting("admin.html"); // Adjust file name if your target dashboard file uses a different identifier (e.g., "index.html" or "dashboard.html")
+                    }
                 } else {
                     window.showModal("Unauthorized access: Admin record not found.");
                     await signOut(auth);
@@ -203,9 +220,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else {
             // Revert interface view cleanly if unauthenticated
-            document.getElementById('login-section').style.display = 'block';
-            document.getElementById('search-section').style.display = 'none';
-            document.getElementById('data-section').style.display = 'none';
+            if (document.getElementById('login-section')) document.getElementById('login-section').style.display = 'block';
+            if (document.getElementById('search-section')) document.getElementById('search-section').style.display = 'none';
+            if (document.getElementById('data-section')) document.getElementById('data-section').style.display = 'none';
             setupMasterAdminUI(false);
             assignedSociety = "";
         }
@@ -226,6 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('logoutBtn')?.addEventListener('click', async () => { 
         try {
             await signOut(auth);
+            handleCapacitorRouting("login.html");
         } catch (e) {
             window.showModal("Logout error: " + e.message);
         }
