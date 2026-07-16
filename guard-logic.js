@@ -5,19 +5,28 @@ import { doc, getDoc, updateDoc, collection, getDocs, query, where } from "https
 let assignedSociety = "";
 
 // --- Modal UI Helpers ---
-window.closeModal = () => { document.getElementById('customModal').style.display = 'none'; };
+window.closeModal = () => { 
+    const modal = document.getElementById('customModal');
+    if (modal) modal.style.display = 'none'; 
+};
+
 window.showModal = (msg) => {
-    document.getElementById('modalMessage').innerText = msg;
-    document.getElementById('customModal').style.display = 'block';
+    const msgEl = document.getElementById('modalMessage');
+    const modal = document.getElementById('customModal');
+    if (msgEl && modal) {
+        msgEl.innerText = msg;
+        modal.style.display = 'block';
+    }
 };
 
 async function initializeGuardPortal(email) {
     try {
+        // Query the guards collection to verify membership and fetch their society
         const q = query(collection(db, "guards"), where("email", "==", email));
         const snap = await getDocs(q);
         
         if (snap.empty) {
-            // Log out unauthorized user immediately and trigger registration modal alert
+            // Sign out immediately if not found in guards list
             await signOut(auth);
             window.showModal("Not Registered as Security Guard");
             return;
@@ -26,6 +35,7 @@ async function initializeGuardPortal(email) {
         const guardData = snap.docs[0].data();
         assignedSociety = guardData.society; 
         
+        // Populate select list with other guards from the same society
         const qGuards = query(collection(db, "guards"), where("society", "==", assignedSociety));
         const guards = await getDocs(qGuards);
         const select = document.getElementById('guardSelect');
@@ -38,49 +48,65 @@ async function initializeGuardPortal(email) {
             });
         }
         
-        document.getElementById('login-section').style.display = 'none';
-        document.getElementById('portalSection').style.display = 'block';
-        document.getElementById('logoutBtn').style.display = 'block';
-    } catch (e) { console.error(e); }
+        // Transition Views
+        const loginSec = document.getElementById('login-section');
+        const portalSec = document.getElementById('portalSection');
+        const logoutBtn = document.getElementById('logoutBtn');
+        
+        if (loginSec) loginSec.style.display = 'none';
+        if (portalSec) portalSec.style.display = 'block';
+        if (logoutBtn) logoutBtn.style.display = 'block';
+        
+    } catch (e) { 
+        console.error("Initialization error: ", e); 
+        window.showModal("Error loading portal profile data.");
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     onAuthStateChanged(auth, async (user) => {
-        if (user) await initializeGuardPortal(user.email);
+        if (user) {
+            await initializeGuardPortal(user.email);
+        }
     });
 });
 
-// Login with Modal
+// Login Handlers
 document.getElementById('loginBtn')?.addEventListener('click', async () => {
-    const email = document.getElementById('email').value.trim();
-    const pass = document.getElementById('pass').value.trim();
+    const emailEl = document.getElementById('email');
+    const passEl = document.getElementById('pass');
+    
+    if (!emailEl || !passEl) return;
+    
+    const email = emailEl.value.trim();
+    const pass = passEl.value.trim();
+    
     if (!email || !pass) return window.showModal("Please enter email and password.");
     
     try {
         await signInWithEmailAndPassword(auth, email, pass);
     } catch (e) {
-        // Intercept standard Firebase auth error codes and show user-friendly message
         if (e.code === 'auth/invalid-email' || 
             e.code === 'auth/invalid-credential' || 
             e.code === 'auth/user-not-found' || 
             e.code === 'auth/wrong-password') {
             window.showModal("Invalid Credentials");
         } else {
-            // Fallback for unexpected errors (e.g., network timeout)
             window.showModal("Login failed: " + e.message);
         }
     }
 });
 
-// Activate Duty with Modal
+// Activate Duty Action
 document.getElementById('activateBtn')?.addEventListener('click', async () => {
     const select = document.getElementById('guardSelect');
     if (!select || !assignedSociety) return;
     
     try {
+        const selectedOption = select.options[select.selectedIndex];
         await updateDoc(doc(db, "societies", assignedSociety), { 
             activeGuardName: select.value, 
-            activeGuardPhone: select.options[select.selectedIndex].dataset.phone 
+            activeGuardPhone: selectedOption ? selectedOption.dataset.phone : ""
         });
         window.showModal("Duty activated successfully for " + assignedSociety);
     } catch (e) {
@@ -88,19 +114,28 @@ document.getElementById('activateBtn')?.addEventListener('click', async () => {
     }
 });
 
-// Search with Modal
+// Search Action
 document.getElementById('searchBtn')?.addEventListener('click', async () => {
-    const vNum = document.getElementById('vSearch').value.trim().toUpperCase();
+    const vSearchEl = document.getElementById('vSearch');
+    if (!vSearchEl) return;
+    
+    const vNum = vSearchEl.value.trim().toUpperCase();
     if (!vNum) return window.showModal("Enter a valid vehicle number.");
 
     try {
-        const q = query(collection(db, "vehicles"), where("vehicleNumber", "==", vNum), where("societyName", "==", assignedSociety));
+        const q = query(
+            collection(db, "vehicles"), 
+            where("vehicleNumber", "==", vNum), 
+            where("societyName", "==", assignedSociety)
+        );
         const snap = await getDocs(q);
         const resultDiv = document.getElementById('result');
         
+        if (!resultDiv) return;
+        
         if (!snap.empty) {
             const d = snap.docs[0].data();
-            resultDiv.innerHTML = `Flat: ${d.flatNumber}<br><a href="tel:${d.mobileNumber}">📞 Call: ${d.mobileNumber}</a>`;
+            resultDiv.innerHTML = `Flat: <b>${d.flatNumber}</b><br><a href="tel:${d.mobileNumber}">📞 Call: ${d.mobileNumber}</a>`;
         } else {
             window.showModal("No vehicle found for this society.");
             resultDiv.innerHTML = "";
@@ -111,6 +146,10 @@ document.getElementById('searchBtn')?.addEventListener('click', async () => {
 });
 
 document.getElementById('logoutBtn')?.addEventListener('click', async () => { 
-    await signOut(auth);
-    location.reload(); 
+    try {
+        await signOut(auth);
+        location.reload(); 
+    } catch (e) {
+        console.error("Logout failed: ", e);
+    }
 });
