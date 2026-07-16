@@ -66,7 +66,7 @@ window.confirmDelete = async () => {
         await deleteDoc(doc(db, "vehicles", pendingDeleteId));
         window.closeModal();
         window.showModal("Data deleted successfully.");
-        document.getElementById('adminSearchBtn').click();
+        document.getElementById('adminSearchBtn')?.click();
     } catch (e) { window.showModal("Delete error: " + e.message); }
     pendingDeleteId = null;
 };
@@ -206,10 +206,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     loadNoticeData();
 
-                    // If user is validated but stuck inside an isolated login.html template layout context, 
-                    // route them straight through to the administrative management screen container dashboard.
+                    // If user is validated but stuck inside login context, route to dashboard.
                     if (window.location.pathname.includes("login.html") || window.location.pathname.endsWith("/")) {
-                        handleCapacitorRouting("admin.html"); // Adjust file name if your target dashboard file uses a different identifier (e.g., "index.html" or "dashboard.html")
+                        handleCapacitorRouting("admin.html");
                     }
                 } else {
                     window.showModal("Unauthorized access: Admin record not found.");
@@ -291,6 +290,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 vehicleNumber: v, flatNumber: f, mobileNumber: m, vehicleType: type, societyName: assignedSociety 
             });
             window.showModal("Added!");
+            // Refresh results if a search was active
+            document.getElementById('adminSearchBtn')?.click();
         } else {
             await updateDoc(doc(db, "vehicles", editingDocId), { 
                 vehicleNumber: v, flatNumber: f, mobileNumber: m, vehicleType: type 
@@ -298,6 +299,8 @@ document.addEventListener('DOMContentLoaded', () => {
             window.showModal("Updated!");
             editingDocId = null;
             document.getElementById('saveBtn').innerText = "Save to Registry";
+            // Instantly update the list views
+            document.getElementById('adminSearchBtn')?.click(); 
         }
     });
 
@@ -331,6 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             await batch.commit();
             window.showModal(`Imported ${count} new vehicles.`);
+            document.getElementById('adminSearchBtn')?.click();
         };
         reader.readAsText(file);
     });
@@ -350,7 +354,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const snapshot = await getDocs(q);
                 snapshot.forEach((doc) => { batch.delete(doc.ref); deletedCount++; });
             }
-            if (deletedCount > 0) { await batch.commit(); window.showModal(`Deleted ${deletedCount} vehicles.`); document.getElementById('adminSearchBtn').click(); }
+            if (deletedCount > 0) { 
+                await batch.commit(); 
+                window.showModal(`Deleted ${deletedCount} vehicles.`); 
+                document.getElementById('adminSearchBtn')?.click(); 
+            }
             else window.showModal("No matching vehicles found.");
         };
         reader.readAsText(file);
@@ -375,7 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const today = document.getElementById('todayMsg').value;
         const tomorrow = document.getElementById('tomorrowMsg').value;
 
-        if (!assignedSociety) return alert("Society not loaded.");
+        if (!assignedSociety) return window.showModal("Society not loaded.");
 
         try {
             await setDoc(doc(db, "notices", assignedSociety), {
@@ -384,9 +392,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 date: new Date().toISOString().split('T')[0],
                 updatedAt: serverTimestamp()
             }, { merge: true });
-            alert("Notices updated successfully!");
+            window.showModal("Notices updated successfully!");
         } catch (e) {
-            alert("Error posting notice: " + e.message);
+            window.showModal("Error posting notice: " + e.message);
         }
     });
 
@@ -396,9 +404,9 @@ document.addEventListener('DOMContentLoaded', () => {
             await deleteDoc(doc(db, "notices", assignedSociety));
             document.getElementById('todayMsg').value = "";
             document.getElementById('tomorrowMsg').value = "";
-            alert("Notice deleted.");
+            window.showModal("Notice deleted.");
         } catch (e) {
-            alert("Error deleting: " + e.message);
+            window.showModal("Error deleting: " + e.message);
         }
     });
 
@@ -460,7 +468,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }); 
 
     
-// --- 8. Ad Request Key Approval System ---
+    // --- 8. Ad Request Key Approval System ---
+    // Hide or clear previous WhatsApp buttons when input is actively modified
+    document.getElementById('adApprovalKey')?.addEventListener('input', () => {
+        const waButton = document.getElementById('adminWaTeamBtn');
+        if (waButton) waButton.style.display = 'none';
+    });
+
     document.getElementById('approveAdBtn')?.addEventListener('click', async () => {
         const adKeyInput = document.getElementById('adApprovalKey');
         if (!adKeyInput) return;
