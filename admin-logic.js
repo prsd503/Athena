@@ -9,17 +9,6 @@ let pendingDeleteId = null;
 let teamPhone = "919033406816"; // Default dynamic team phone number
 let isMasterAdminUser = false;
 
-// --- Capacitor Navigation Helper ---
-function handleCapacitorRouting(targetPage) {
-    // If the application is executing inside the native Capacitor iOS web view scheme wrapper
-    if (window.location.href.includes("capacitor://")) {
-        window.location.href = "capacitor://localhost/" + targetPage;
-    } else {
-        // Fallback for standard web browser environments / GitHub Pages
-        window.location.href = targetPage;
-    }
-}
-
 // --- UI Helpers ---
 window.closeModal = () => { document.getElementById('customModal').style.display = 'none'; };
 window.showModal = (msg, showConfirm = false) => {
@@ -66,7 +55,7 @@ window.confirmDelete = async () => {
         await deleteDoc(doc(db, "vehicles", pendingDeleteId));
         window.closeModal();
         window.showModal("Data deleted successfully.");
-        document.getElementById('adminSearchBtn')?.click();
+        document.getElementById('adminSearchBtn').click();
     } catch (e) { window.showModal("Delete error: " + e.message); }
     pendingDeleteId = null;
 };
@@ -101,43 +90,45 @@ async function loadConfigData() {
 // --- Master Admin UI Builder ---
 function setupMasterAdminUI(isMaster) {
     isMasterAdminUser = isMaster;
-    const masterSection = document.getElementById('master-section');
-    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
-    const exportBtn = document.getElementById('exportBtn');
-
-    // Toggle Master-only utility buttons
-    if (bulkDeleteBtn) {
-        bulkDeleteBtn.style.display = isMaster ? 'inline-block' : 'none';
+    let masterSection = document.getElementById('master-section');
+    
+    if (!masterSection) {
+        masterSection = document.createElement('div');
+        masterSection.id = 'master-section';
+        masterSection.className = 'card';
+        masterSection.style.cssText = "background: #efebe9; border: 2px solid #8d6e63; border-radius: 16px; padding: 18px; margin-bottom: 15px; display: none;";
+        
+        const target = document.getElementById('search-section');
+        if (target) {
+            target.parentNode.insertBefore(masterSection, target);
+        } else {
+            const container = document.querySelector('.scrollable-controls-container');
+            if (container) container.prepend(masterSection);
+        }
     }
-    if (exportBtn) {
-        exportBtn.style.display = isMaster ? 'inline-block' : 'none';
-    }
-
-    if (!masterSection) return;
 
     if (isMaster) {
-        masterSection.className = 'card';
-        masterSection.style.cssText = "background: #efebe9; border: 2px solid #8d6e63; border-radius: 16px; padding: 18px; margin: 0 auto 15px auto; max-width: 400px; display: block; box-shadow: 5px 5px 0px #8d6e63; box-sizing: border-box;";
+        masterSection.style.display = 'block';
         masterSection.innerHTML = `
-            <h3 style="border-left: 4px solid #6d4c41; padding-left: 8px; margin-bottom: 12px; color: #5d4037; font-size: 1.5rem; text-align: left;">👑 Master Control Center</h3>
+            <h3 style="border-left: 4px solid #6d4c41; padding-left: 8px; margin-bottom: 12px; color: #5d4037;">👑 Master Control Center</h3>
             
-            <div class="control-group" style="text-align: left;">
-                <label style="font-weight: bold; font-size: 1.1rem; color: #555;">Selected Workspace Society:</label>
-                <div id="active-society-display" style="font-size: 1.3rem; font-weight: bold; color: #8d6e63; margin: 6px 0 12px 0; background: white; padding: 10px; border-radius: 8px; border: 2px solid #8d6e63; text-align: center;">
+            <div class="control-group">
+                <label style="font-weight: bold; font-size: 0.85rem; color: #555;">Selected Workspace Society:</label>
+                <div id="active-society-display" style="font-size: 1.15rem; font-weight: bold; color: #8d6e63; margin: 6px 0 12px 0; background: white; padding: 10px; border-radius: 8px; border: 1px solid #d7ccc8;">
                     ${assignedSociety || "None Selected"}
                 </div>
                 
-                <div style="display: flex; gap: 8px; flex-direction: column; align-items: center;">
-                    <input type="text" id="masterSocietySearch" placeholder="Search / Type Society Name" style="width: 100%; margin-bottom: 5px;">
-                    <button id="masterSocietySelectBtn" style="background: #6d4c41; color: white; width: 100%; margin-top: 0;">Select Workspace</button>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="masterSocietySearch" placeholder="Search / Type Society Name" style="flex: 1; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                    <button id="masterSocietySelectBtn" style="background: #6d4c41; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold;">Select</button>
                 </div>
             </div>
             
-            <div style="border-top: 2px dashed #8d6e63; margin-top: 15px; padding-top: 15px; text-align: left;">
-                <label style="font-weight: bold; font-size: 1.1rem; color: #555;">Owl Watcher Central Whatsapp Phone Number:</label>
-                <div style="display: flex; gap: 8px; flex-direction: column; align-items: center; margin-top: 6px;">
-                    <input type="text" id="teamPhoneInput" value="${teamPhone}" placeholder="e.g., 919033406816" style="width: 100%; margin-bottom: 5px;">
-                    <button id="saveTeamPhoneBtn" style="background: #25d366; color: white; border-color: #1ebe57; width: 100%; margin-top: 0;">Update Contact</button>
+            <div style="border-top: 1px solid #d7ccc8; margin-top: 15px; padding-top: 15px;">
+                <label style="font-weight: bold; font-size: 0.85rem; color: #555;">Owl Watcher Central Whatsapp Phone Number:</label>
+                <div style="display: flex; gap: 8px; margin-top: 6px;">
+                    <input type="text" id="teamPhoneInput" value="${teamPhone}" placeholder="e.g., 919033406816" style="flex: 1; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                    <button id="saveTeamPhoneBtn" style="background: #25d366; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold;">Update</button>
                 </div>
             </div>
         `;
@@ -176,7 +167,6 @@ function setupMasterAdminUI(isMaster) {
         });
     } else {
         masterSection.style.display = 'none';
-        masterSection.innerHTML = '';
     }
 }
 
@@ -192,11 +182,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     assignedSociety = adminData.society || "";
                     
                     // Force display states to maintain layout on refresh
-                    if (document.getElementById('login-section')) document.getElementById('login-section').style.display = 'none';
-                    if (document.getElementById('search-section')) document.getElementById('search-section').style.display = 'block';
-                    if (document.getElementById('data-section')) document.getElementById('data-section').style.display = 'block';
+                    document.getElementById('login-section').style.display = 'none';
+                    document.getElementById('search-section').style.display = 'block';
+                    document.getElementById('data-section').style.display = 'block';
                     
-                    // Handle Master Admin Interface logic directly within the synchronized element
+                    // Handle Master Admin Interface logic
                     if (adminData.isMaster === true) {
                         setupMasterAdminUI(true);
                     } else {
@@ -204,11 +194,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     
                     loadNoticeData();
-
-                    // If user is validated but stuck inside login context, route to dashboard.
-                    if (window.location.pathname.includes("login.html") || window.location.pathname.endsWith("/")) {
-                        handleCapacitorRouting("admin.html");
-                    }
                 } else {
                     window.showModal("Unauthorized access: Admin record not found.");
                     await signOut(auth);
@@ -218,9 +203,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else {
             // Revert interface view cleanly if unauthenticated
-            if (document.getElementById('login-section')) document.getElementById('login-section').style.display = 'block';
-            if (document.getElementById('search-section')) document.getElementById('search-section').style.display = 'none';
-            if (document.getElementById('data-section')) document.getElementById('data-section').style.display = 'none';
+            document.getElementById('login-section').style.display = 'block';
+            document.getElementById('search-section').style.display = 'none';
+            document.getElementById('data-section').style.display = 'none';
             setupMasterAdminUI(false);
             assignedSociety = "";
         }
@@ -234,22 +219,13 @@ document.addEventListener('DOMContentLoaded', () => {
         try { 
             await signInWithEmailAndPassword(auth, email, pass); 
         } catch (e) { 
-            // Intercept standard authentication errors and output user-friendly message
-            if (e.code === 'auth/invalid-email' || 
-                e.code === 'auth/invalid-credential' || 
-                e.code === 'auth/user-not-found' || 
-                e.code === 'auth/wrong-password') {
-                window.showModal("Invalid Credentials");
-            } else {
-                window.showModal("Login failed: " + e.message); 
-            }
+            window.showModal("Login error: " + e.message); 
         }
     });
 
     document.getElementById('logoutBtn')?.addEventListener('click', async () => { 
         try {
             await signOut(auth);
-            handleCapacitorRouting("admin.html");
         } catch (e) {
             window.showModal("Logout error: " + e.message);
         }
@@ -297,8 +273,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 vehicleNumber: v, flatNumber: f, mobileNumber: m, vehicleType: type, societyName: assignedSociety 
             });
             window.showModal("Added!");
-            // Refresh results if a search was active
-            document.getElementById('adminSearchBtn')?.click();
         } else {
             await updateDoc(doc(db, "vehicles", editingDocId), { 
                 vehicleNumber: v, flatNumber: f, mobileNumber: m, vehicleType: type 
@@ -306,8 +280,6 @@ document.addEventListener('DOMContentLoaded', () => {
             window.showModal("Updated!");
             editingDocId = null;
             document.getElementById('saveBtn').innerText = "Save to Registry";
-            // Instantly update the list views
-            document.getElementById('adminSearchBtn')?.click(); 
         }
     });
 
@@ -341,7 +313,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             await batch.commit();
             window.showModal(`Imported ${count} new vehicles.`);
-            document.getElementById('adminSearchBtn')?.click();
         };
         reader.readAsText(file);
     });
@@ -361,11 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const snapshot = await getDocs(q);
                 snapshot.forEach((doc) => { batch.delete(doc.ref); deletedCount++; });
             }
-            if (deletedCount > 0) { 
-                await batch.commit(); 
-                window.showModal(`Deleted ${deletedCount} vehicles.`); 
-                document.getElementById('adminSearchBtn')?.click(); 
-            }
+            if (deletedCount > 0) { await batch.commit(); window.showModal(`Deleted ${deletedCount} vehicles.`); document.getElementById('adminSearchBtn').click(); }
             else window.showModal("No matching vehicles found.");
         };
         reader.readAsText(file);
@@ -390,7 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const today = document.getElementById('todayMsg').value;
         const tomorrow = document.getElementById('tomorrowMsg').value;
 
-        if (!assignedSociety) return window.showModal("Society not loaded.");
+        if (!assignedSociety) return alert("Society not loaded.");
 
         try {
             await setDoc(doc(db, "notices", assignedSociety), {
@@ -399,9 +366,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 date: new Date().toISOString().split('T')[0],
                 updatedAt: serverTimestamp()
             }, { merge: true });
-            window.showModal("Notices updated successfully!");
+            alert("Notices updated successfully!");
         } catch (e) {
-            window.showModal("Error posting notice: " + e.message);
+            alert("Error posting notice: " + e.message);
         }
     });
 
@@ -411,9 +378,9 @@ document.addEventListener('DOMContentLoaded', () => {
             await deleteDoc(doc(db, "notices", assignedSociety));
             document.getElementById('todayMsg').value = "";
             document.getElementById('tomorrowMsg').value = "";
-            window.showModal("Notice deleted.");
+            alert("Notice deleted.");
         } catch (e) {
-            window.showModal("Error deleting: " + e.message);
+            alert("Error deleting: " + e.message);
         }
     });
 
@@ -475,13 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }); 
 
     
-    // --- 8. Ad Request Key Approval System ---
-    // Hide or clear previous WhatsApp buttons when input is actively modified
-    document.getElementById('adApprovalKey')?.addEventListener('input', () => {
-        const waButton = document.getElementById('adminWaTeamBtn');
-        if (waButton) waButton.style.display = 'none';
-    });
-
+// --- 8. Ad Request Key Approval System ---
     document.getElementById('approveAdBtn')?.addEventListener('click', async () => {
         const adKeyInput = document.getElementById('adApprovalKey');
         if (!adKeyInput) return;
@@ -522,7 +483,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     waButton = document.createElement('a');
                     waButton.id = 'adminWaTeamBtn';
                     waButton.target = '_blank';
-                    waButton.style.cssText = "background:#25d366; color:white; padding:10px 20px; border-radius:10px; text-decoration:none; font-size:1.1rem; display:inline-block; margin-top:10px; font-weight:bold; text-align:center; border: 2px solid #1ebe57; width:85%; box-sizing:border-box;";
+                    waButton.style.cssText = "background:#25d366; color:white; padding:10px 20px; border-radius:10px; text-decoration:none; font-size:1.1rem; display:inline-block; margin-top:10px; font-weight:bold; text-align:center; border: 2px solid #1ebe57; width:80%; box-sizing:border-box;";
                     adKeyInput.parentNode.appendChild(waButton);
                 }
                 waButton.href = waUrl;
