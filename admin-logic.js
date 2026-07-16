@@ -101,45 +101,32 @@ async function loadConfigData() {
 // --- Master Admin UI Builder ---
 function setupMasterAdminUI(isMaster) {
     isMasterAdminUser = isMaster;
-    let masterSection = document.getElementById('master-section');
-    
-    if (!masterSection) {
-        masterSection = document.createElement('div');
-        masterSection.id = 'master-section';
-        masterSection.className = 'card';
-        masterSection.style.cssText = "background: #efebe9; border: 2px solid #8d6e63; border-radius: 16px; padding: 18px; margin-bottom: 15px; display: none;";
-        
-        const target = document.getElementById('search-section');
-        if (target) {
-            target.parentNode.insertBefore(masterSection, target);
-        } else {
-            const container = document.querySelector('.scrollable-controls-container');
-            if (container) container.prepend(masterSection);
-        }
-    }
+    const masterSection = document.getElementById('master-section');
+    if (!masterSection) return;
 
     if (isMaster) {
-        masterSection.style.display = 'block';
+        masterSection.className = 'card';
+        masterSection.style.cssText = "background: #efebe9; border: 2px solid #8d6e63; border-radius: 16px; padding: 18px; margin: 0 auto 15px auto; max-width: 400px; display: block; box-shadow: 5px 5px 0px #8d6e63; box-sizing: border-box;";
         masterSection.innerHTML = `
-            <h3 style="border-left: 4px solid #6d4c41; padding-left: 8px; margin-bottom: 12px; color: #5d4037;">👑 Master Control Center</h3>
+            <h3 style="border-left: 4px solid #6d4c41; padding-left: 8px; margin-bottom: 12px; color: #5d4037; font-size: 1.5rem; text-align: left;">👑 Master Control Center</h3>
             
-            <div class="control-group">
-                <label style="font-weight: bold; font-size: 0.85rem; color: #555;">Selected Workspace Society:</label>
-                <div id="active-society-display" style="font-size: 1.15rem; font-weight: bold; color: #8d6e63; margin: 6px 0 12px 0; background: white; padding: 10px; border-radius: 8px; border: 1px solid #d7ccc8;">
+            <div class="control-group" style="text-align: left;">
+                <label style="font-weight: bold; font-size: 1.1rem; color: #555;">Selected Workspace Society:</label>
+                <div id="active-society-display" style="font-size: 1.3rem; font-weight: bold; color: #8d6e63; margin: 6px 0 12px 0; background: white; padding: 10px; border-radius: 8px; border: 2px solid #8d6e63; text-align: center;">
                     ${assignedSociety || "None Selected"}
                 </div>
                 
-                <div style="display: flex; gap: 8px;">
-                    <input type="text" id="masterSocietySearch" placeholder="Search / Type Society Name" style="flex: 1; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
-                    <button id="masterSocietySelectBtn" style="background: #6d4c41; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold;">Select</button>
+                <div style="display: flex; gap: 8px; flex-direction: column; align-items: center;">
+                    <input type="text" id="masterSocietySearch" placeholder="Search / Type Society Name" style="width: 100%; margin-bottom: 5px;">
+                    <button id="masterSocietySelectBtn" style="background: #6d4c41; color: white; width: 100%; margin-top: 0;">Select Workspace</button>
                 </div>
             </div>
             
-            <div style="border-top: 1px solid #d7ccc8; margin-top: 15px; padding-top: 15px;">
-                <label style="font-weight: bold; font-size: 0.85rem; color: #555;">Owl Watcher Central Whatsapp Phone Number:</label>
-                <div style="display: flex; gap: 8px; margin-top: 6px;">
-                    <input type="text" id="teamPhoneInput" value="${teamPhone}" placeholder="e.g., 919033406816" style="flex: 1; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
-                    <button id="saveTeamPhoneBtn" style="background: #25d366; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold;">Update</button>
+            <div style="border-top: 2px dashed #8d6e63; margin-top: 15px; padding-top: 15px; text-align: left;">
+                <label style="font-weight: bold; font-size: 1.1rem; color: #555;">Owl Watcher Central Whatsapp Phone Number:</label>
+                <div style="display: flex; gap: 8px; flex-direction: column; align-items: center; margin-top: 6px;">
+                    <input type="text" id="teamPhoneInput" value="${teamPhone}" placeholder="e.g., 919033406816" style="width: 100%; margin-bottom: 5px;">
+                    <button id="saveTeamPhoneBtn" style="background: #25d366; color: white; border-color: #1ebe57; width: 100%; margin-top: 0;">Update Contact</button>
                 </div>
             </div>
         `;
@@ -178,6 +165,7 @@ function setupMasterAdminUI(isMaster) {
         });
     } else {
         masterSection.style.display = 'none';
+        masterSection.innerHTML = '';
     }
 }
 
@@ -197,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (document.getElementById('search-section')) document.getElementById('search-section').style.display = 'block';
                     if (document.getElementById('data-section')) document.getElementById('data-section').style.display = 'block';
                     
-                    // Handle Master Admin Interface logic
+                    // Handle Master Admin Interface logic directly within the synchronized element
                     if (adminData.isMaster === true) {
                         setupMasterAdminUI(true);
                     } else {
@@ -515,7 +503,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     waButton = document.createElement('a');
                     waButton.id = 'adminWaTeamBtn';
                     waButton.target = '_blank';
-                    waButton.style.cssText = "background:#25d366; color:white; padding:10px 20px; border-radius:10px; text-decoration:none; font-size:1.1rem; display:inline-block; margin-top:10px; font-weight:bold; text-align:center; border: 2px solid #1ebe57; width:80%; box-sizing:border-box;";
+                    waButton.style.cssText = "background:#25d366; color:white; padding:10px 20px; border-radius:10px; text-decoration:none; font-size:1.1rem; display:inline-block; margin-top:10px; font-weight:bold; text-align:center; border: 2px solid #1ebe57; width:85%; box-sizing:border-box;";
                     adKeyInput.parentNode.appendChild(waButton);
                 }
                 waButton.href = waUrl;
