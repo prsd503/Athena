@@ -61,6 +61,13 @@ window.confirmDelete = async () => {
 };
 
 // --- Notice Board Helper Function ---
+// --- Helper to get IST Date String (YYYY-MM-DD) ---
+function getLocalDateString() {
+    // Current time is IST (GMT+5:30)
+    return new Date().toLocaleDateString('en-CA'); // 'en-CA' format is YYYY-MM-DD
+}
+
+// --- Updated Notice Board Helper ---
 async function loadNoticeData() {
     if (!assignedSociety) return;
     try {
@@ -69,11 +76,10 @@ async function loadNoticeData() {
         
         if (noticeDoc.exists()) {
             const data = noticeDoc.data();
-            const todayStr = new Date().toISOString().split('T')[0]; // Current date (YYYY-MM-DD)
+            const todayStr = getLocalDateString(); // Uses IST-aligned local date
 
             // Check if the stored date is from a previous day
             if (data.date && data.date !== todayStr) {
-                // Perform the shift
                 const newData = {
                     todayMessage: data.tomorrowMessage || "",
                     tomorrowMessage: "",
@@ -81,16 +87,13 @@ async function loadNoticeData() {
                     updatedAt: serverTimestamp()
                 };
 
-                // Update Firestore immediately
                 await setDoc(noticeRef, newData, { merge: true });
 
-                // Update local UI
                 document.getElementById('todayMsg').value = newData.todayMessage;
                 document.getElementById('tomorrowMsg').value = "";
                 
-                console.log("Notice board rotated to today's date.");
+                console.log("Notice board rotated to IST date:", todayStr);
             } else {
-                // Normal load
                 if (document.getElementById('todayMsg')) document.getElementById('todayMsg').value = data.todayMessage || "";
                 if (document.getElementById('tomorrowMsg')) document.getElementById('tomorrowMsg').value = data.tomorrowMessage || "";
             }
@@ -400,7 +403,7 @@ document.addEventListener("visibilitychange", () => {
     });
 
     // --- 6. Notice Board Management ---
-    document.getElementById('postNoticeBtn')?.addEventListener('click', async () => {
+   document.getElementById('postNoticeBtn')?.addEventListener('click', async () => {
     const today = document.getElementById('todayMsg').value;
     const tomorrow = document.getElementById('tomorrowMsg').value;
 
@@ -410,11 +413,10 @@ document.addEventListener("visibilitychange", () => {
         await setDoc(doc(db, "notices", assignedSociety), {
             todayMessage: today,
             tomorrowMessage: tomorrow,
-            date: new Date().toISOString().split('T')[0],
+            date: getLocalDateString(), // Saves using the same IST-aligned format
             updatedAt: serverTimestamp()
         }, { merge: true });
         
-        // REPLACED ALERT WITH MODAL:
         window.showModal("Notices updated successfully!");
     } catch (e) {
         window.showModal("Error posting notice: " + e.message);
