@@ -60,6 +60,12 @@
                 <a id="globalAdLink" href="https://wa.me/919033406816?text=Hi%20I%20want%20to%20apply%20for%20global%20ad%20in%20Owl%20Watcher" target="_blank" class="ad-link">Advertise Globally Here!</a>
                 
             </div>
+            
+    <a id="globalAdLink" href="#" target="_blank" class="ad-link">Advertise Globally Here!</a>
+</div>
+
+<!-- New Registration Button -->
+<a id="registerSocietyBtn" href="#" target="_blank" class="admin-btn" style="width: 85%; display: block; margin: 15px auto 0 auto; padding: 10px;">Register Your Society/Organisation</a>
         </div>
         
         <div id="vehicle-search" style="display:none;">
@@ -163,20 +169,29 @@
         }
 
         // Dynamically update link targets using the fetched Master Admin number
-        function updateAdLinks(societyName = "") {
-            const globalAdLink = document.getElementById("globalAdLink");
-            if (globalAdLink) {
-                const globalText = encodeURIComponent("Hi I want to apply for global ad in Owl Watcher");
-                globalAdLink.href = `https://wa.me/${owlWatcherTeamPhone}?text=${globalText}`;
-            }
+function updateAdLinks(societyName = "") {
+    // Existing global ad link logic
+    const globalAdLink = document.getElementById("globalAdLink");
+    if (globalAdLink) {
+        const globalText = encodeURIComponent("Hi I want to apply for global ad in Owl Watcher");
+        globalAdLink.href = `https://wa.me/${owlWatcherTeamPhone}?text=${globalText}`;
+    }
 
-            const localAdLink = document.getElementById("localAdLink");
-            if (localAdLink && societyName) {
-                const localText = encodeURIComponent(`Hi I want to apply for local-society post in Owl Watcher for ${societyName}`);
-                localAdLink.href = `https://wa.me/${owlWatcherTeamPhone}?text=${localText}`;
-                localAdLink.innerText = `Contact for Posting Paid Content in ${societyName}!`;
-            }
-        }
+    // New Registration Button logic
+    const registerBtn = document.getElementById("registerSocietyBtn");
+    if (registerBtn) {
+        const regText = encodeURIComponent("Hi, I want to register my society/organisation in Owl Watcher app");
+        registerBtn.href = `https://wa.me/${owlWatcherTeamPhone}?text=${regText}`;
+    }
+
+    // Existing local ad link logic
+    const localAdLink = document.getElementById("localAdLink");
+    if (localAdLink && societyName) {
+        const localText = encodeURIComponent(`Hi I want to apply for local-society post in Owl Watcher for ${societyName}`);
+        localAdLink.href = `https://wa.me/${owlWatcherTeamPhone}?text=${localText}`;
+        localAdLink.innerText = `Contact for Posting Paid Content in ${societyName}!`;
+    }
+}
 
         // 1. Auto-Switching Notice Board with Preview & Read More
         async function loadNotice(societyId) {
