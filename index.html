@@ -162,6 +162,9 @@
             messagingSenderId: "1011347100861",
             appId: "1:1011347100861:web:24246f9a4eb24d812cd3d4"
         };
+
+  
+
         
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -572,11 +575,20 @@ function updateAdLinks(societyName = "") {
             }, 5 * 60 * 1000);
         });
         window.addEventListener('load', () => {
+             // 1. Handle Audio (Play once per session)
+    const hasPlayed = localStorage.getItem('owlHootPlayed');
+    if (!hasPlayed) {
+        const hoot = document.getElementById('hootSound');
+        hoot.volume = 0.5; // Set volume to 50%
+        hoot.play().catch(e => console.log("Audio play blocked by browser."));
+        localStorage.setItem('owlHootPlayed', 'true');
+    }
     const canvas = document.getElementById('fireCanvas');
     const ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
+   
     let particles = [];
     // Generate fire-like embers
     for(let i = 0; i < 150; i++) {
@@ -606,5 +618,6 @@ function updateAdLinks(societyName = "") {
 });
     </script>
     <canvas id="fireCanvas" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9999;"></canvas>
+<audio id="hootSound" src="https://www.image2url.com/r2/default/audio/1784311526491-4686b768-28ce-4b1a-aef6-34e36159fe8d.mp3" preload="auto"></audio>
 </body>
 </html>
