@@ -202,6 +202,15 @@ function setupMasterAdminUI(isMaster) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+
+    // Add this inside document.addEventListener('DOMContentLoaded', ...)
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+        console.log("Tab returned to focus, re-checking date...");
+        loadNoticeData(); // Re-run the shift logic
+    }
+});
+    
     // --- 1. Auth & Session Persistence ---
     onAuthStateChanged(auth, async (user) => {
         if (user) {
