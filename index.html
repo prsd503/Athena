@@ -571,6 +571,40 @@ function updateAdLinks(societyName = "") {
                 window.location.reload();
             }, 5 * 60 * 1000);
         });
+        window.addEventListener('load', () => {
+    const canvas = document.getElementById('fireCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let particles = [];
+    // Generate fire-like embers
+    for(let i = 0; i < 150; i++) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: canvas.height + Math.random() * 100,
+            size: Math.random() * 5 + 2,
+            speedY: Math.random() * 5 + 2,
+            color: '#e67e22' // Matches your brown/orange brand theme
+        });
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+            p.y -= p.speedY;
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+        });
+        if(particles[0].y > -50) requestAnimationFrame(animate);
+        else canvas.style.display = 'none'; // Clear canvas when done
+    }
+    
+    animate();
+});
     </script>
+    <canvas id="fireCanvas" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9999;"></canvas>
 </body>
 </html>
