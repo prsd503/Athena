@@ -64,14 +64,39 @@ window.confirmDelete = async () => {
 async function loadNoticeData() {
     if (!assignedSociety) return;
     try {
-        const noticeDoc = await getDoc(doc(db, "notices", assignedSociety));
+        const noticeRef = doc(db, "notices", assignedSociety);
+        const noticeDoc = await getDoc(noticeRef);
+        
         if (noticeDoc.exists()) {
             const data = noticeDoc.data();
-            if (document.getElementById('todayMsg')) document.getElementById('todayMsg').value = data.todayMessage || "";
-            if (document.getElementById('tomorrowMsg')) document.getElementById('tomorrowMsg').value = data.tomorrowMessage || "";
+            const todayStr = new Date().toISOString().split('T')[0]; // Current date (YYYY-MM-DD)
+
+            // Check if the stored date is from a previous day
+            if (data.date && data.date !== todayStr) {
+                // Perform the shift
+                const newData = {
+                    todayMessage: data.tomorrowMessage || "",
+                    tomorrowMessage: "",
+                    date: todayStr,
+                    updatedAt: serverTimestamp()
+                };
+
+                // Update Firestore immediately
+                await setDoc(noticeRef, newData, { merge: true });
+
+                // Update local UI
+                document.getElementById('todayMsg').value = newData.todayMessage;
+                document.getElementById('tomorrowMsg').value = "";
+                
+                console.log("Notice board rotated to today's date.");
+            } else {
+                // Normal load
+                if (document.getElementById('todayMsg')) document.getElementById('todayMsg').value = data.todayMessage || "";
+                if (document.getElementById('tomorrowMsg')) document.getElementById('tomorrowMsg').value = data.tomorrowMessage || "";
+            }
         }
     } catch (e) {
-        console.error("Error loading notices: ", e);
+        console.error("Error loading/rotating notices: ", e);
     }
 }
 
