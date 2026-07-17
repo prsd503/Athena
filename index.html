@@ -66,6 +66,9 @@
     </style>
 </head>
 <body>
+    <div id="startOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#fdf6e3; z-index:10000; display:flex; justify-content:center; align-items:center;">
+    <button id="startButton" style="font-size: 2rem; padding: 20px 40px; cursor:pointer;">Enter Owl Watcher 🦉</button>
+</div>
     <div class="card">
         <h1>Owl Watcher 🦉</h1>
         <div id="society-verification">
@@ -574,30 +577,30 @@ function updateAdLinks(societyName = "") {
                 window.location.reload();
             }, 5 * 60 * 1000);
         });
-        window.addEventListener('load', () => {
-             // 1. Handle Audio (Play once per session)
-    const hasPlayed = localStorage.getItem('owlHootPlayed');
-    if (!hasPlayed) {
-        const hoot = document.getElementById('hootSound');
-        hoot.volume = 0.5; // Set volume to 50%
-        hoot.play().catch(e => console.log("Audio play blocked by browser."));
-        localStorage.setItem('owlHootPlayed', 'true');
-    }
+        
+     document.getElementById('startButton').addEventListener('click', function() {
+    // 1. Hide the overlay
+    document.getElementById('startOverlay').style.display = 'none';
+
+    // 2. Play Audio (Now allowed because of user click)
+    const hoot = document.getElementById('hootSound');
+    hoot.volume = 0.5;
+    hoot.play();
+
+    // 3. Trigger Animation
     const canvas = document.getElementById('fireCanvas');
     const ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-   
     let particles = [];
-    // Generate fire-like embers
     for(let i = 0; i < 150; i++) {
         particles.push({
             x: Math.random() * canvas.width,
             y: canvas.height + Math.random() * 100,
             size: Math.random() * 5 + 2,
             speedY: Math.random() * 5 + 2,
-            color: '#e67e22' // Matches your brown/orange brand theme
+            color: '#e67e22'
         });
     }
 
@@ -611,9 +614,8 @@ function updateAdLinks(societyName = "") {
             ctx.fill();
         });
         if(particles[0].y > -50) requestAnimationFrame(animate);
-        else canvas.style.display = 'none'; // Clear canvas when done
+        else canvas.style.display = 'none';
     }
-    
     animate();
 });
     </script>
