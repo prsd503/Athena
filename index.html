@@ -38,6 +38,31 @@
         .btn-msg { background: #25D366; display: inline-block; margin-top: 10px; padding: 10px; color: white; text-decoration: none; border-radius: 10px; font-size: 1rem; }
         .admin-btn { display: inline-block; background: #8d6e63; color: white; padding: 10px 25px; text-decoration: none; border-radius: 10px; font-family: 'Caveat', cursive; font-size: 1.2rem; cursor: pointer; margin-top: 15px; }
         .switch-btn { background: #d32f2f; padding: 4px 10px; font-size: 0.9rem; border-radius: 6px; margin-left: 10px; cursor: pointer; display: inline-block; color: white; vertical-align: middle; }
+
+        /* Animation Keyframes */
+@keyframes fadeInSlide {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Apply to the main content container */
+.card {
+    animation: subtleFocus 3s infinite ease-in-out;
+}
+
+/* Optional: Stagger the entrance of the inputs/buttons for a 'tech' feel */
+#society-verification > * {
+    opacity: 0;
+    animation: fadeInSlide 0.6s ease-out forwards;
+    animation-delay: 0.3s;
+}
+    
     </style>
 </head>
 <body>
