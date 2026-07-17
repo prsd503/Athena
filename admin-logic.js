@@ -392,23 +392,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 6. Notice Board Management ---
     document.getElementById('postNoticeBtn')?.addEventListener('click', async () => {
-        const today = document.getElementById('todayMsg').value;
-        const tomorrow = document.getElementById('tomorrowMsg').value;
+    const today = document.getElementById('todayMsg').value;
+    const tomorrow = document.getElementById('tomorrowMsg').value;
 
-        if (!assignedSociety) return alert("Society not loaded.");
+    if (!assignedSociety) return window.showModal("Society not loaded.");
 
-        try {
-            await setDoc(doc(db, "notices", assignedSociety), {
-                todayMessage: today,
-                tomorrowMessage: tomorrow,
-                date: new Date().toISOString().split('T')[0],
-                updatedAt: serverTimestamp()
-            }, { merge: true });
-            alert("Notices updated successfully!");
-        } catch (e) {
-            alert("Error posting notice: " + e.message);
-        }
-    });
+    try {
+        await setDoc(doc(db, "notices", assignedSociety), {
+            todayMessage: today,
+            tomorrowMessage: tomorrow,
+            date: new Date().toISOString().split('T')[0],
+            updatedAt: serverTimestamp()
+        }, { merge: true });
+        
+        // REPLACED ALERT WITH MODAL:
+        window.showModal("Notices updated successfully!");
+    } catch (e) {
+        window.showModal("Error posting notice: " + e.message);
+    }
+});
 
     document.getElementById('deleteNoticeBtn')?.addEventListener('click', async () => {
         if (!assignedSociety) return;
