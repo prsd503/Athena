@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Owl Watcher - Facility Calendar</title>
-    <!-- Import Caveat Font -->
+    <!-- Import Caveat Font for Branding -->
     <link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
     <!-- FullCalendar CSS -->
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
@@ -57,7 +57,7 @@
 <body>
 
 <div class="brown-theme">
-    <div class="brand-header">Owl Watcher 🦉</div>
+    <div class="brand-header">Owl Watcher</div>
     <h1>Aangan Facility Calendar</h1>
     
     <div id="eventDetails">
@@ -77,7 +77,7 @@
         const calendarEl = document.getElementById('calendar');
         const detailsBox = document.getElementById('eventDetails');
         
-        // Fetch Facility Name Mapping from 'facilities/Aangan'
+        // Fetch Facility Mapping
         const facilityMap = {};
         try {
             const facDocRef = doc(db, "facilities", "Aangan");
@@ -91,12 +91,10 @@
             initialView: 'dayGridMonth',
             headerToolbar: { left: 'prev,today,next', center: 'title', right: '' },
             dateClick: function(info) {
-                // Find first event on the clicked day
                 const dayBookings = calendar.getEvents().filter(e => e.startStr.split('T')[0] === info.dateStr);
                 
                 if (dayBookings.length > 0) {
                     const event = dayBookings[0];
-                    // Map ID (F5) to readable name (Theatre)
                     document.getElementById('dispFacility').innerText = facilityMap[event.title] || event.title;
                     document.getElementById('dispTime').innerText = 
                         `${formatTime(event.start)} - ${formatTime(event.end)}`;
@@ -119,6 +117,7 @@
             snapshot.forEach(doc => {
                 const data = doc.data();
                 calendar.addEvent({ 
+                    id: doc.id, // Ensures unique events to prevent duplicate dots
                     title: data.facilityId, 
                     start: data.start, 
                     end: data.end 
