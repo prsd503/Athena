@@ -56,19 +56,22 @@
         });
         calendar.render();
 
-        // 3. Fetch Bookings
-      
+    // 3. Fetch Bookings
 try {
     const q = query(collection(db, "bookings"), where("society", "==", targetSociety));
     const snapshot = await getDocs(q);
     
     snapshot.forEach(doc => {
         const data = doc.data();
+        
+        // Use the map to get the display name, fallback to ID if not found
+        const displayName = facilityMap[data.facilityId] || data.facilityId || "Booked";
+        
         calendar.addEvent({ 
-            title: data.facility || "Booked", 
-            start: data.start, // This is your "from" time
-            end: data.end,     // Add this line for your "to" time
-            allDay: false      // Required to show specific time slots
+            title: displayName, // Now correctly using the mapped name
+            start: data.start, 
+            end: data.end,     // This end time will now be recognized
+            allDay: false      // This forces the calendar to respect the start/end times
         });
     });
 } catch (e) {
