@@ -143,6 +143,15 @@
             <button id="addFacilityBtn" style="background: #8d6e63;">Add Facility</button>
             <p style="font-size: 0.9rem; color: #5d4037;">These will appear on the booking portal.</p>
         </div>
+        <!-- Add this to your admin.html -->
+<div id="booking-section" class="card">
+    <h3>📅 Facility Bookings</h3>
+    <select id="facilitySelect">
+        <!-- You will populate this list dynamically from your 'facilities' collection -->
+    </select>
+    <input type="date" id="bookingDate">
+    <button id="bookFacilityBtn" style="background: #6d4c41; color: white;">Confirm Booking</button>
+</div>
         
         <hr style="margin:20px 0;">
         <h3>Bulk Vehicle Management</h3>
