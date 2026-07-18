@@ -3,23 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Owl Watcher | Facility Booking</title>
+    <title>Owl Watcher | Booking Portal</title>
     
-    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
-    <!-- FullCalendar CSS -->
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
-    <!-- Load FullCalendar JS globally -->
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
     
     <style>
         body { font-family: 'Caveat', cursive; background-color: #fdf6e3; color: #5d4037; padding: 20px; }
-        .brown-theme { 
-            background-color: #f4ece0; padding: 20px; border-radius: 16px; 
-            border: 2px solid #8d6e63; max-width: 800px; margin: 0 auto; 
-        }
-        .control-group { margin-bottom: 20px; text-align: center; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-        select, input { padding: 10px; border-radius: 8px; border: 1px solid #8d6e63; }
+        .brown-theme { background-color: #f4ece0; padding: 20px; border-radius: 16px; border: 2px solid #8d6e63; max-width: 800px; margin: 0 auto; }
+        .control-group { margin-bottom: 20px; text-align: center; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+        select, input { padding: 10px; border-radius: 8px; border: 1px solid #8d6e63; width: 90%; max-width: 300px; }
         button { background: #8d6e63; color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; }
         #calendar { margin-top: 20px; background: white; padding: 10px; border-radius: 10px; }
     </style>
@@ -27,19 +21,16 @@
 <body>
 
 <div class="brown-theme">
-    <h1 style="text-align: center;" id="societyTitle">Booking Facility Portal</h1>
+    <h1 style="text-align: center;" id="societyTitle">Booking Portal</h1>
     
-    <!-- Booking Form -->
     <div class="control-group">
         <select id="facilitySelect"><option>Loading...</option></select>
         <input type="date" id="bookingDate">
         <button id="bookFacilityBtn">Confirm Booking</button>
     </div>
 
-    <!-- Calendar Container -->
     <div id='calendar'></div>
 
-    <!-- Contact Admin -->
     <div style="text-align: center; margin-top: 20px;">
         <a id="waContactLink" href="#" target="_blank" style="text-decoration: none; color: #8d6e63; font-weight: bold;">
             💬 Contact Society Admin for Assistance
@@ -49,69 +40,51 @@
 
 <script type="module">
     import { db } from "./app.js"; 
-    import { doc, getDoc, collection, addDoc, getDocs, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { doc, getDoc, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const urlParams = new URLSearchParams(window.location.search);
     const targetSociety = urlParams.get('society');
 
     document.addEventListener('DOMContentLoaded', async () => {
-        if (!targetSociety) {
-            alert("No society selected.");
-            return;
-        }
-
+        if (!targetSociety) return alert("Society not found.");
+        
         document.getElementById('societyTitle').innerText = `Booking Portal: ${targetSociety}`;
-        document.getElementById('waContactLink').href = `https://wa.me/919033406816?text=Hello, I need help booking a facility in ${targetSociety}`;
+        document.getElementById('waContactLink').href = `https://wa.me/919033406816?text=Hi, I need help booking a facility in ${targetSociety}`;
 
         await loadFacilities(targetSociety);
-        await renderCalendar(targetSociety);
-
-        document.getElementById('bookFacilityBtn').addEventListener('click', handleBooking);
+        await initCalendar(targetSociety);
     });
 
-    async function loadFacilities(societyName) {
-        try {
-            const docSnap = await getDoc(doc(db, "facilities", societyName));
-            const select = document.getElementById('facilitySelect');
-            if (docSnap.exists()) {
-                select.innerHTML = docSnap.data().list.map(f => `<option value="${f}">${f}</option>`).join('');
-            } else {
-                select.innerHTML = `<option>No facilities</option>`;
-            }
-        } catch (e) { console.error(e); }
+    async function loadFacilities(society) {
+        const snap = await getDoc(doc(db, "facilities", society));
+        const select = document.getElementById('facilitySelect');
+        if (snap.exists()) {
+            select.innerHTML = snap.data().list.map(f => `<option value="${f}">${f}</option>`).join('');
+        }
     }
 
-    async function renderCalendar(societyName) {
-        const bookings = [];
-        const q = query(collection(db, "bookings"), where("society", "==", societyName));
-        const snapshot = await getDocs(q);
-        snapshot.forEach(doc => bookings.push(doc.data()));
+    async function initCalendar(society) {
+        const events = [];
+        const q = query(collection(db, "bookings"), where("society", "==", society));
+        const snap = await getDocs(q);
+        snap.forEach(d => events.push({ title: d.data().facility, start: d.data().start }));
 
-        const calendarEl = document.getElementById('calendar');
-        const calendar = new FullCalendar.Calendar(calendarEl, {
+        const calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
             initialView: 'dayGridMonth',
-            events: bookings
+            events: events
         });
         calendar.render();
     }
 
-    async function handleBooking() {
-        const fName = document.getElementById('facilitySelect').value;
-        const date = document.getElementById('bookingDate').value;
-        if (!fName || !date) return alert("Please select a facility and a date.");
+    document.getElementById('bookFacilityBtn').addEventListener('click', async () => {
+        const f = document.getElementById('facilitySelect').value;
+        const d = document.getElementById('bookingDate').value;
+        if (!f || !d) return alert("Please fill all details.");
         
-        try {
-            await addDoc(collection(db, "bookings"), {
-                society: targetSociety,
-                facility: fName,
-                start: date,
-                title: `Booked: ${fName}`,
-                createdAt: serverTimestamp()
-            });
-            alert("Booking confirmed!");
-            location.reload();
-        } catch (e) { alert("Error: " + e.message); }
-    }
+        await addDoc(collection(db, "bookings"), { society: targetSociety, facility: f, start: d });
+        alert("Booking submitted!");
+        location.reload();
+    });
 </script>
 
 </body>
