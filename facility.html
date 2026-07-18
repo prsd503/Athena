@@ -4,10 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Owl Watcher - Facility Calendar</title>
+    <!-- Import Caveat Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
+    <!-- FullCalendar CSS -->
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
     <style>
         /* Brown Theme Palette */
         body { font-family: sans-serif; background-color: #fdf6e3; padding: 20px; color: #5d4037; }
+        
         .brown-theme { 
             background-color: #efebe9; 
             padding: 20px; 
@@ -17,10 +21,18 @@
             margin: 0 auto;
             box-shadow: 0 4px 15px rgba(141, 110, 99, 0.2);
         }
+        
         #calendar { background: white; padding: 10px; border-radius: 12px; margin-bottom: 20px; }
         
         /* Branding */
-        .brand-header { text-align: center; color: #5d4037; margin-bottom: 5px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+        .brand-header { 
+            font-family: 'Caveat', cursive; 
+            text-align: center; 
+            color: #5d4037; 
+            font-size: 32px; 
+            margin-bottom: 5px; 
+        }
+        
         h1 { text-align: center; font-size: 22px; color: #3e2723; margin-top: 0; }
         
         /* Summary Box */
@@ -32,7 +44,14 @@
         /* Calendar Styling */
         .fc .fc-toolbar-title { font-size: 1.2rem !important; color: #3e2723; }
         .fc-event-title, .fc-event-time { display: none !important; }
-        .fc-event { border-radius: 50% !important; width: 10px !important; height: 10px !important; margin: 0 auto !important; background-color: #8d6e63 !important; border: none !important; }
+        .fc-event { 
+            border-radius: 50% !important; 
+            width: 10px !important; 
+            height: 10px !important; 
+            margin: 0 auto !important; 
+            background-color: #8d6e63 !important; 
+            border: none !important; 
+        }
     </style>
 </head>
 <body>
@@ -58,6 +77,7 @@
         const calendarEl = document.getElementById('calendar');
         const detailsBox = document.getElementById('eventDetails');
         
+        // Fetch Facility Name Mapping from 'facilities/Aangan'
         const facilityMap = {};
         try {
             const facDocRef = doc(db, "facilities", "Aangan");
@@ -71,9 +91,12 @@
             initialView: 'dayGridMonth',
             headerToolbar: { left: 'prev,today,next', center: 'title', right: '' },
             dateClick: function(info) {
+                // Find first event on the clicked day
                 const dayBookings = calendar.getEvents().filter(e => e.startStr.split('T')[0] === info.dateStr);
+                
                 if (dayBookings.length > 0) {
                     const event = dayBookings[0];
+                    // Map ID (F5) to readable name (Theatre)
                     document.getElementById('dispFacility').innerText = facilityMap[event.title] || event.title;
                     document.getElementById('dispTime').innerText = 
                         `${formatTime(event.start)} - ${formatTime(event.end)}`;
@@ -89,12 +112,17 @@
             return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase();
         }
 
+        // Fetch and load bookings
         try {
             const q = query(collection(db, "bookings"), where("society", "==", "Aangan"));
             const snapshot = await getDocs(q);
             snapshot.forEach(doc => {
                 const data = doc.data();
-                calendar.addEvent({ title: data.facilityId, start: data.start, end: data.end });
+                calendar.addEvent({ 
+                    title: data.facilityId, 
+                    start: data.start, 
+                    end: data.end 
+                });
             });
         } catch (error) { console.error("Error loading bookings:", error); }
     });
