@@ -53,21 +53,24 @@
         const detailsBox = document.getElementById('eventDetails');
         const facilityMap = {};
         
-        // 2. Fetch Data
-        try {
-            // Get Society Name
-            const socDoc = await getDoc(doc(db, "societies", societyId));
-            if (socDoc.exists()) {
-                document.getElementById('societyHeader').innerText = `${socDoc.data().name} Facility Calendar`;
-            }
+        // 2. Fetch Society Info & Facilities dynamically
+try {
+    // Get Display Name
+    const socDoc = await getDoc(doc(db, "societies", societyId));
+    if (socDoc.exists()) {
+        // USE BACKTICKS HERE: ` `
+        document.getElementById('societyHeader').innerText = `${socDoc.data().name} Facility Calendar`;
+    }
 
-            // Get Facilities
-            const facDocSnap = await getDoc(doc(db, "facilities", societyId));
-            if (facDocSnap.exists()) {
-                Object.assign(facilityMap, facDocSnap.data());
-            }
-        } catch (e) { console.error("Error loading setup:", e); }
-
+    // Get Facilities for THIS specific society
+    const facDocRef = doc(db, "facilities", societyId);
+    const facDocSnap = await getDoc(facDocRef);
+    if (facDocSnap.exists()) {
+        Object.assign(facilityMap, facDocSnap.data());
+    }
+} catch (e) { 
+    console.error("Error fetching data:", e); 
+}
         // 3. Init Calendar
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
