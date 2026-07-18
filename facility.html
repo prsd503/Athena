@@ -1,0 +1,22 @@
+<!-- Include FullCalendar via CDN -->
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+
+<div class="brown-theme">
+    <h2>Society Facilities</h2>
+    <div id='calendar'></div>
+    <a href="https://wa.me/ADMIN_NUMBER?text=Hi,%20I%20want%20to%20book%20facility%20in%20YOUR_SOCIETY_NAME%20(using:Owl%20Watcher)" target="_blank">
+        Contact Admin to Book
+    </a>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', async function() {
+    const calendarEl = document.getElementById('calendar');
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'dayGridMonth',
+      events: await fetchBookingsFromFirestore() // Helper to get docs from Firestore
+    });
+    calendar.render();
+  });
+</script>
