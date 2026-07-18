@@ -57,25 +57,23 @@
         calendar.render();
 
         // 3. Fetch Bookings
-        try {
-            const q = query(collection(db, "bookings"), where("society", "==", targetSociety));
-            const snapshot = await getDocs(q);
-            
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                // Map F1/F2 to their real names from the map
-                const displayName = facilityMap[data.facilityId] || data.facilityId;
-                
-                calendar.addEvent({ 
-                    title: displayName, 
-                    start: data.start, // Format: YYYY-MM-DDTHH:mm:ss
-                    end: data.end,     // Format: YYYY-MM-DDTHH:mm:ss
-                    allDay: false      // Shows the time slots clearly
-                });
-            });
-        } catch (e) {
-            console.error("Error fetching bookings:", e);
-        }
+      
+try {
+    const q = query(collection(db, "bookings"), where("society", "==", targetSociety));
+    const snapshot = await getDocs(q);
+    
+    snapshot.forEach(doc => {
+        const data = doc.data();
+        calendar.addEvent({ 
+            title: data.facility || "Booked", 
+            start: data.start, // This is your "from" time
+            end: data.end,     // Add this line for your "to" time
+            allDay: false      // Required to show specific time slots
+        });
+    });
+} catch (e) {
+    console.error("Error fetching bookings:", e);
+}
     });
 </script>
 
