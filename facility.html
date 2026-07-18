@@ -45,20 +45,20 @@
         const calendarEl = document.getElementById('calendar');
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
-            // Clicking a day shows bookings for that date
+            displayEventTime: false, // CRITICAL: This hides the time on the calendar dots
             dateClick: function(info) {
                 const dayBookings = calendar.getEvents().filter(e => 
-                    e.startStr.split('T')[0] === info.dateStr
+                    e.startStr === info.dateStr
                 );
                 
                 if (dayBookings.length > 0) {
-                    const event = dayBookings[0]; // Show first booking found
-                    const start = event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    const end = event.end ? event.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
+                    const event = dayBookings[0];
+                    const detailsBox = document.getElementById('eventDetails');
                     
-                    document.getElementById('dispFacility').innerText = event.title; // Shows actual name
-                    document.getElementById('dispTime').innerText = `${start} - ${end}`;
-                    document.getElementById('eventDetails').style.display = 'block';
+                    // Display facility name and times in the summary box
+                    document.getElementById('dispFacility').innerText = event.title;
+                    document.getElementById('dispTime').innerText = `${event.start.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${event.end ? event.end.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'N/A'}`;
+                    detailsBox.style.display = 'block';
                 }
             }
         });
@@ -70,14 +70,15 @@
         snapshot.forEach(doc => {
             const data = doc.data();
             calendar.addEvent({ 
-                title: data.facility, // Ensure 'facility' field exists in DB
+                title: data.facility, // Ensure 'facility' matches your Firestore field
                 start: data.start, 
-                end: data.end,
-                display: 'list-item' // Ensures only dot/marker shows on grid
+                end: data.end, 
+                display: 'list-item'
             });
         });
     });
 </script>
+
 
 </body>
 </html>
