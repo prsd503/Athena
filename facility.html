@@ -7,9 +7,7 @@
     
     <!-- FullCalendar CSS -->
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
-    <!-- FullCalendar JS -->
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
-    
+   
     <style>
         body { font-family: sans-serif; background-color: #fdf6e3; padding: 20px; }
         .brown-theme { background-color: #f4ece0; padding: 20px; border-radius: 16px; border: 2px solid #8d6e63; max-width: 800px; margin: 0 auto; }
@@ -35,44 +33,44 @@
     </div>
 </div>
 
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
 <script type="module">
     import { db } from "./app.js"; 
     import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const urlParams = new URLSearchParams(window.location.search);
-    const targetSociety = urlParams.get('society') || "Aangan"; // Default for testing
+    const targetSociety = urlParams.get('society') || "Aangan"; 
 
     document.addEventListener('DOMContentLoaded', async () => {
-        document.getElementById('societyTitle').innerText = `${targetSociety} Facility Calendar`;
-        document.getElementById('waContactLink').href = `https://wa.me/919033406816?text=Hello, I want to book a facility in ${targetSociety}`;
-
-        // 1. Fetch data FIRST
-        const q = query(collection(db, "bookings"), where("society", "==", targetSociety));
-        const snapshot = await getDocs(q);
-        
-        const fetchedEvents = [];
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            fetchedEvents.push({ 
-                title: data.title || data.facility, // Uses your Firestore title format
-                start: data.start 
-            });
-        });
-
-        // 2. Initialize calendar WITH the events
+        // Ensure element exists before initializing
         const calendarEl = document.getElementById('calendar');
+        if (!calendarEl) {
+            console.error("Calendar element not found!");
+            return;
+        }
+
+        // Initialize Calendar
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
-            events: fetchedEvents, // Pass data here
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth'
-            },
-            eventColor: '#8d6e63' // Matches your theme
+            events: [] 
         });
-        
         calendar.render();
+
+        // Fetch Data
+        try {
+            const q = query(collection(db, "bookings"), where("society", "==", targetSociety));
+            const snapshot = await getDocs(q);
+            
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                calendar.addEvent({ 
+                    title: data.facility || "Booked", 
+                    start: data.start 
+                });
+            });
+        } catch (e) {
+            console.error("Error fetching bookings:", e);
+        }
     });
 </script>
 
