@@ -210,12 +210,4 @@ async function loadNoticeData() {
     }
 }
 
-async function loadFacilitiesDropdown() {
-    if (!assignedSociety) return;
-    const fDoc = await getDoc(doc(db, "facilities", assignedSociety));
-    const select = document.getElementById('facilitySelect');
-    if (select && fDoc.exists()) {
-        const list = fDoc.data().list || [];
-        select.innerHTML = list.map(f => `<option value="${f}">${f}</option>`).join('');
-    }
-}
+
