@@ -6,8 +6,8 @@
     <title>Owl Watcher - Facility Calendar</title>
     <!-- Import Caveat Font for Branding -->
     <link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
-    <!-- FullCalendar CSS -->
-    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css' rel='stylesheet' />
+    <!-- Corrected FullCalendar CSS CDN Link to fix the 404 error -->
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
     <style>
         /* Brown Theme Palette */
         body { font-family: sans-serif; background-color: #fdf6e3; padding: 20px; color: #5d4037; }
@@ -41,14 +41,18 @@
             border: 1px solid #d7ccc8; text-align: center; display: none; color: #5d4037;
         }
         
-        /* Calendar Styling */
+        /* Calendar Grid & Dot Resets */
         .fc .fc-toolbar-title { font-size: 1.2rem !important; color: #3e2723; }
+        
+        /* Hide text inside calendar event boxes */
         .fc-event-title, .fc-event-time { display: none !important; }
+        
+        /* Style events as custom clean brown dots */
         .fc-event { 
             border-radius: 50% !important; 
             width: 10px !important; 
             height: 10px !important; 
-            margin: 0 auto !important; 
+            margin: 2px auto !important; 
             background-color: #8d6e63 !important; 
             border: none !important; 
         }
@@ -91,6 +95,7 @@
             initialView: 'dayGridMonth',
             headerToolbar: { left: 'prev,today,next', center: 'title', right: '' },
             dateClick: function(info) {
+                // Filters events down strictly to the single day clicked
                 const dayBookings = calendar.getEvents().filter(e => e.startStr.split('T')[0] === info.dateStr);
                 
                 if (dayBookings.length > 0) {
@@ -110,14 +115,14 @@
             return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase();
         }
 
-        // Fetch and load bookings
+        // Fetch bookings from Firestore
         try {
             const q = query(collection(db, "bookings"), where("society", "==", "Aangan"));
             const snapshot = await getDocs(q);
             snapshot.forEach(doc => {
                 const data = doc.data();
                 calendar.addEvent({ 
-                    id: doc.id, // Ensures unique events to prevent duplicate dots
+                    id: doc.id,
                     title: data.facilityId, 
                     start: data.start, 
                     end: data.end 
