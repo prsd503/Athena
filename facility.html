@@ -11,8 +11,12 @@
         body { font-family: sans-serif; background-color: #fdf6e3; padding: 20px; }
         .brown-theme { background-color: #f4ece0; padding: 20px; border-radius: 16px; border: 2px solid #8d6e63; max-width: 800px; margin: 0 auto; }
         #calendar { background: white; padding: 10px; border-radius: 10px; margin-bottom: 20px; height: 500px; width: 100%; }
-        /* Box to show clicked event details */
+        
+        /* Display box for clicked event details */
         #eventDetails { background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #8d6e63; text-align: center; display: none; }
+        
+        /* Hide event titles on the calendar grid */
+        .fc-event-title { display: none !important; }
     </style>
 </head>
 <body>
@@ -20,7 +24,6 @@
 <div class="brown-theme">
     <h1 style="text-align: center;" id="societyTitle">Aangan Facility Calendar</h1>
     
-    <!-- New display box for clicked event details -->
     <div id="eventDetails">
         <strong>Facility:</strong> <span id="dispFacility"></span><br>
         <strong>Time:</strong> <span id="dispTime"></span>
@@ -45,8 +48,7 @@
         const calendarEl = document.getElementById('calendar');
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
-            headerToolbar: { left: 'prev,next', center: 'title', right: 'dayGridMonth,timeGridDay' },
-            // Handle clicking the event
+            headerToolbar: { left: 'prev,next', center: 'title', right: 'dayGridMonth' },
             eventClick: function(info) {
                 const detailsBox = document.getElementById('eventDetails');
                 const start = info.event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -59,7 +61,6 @@
         });
         calendar.render();
 
-        // Fetch bookings
         const q = query(collection(db, "bookings"), where("society", "==", targetSociety));
         const snapshot = await getDocs(q);
         
@@ -67,8 +68,9 @@
             const data = doc.data();
             calendar.addEvent({ 
                 title: data.facility || "Booked", 
-                start: data.start, // Ensure this is ISO format (e.g., 2026-07-18T13:35:00)
-                end: data.end      // Ensure this is ISO format
+                start: data.start, 
+                end: data.end,
+                display: 'list-item' // Ensures only a dot/marker shows on the grid
             });
         });
     });
