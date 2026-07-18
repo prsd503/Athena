@@ -214,6 +214,34 @@ document.getElementById('masterSocietySelectBtn')?.addEventListener('click', asy
     }
 }
 
+async function addFacility(name) {
+    const ref = doc(db, "facilities", assignedSociety);
+    try {
+        await updateDoc(ref, {
+            list: arrayUnion(name)
+        });
+        window.showModal("Facility added successfully!");
+    } catch (e) {
+        // If the document doesn't exist yet, create it
+        if (e.code === 'not-found') {
+            await setDoc(ref, { list: [name] });
+            window.showModal("Facility created and added!");
+        } else {
+            window.showModal("Error adding facility: " + e.message);
+        }
+    }
+}
+
+async function loadFacilitiesDropdown() {
+    const facilityDoc = await getDoc(doc(db, "facilities", assignedSociety));
+    const select = document.getElementById('facilitySelect');
+    if (facilityDoc.exists()) {
+        const list = facilityDoc.data().list;
+        select.innerHTML = list.map(f => `<option value="${f}">${f}</option>`).join('');
+    }
+}
+
+                                                                    
 document.addEventListener('DOMContentLoaded', () => {
 
 
@@ -516,32 +544,7 @@ document.addEventListener("visibilitychange", () => {
         document.getElementById('gPhone').value = "";
     }); 
     
-async function addFacility(name) {
-    const ref = doc(db, "facilities", assignedSociety);
-    try {
-        await updateDoc(ref, {
-            list: arrayUnion(name)
-        });
-        window.showModal("Facility added successfully!");
-    } catch (e) {
-        // If the document doesn't exist yet, create it
-        if (e.code === 'not-found') {
-            await setDoc(ref, { list: [name] });
-            window.showModal("Facility created and added!");
-        } else {
-            window.showModal("Error adding facility: " + e.message);
-        }
-    }
-}
 
-async function loadFacilitiesDropdown() {
-    const facilityDoc = await getDoc(doc(db, "facilities", assignedSociety));
-    const select = document.getElementById('facilitySelect');
-    if (facilityDoc.exists()) {
-        const list = facilityDoc.data().list;
-        select.innerHTML = list.map(f => `<option value="${f}">${f}</option>`).join('');
-    }
-}
 
     
     async function createBooking(facilityName, date, timeSlot) {
