@@ -64,41 +64,35 @@
     import { collection, getDocs, doc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     document.addEventListener('DOMContentLoaded', async () => {
-        // 1. Extract society ID from URL (e.g., facility.html?society=xyz)
         const urlParams = new URLSearchParams(window.location.search);
         const societyId = urlParams.get('society');
 
         if (!societyId) {
-            document.getElementById('societyHeader').innerText = "Society not found";
+            document.getElementById('societyHeader').innerText = "Society not specified";
             return;
         }
 
         const calendarEl = document.getElementById('calendar');
         const detailsBox = document.getElementById('eventDetails');
-        
-// 2. Fetch Society Info & Facilities dynamically
         const facilityMap = {};
-        try {
-            const snap = await getDocs(collection(db, "societies"));
-            const match = snap.docs.find(d => d.data().name?.toLowerCase() === input);
-            if (match)
-            {
-                // Get Display Name
-                const socDoc = await getDoc(doc(db, "societies", societyId));
-                if (socDoc.exists()) {
-                    document.getElementById('societyHeader').innerText = ${socDoc.data().name} Facility Calendar;
-                }
 
-                // Get Facilities for THIS specific society
-                const facDocRef = doc(db, "facilities", societyId);
-                const facDocSnap = await getDoc(facDocRef);
-                if (facDocSnap.exists()) {
-                    Object.assign(facilityMap, facDocSnap.data());
-                }
+        // 2. Fetch Society Info & Facilities dynamically
+        try {
+            // Get Display Name directly using the known societyId
+            const socDoc = await getDoc(doc(db, "societies", societyId));
+            if (socDoc.exists()) {
+                document.getElementById('societyHeader').innerText = `${socDoc.data().name} Facility Calendar`;
             }
-          
-           
-        } catch (e) { console.error("Error fetching data:", e); }
+
+            // Get Facilities for THIS specific society
+            const facDocRef = doc(db, "facilities", societyId);
+            const facDocSnap = await getDoc(facDocRef);
+            if (facDocSnap.exists()) {
+                Object.assign(facilityMap, facDocSnap.data());
+            }
+        } catch (e) { 
+            console.error("Error fetching data:", e); 
+        }
 
         // 3. Initialize Calendar
         const calendar = new FullCalendar.Calendar(calendarEl, {
