@@ -102,6 +102,11 @@ window.updateFacilityName = async (fId) => {
     const newName = document.getElementById(`name_${fId}`).value.trim();
     if (!newName) return window.showModal("Please enter a name.");
     
+    // Update the mapping object
+    await setDoc(doc(db, "facilities", assignedSociety), { [fId]: newName }, { merge: true });
+    window.showModal(`${fId} updated to ${newName}`);
+    loadFacilitiesDropdown();
+}; // <--- You were missing this closing brace
    
 async function saveAllFacilityNames() {
     const data = {
@@ -112,11 +117,7 @@ async function saveAllFacilityNames() {
         F5: document.getElementById('name_F5').value
     };
     
-    // Updates the document for the current society
-    await setDoc(doc(db, "facilities", assignedSociety), data, { merge: true });
-    window.showModal("Facility names updated!");
-    loadFacilitiesDropdown(); // Refreshes the booking dropdown
-}
+
 
     
 // --- Updated Dropdown Logic ---
