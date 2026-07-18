@@ -120,6 +120,16 @@ function setupMasterAdminUI(isMaster) {
     isMasterAdminUser = isMaster;
     let masterSection = document.getElementById('master-section');
 
+document.getElementById('masterSocietySelectBtn')?.addEventListener('click', async () => {
+    // ... (your existing code)
+    assignedSociety = sName;
+    document.getElementById('active-society-display').innerText = assignedSociety;
+    
+    // Add this line here:
+    loadFacilitiesDropdown(); 
+    
+    loadNoticeData();
+    
     // 2. NEW: Toggle Bulk Management visibility
     const bulkSection = document.getElementById('bulk-section'); // Ensure your HTML has this ID
     if (bulkSection) {
@@ -224,6 +234,7 @@ document.addEventListener("visibilitychange", () => {
                 if (adminDoc.exists()) {
                     const adminData = adminDoc.data();
                     assignedSociety = adminData.society || "";
+                    loadFacilitiesDropdown();
                     
                     // Force display states to maintain layout on refresh
                     document.getElementById('login-section').style.display = 'none';
