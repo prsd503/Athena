@@ -48,13 +48,22 @@
         const facilityDoc = await getDoc(doc(db, "facilities", targetSociety));
         const facilityMap = facilityDoc.exists() ? facilityDoc.data() : {};
 
-        // 2. Initialize Calendar
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridDay' },
-            events: [] 
-        });
-        calendar.render();
+       // 2. Initialize Calendar
+const calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'dayGridMonth',
+    headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridDay' },
+    
+    // --- ADD THIS SECTION ---
+    eventTimeFormat: { 
+        hour: 'numeric',
+        minute: '2-digit',
+        meridiem: 'short'
+    },
+    displayEventTime: true, // Ensures the time range is shown
+    // ------------------------
+
+    events: [] 
+});
 
     // 3. Fetch Bookings
 try {
