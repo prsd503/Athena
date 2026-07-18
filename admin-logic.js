@@ -69,13 +69,21 @@ document.getElementById('saveAllFacilityNamesBtn')?.addEventListener('click', sa
         }
     });
 
-    // 2. Login/Logout
-    document.getElementById('loginBtn')?.addEventListener('click', async () => {
-        const email = document.getElementById('email').value.trim();
-        const pass = document.getElementById('pass').value.trim();
-        try { await signInWithEmailAndPassword(auth, email, pass); } 
-        catch (e) { window.showModal("Login error: " + e.message); }
-    });
+  // 2. Login/Logout
+document.getElementById('loginBtn')?.addEventListener('click', async () => {
+    const email = document.getElementById('email').value.trim();
+    const pass = document.getElementById('pass').value.trim();
+    try { 
+        await signInWithEmailAndPassword(auth, email, pass); 
+    } catch (e) { 
+        // Improved user-friendly messaging
+        let userMsg = "Login failed. Please check your credentials.";
+        if (e.code === 'auth/invalid-email') userMsg = "The email address is invalid.";
+        if (e.code === 'auth/invalid-credential') userMsg = "Invalid email or password.";
+        
+        window.showModal(userMsg); 
+    }
+});
 
     document.getElementById('logoutBtn')?.addEventListener('click', () => signOut(auth));
 
