@@ -141,15 +141,22 @@ async function loadFacilitiesDropdown() {
 }
 
 // --- 5. Booking & Deletion ---
+// Updated Booking function
 document.getElementById('bookFacilityBtn')?.addEventListener('click', async () => {
     const fId = document.getElementById('facilitySelect').value;
-    const d = document.getElementById('bookingDate').value;
+    const date = document.getElementById('bookingDate').value; // e.g., 2026-07-18
+    const startT = document.getElementById('startTime').value; // e.g., 10:00
+    const endT = document.getElementById('endTime').value;     // e.g., 14:00
+
+    if (!date || !startT || !endT) return window.showModal("Please select date and times.");
+
     await addDoc(collection(db, "bookings"), { 
         society: assignedSociety, 
-        facilityId: fId, // Save the ID (F1-F5)
-        start: d 
+        facilityId: fId, 
+        start: `${date}T${startT}:00`, // FullCalendar ISO start
+        end: `${date}T${endT}:00`       // FullCalendar ISO end
     });
-    window.showModal("Booking created!");
+    window.showModal("Booking created with time slot!");
 });
 
 // New Function to Delete Bookings
