@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
 document.getElementById('addFacilityBtn')?.addEventListener('click', () => {
     const fName = document.getElementById('newFacilityName').value.trim();
     if (fName) {
-        addFacility(fName);
+        addFacility(fName); // This calls your existing function
         document.getElementById('newFacilityName').value = ""; // Clear input
     } else {
         window.showModal("Please enter a facility name.");
