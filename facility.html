@@ -4,53 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Facility Calendar</title>
-    
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
-   
     <style>
         body { font-family: sans-serif; background-color: #fdf6e3; padding: 20px; }
         .brown-theme { background-color: #f4ece0; padding: 20px; border-radius: 16px; border: 2px solid #8d6e63; max-width: 800px; margin: 0 auto; }
-        #calendar { background: white; padding: 10px; border-radius: 10px; margin-bottom: 20px; height: 500px; width: 100%; }
+        #calendar { background: white; padding: 10px; border-radius: 10px; margin-bottom: 20px; height: 500px; }
         
-        /* Display box for clicked event details */
-        #eventDetails { background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #8d6e63; text-align: center; display: none; }
+        #eventDetails { 
+            background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 20px; 
+            border: 1px solid #8d6e63; text-align: center; display: none; 
+        }
         
-        /* Hide event titles on the calendar grid */
+        /* Forces events to appear as dots instead of bars */
         .fc-event-title { display: none !important; }
-
-        
-    #eventDetails {
-        background: #fff;
-        padding: 15px;
-        border-radius: 10px;
-        margin-bottom: 20px;
-        border: 1px solid #8d6e63;
-        text-align: center;
-        display: none; /* Initially hidden */
-    }
-
-    
-    
     </style>
 </head>
 <body>
 
 <div class="brown-theme">
-    <h1 style="text-align: center;" id="societyTitle">Aangan Facility Calendar</h1>
+    <h1 style="text-align: center;">Aangan Facility Calendar</h1>
     
-    <!-- ADD THIS SECTION TO YOUR HTML -->
-    <div id="eventDetails" style="background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #8d6e63; text-align: center; display: none;">
+    <div id="eventDetails">
         <strong>Facility:</strong> <span id="dispFacility"></span><br>
         <strong>Time:</strong> <span id="dispTime"></span>
     </div>
 
     <div id='calendar'></div>
-    
-
-    
-    <div style="text-align: center;">
-        <a id="waContactLink" href="#" target="_blank">💬 Contact Society Admin for Booking</a>
-    </div>
 </div>
 
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
@@ -60,42 +39,52 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
         const calendarEl = document.getElementById('calendar');
+        const detailsBox = document.getElementById('eventDetails');
+
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
-            displayEventTime: false, // CRITICAL: This hides the time on the calendar dots
+            eventDisplay: 'list-item', // Renders events as dots
             dateClick: function(info) {
+                // Find all bookings for the clicked date
                 const dayBookings = calendar.getEvents().filter(e => 
-                    e.startStr === info.dateStr
+                    e.startStr.split('T')[0] === info.dateStr
                 );
                 
                 if (dayBookings.length > 0) {
                     const event = dayBookings[0];
-                    const detailsBox = document.getElementById('eventDetails');
-                    
-                    // Display facility name and times in the summary box
                     document.getElementById('dispFacility').innerText = event.title;
-                    document.getElementById('dispTime').innerText = `${event.start.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${event.end ? event.end.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'N/A'}`;
+                    document.getElementById('dispTime').innerText = 
+                        `${formatTime(event.start)} - ${event.end ? formatTime(event.end) : 'N/A'}`;
                     detailsBox.style.display = 'block';
+                } else {
+                    detailsBox.style.display = 'none';
                 }
             }
         });
         calendar.render();
 
-        const q = query(collection(db, "bookings"), where("society", "==", "Aangan"));
-        const snapshot = await getDocs(q);
-        
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            calendar.addEvent({ 
-                title: data.facility, // Ensure 'facility' matches your Firestore field
-                start: data.start, 
-                end: data.end, 
-                display: 'list-item'
+        function formatTime(date) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Fetch bookings from Firestore for society "Aangan"[cite: 11]
+        try {
+            const q = query(collection(db, "bookings"), where("society", "==", "Aangan"));
+            const snapshot = await getDocs(q);
+            
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                calendar.addEvent({ 
+                    title: data.facilityId || "Booked", 
+                    start: data.start, // Expected format: YYYY-MM-DDTHH:MM:SS[cite: 11]
+                    end: data.end
+                });
             });
-        });
+        } catch (error) {
+            console.error("Error loading bookings:", error);
+        }
     });
 </script>
-
 
 </body>
 </html>
