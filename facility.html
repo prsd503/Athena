@@ -42,22 +42,32 @@
     document.addEventListener('DOMContentLoaded', async () => {
         const calendarEl = document.getElementById('calendar');
         const detailsBox = document.getElementById('eventDetails');
+        
+        // 1. Fetch Facility Name Mapping first
+        const facilityMap = {};
+        const facSnapshot = await getDocs(collection(db, "facilities"));
+        facSnapshot.forEach(doc => {
+            // Assuming your facilities documents have a 'name' field and ID is the facility identifier (e.g., F5)
+            facilityMap[doc.id] = doc.data().name || doc.id; 
+        });
 
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
             headerToolbar: { left: 'prev,today,next', center: 'title', right: '' },
             dateClick: function(info) {
-                // Find all events on the clicked day
                 const dayBookings = calendar.getEvents().filter(e => e.startStr.split('T')[0] === info.dateStr);
                 
                 if (dayBookings.length > 0) {
                     const event = dayBookings[0];
-                    document.getElementById('dispFacility').innerText = event.title;
+                    // Look up the readable name from our map
+                    const displayName = facilityMap[event.title] || event.title;
+                    
+                    document.getElementById('dispFacility').innerText = displayName;
                     document.getElementById('dispTime').innerText = 
                         `${formatTime(event.start)} - ${formatTime(event.end)}`;
-                    detailsBox.style.display = 'block'; // Shows box on click
+                    detailsBox.style.display = 'block';
                 } else {
-                    detailsBox.style.display = 'none'; // Hides box if no booking
+                    detailsBox.style.display = 'none';
                 }
             }
         });
@@ -67,6 +77,7 @@
             return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase();
         }
 
+        // 2. Fetch bookings
         try {
             const q = query(collection(db, "bookings"), where("society", "==", "Aangan"));
             const snapshot = await getDocs(q);
@@ -74,12 +85,12 @@
             snapshot.forEach(doc => {
                 const data = doc.data();
                 calendar.addEvent({ 
-                    title: data.facilityId, 
+                    title: data.facilityId, // This is still the ID (e.g., "F5")
                     start: data.start, 
                     end: data.end
                 });
             });
-        } catch (error) { console.error("Error:", error); }
+        } catch (error) { console.error("Error loading bookings:", error); }
     });
 </script>
 </body>
