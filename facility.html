@@ -3,38 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Owl Watcher | Booking Calendar</title>
+    <title>Facility Calendar</title>
     
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
-    <!-- FullCalendar CSS & JS -->
+    <!-- FullCalendar CSS -->
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
+    <!-- FullCalendar JS -->
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
     
     <style>
-        body { font-family: 'Caveat', cursive; background-color: #fdf6e3; color: #5d4037; padding: 20px; }
-        .brown-theme { 
-            background-color: #f4ece0; padding: 20px; border-radius: 16px; 
-            border: 2px solid #8d6e63; max-width: 800px; margin: 0 auto; 
+        body { font-family: sans-serif; background-color: #fdf6e3; padding: 20px; }
+        .brown-theme { background-color: #f4ece0; padding: 20px; border-radius: 16px; border: 2px solid #8d6e63; max-width: 800px; margin: 0 auto; }
+        
+        /* CRITICAL: Calendar MUST have a height */
+        #calendar { 
+            background: white; 
+            padding: 10px; 
+            border-radius: 10px; 
+            margin-bottom: 20px; 
+            height: 500px; 
+            width: 100%;
         }
-        #calendar { background: white; padding: 10px; border-radius: 10px; margin-bottom: 20px; }
-        .contact-box { text-align: center; margin-top: 20px; }
-        .wa-link { text-decoration: none; color: #8d6e63; font-weight: bold; font-size: 1.2em; }
     </style>
 </head>
 <body>
 
 <div class="brown-theme">
-    <h1 style="text-align: center;" id="societyTitle">Facility Calendar</h1>
-    
-    <!-- Calendar Display -->
+    <h1 style="text-align: center;" id="societyTitle">Aangan Facility Calendar</h1>
     <div id='calendar'></div>
-
-    <!-- Contact Admin Link -->
-    <div class="contact-box">
-        <a id="waContactLink" href="#" target="_blank" class="wa-link">
-            💬 Contact Society Admin for Booking
-        </a>
+    <div style="text-align: center;">
+        <a id="waContactLink" href="#" target="_blank">💬 Contact Society Admin for Booking</a>
     </div>
 </div>
 
@@ -45,36 +42,30 @@
     const urlParams = new URLSearchParams(window.location.search);
     const targetSociety = urlParams.get('society');
 
+    // Wait for the DOM to be fully ready
     document.addEventListener('DOMContentLoaded', async () => {
-        if (!targetSociety) return alert("Society not found.");
+        if (!targetSociety) return;
         
-        document.getElementById('societyTitle').innerText = `${targetSociety} Facility Calendar`;
-        document.getElementById('waContactLink').href = `https://wa.me/919033406816?text=Hello, I would like to book a facility in ${targetSociety}`;
-
-        await renderCalendar(targetSociety);
-    });
-
-    async function renderCalendar(societyName) {
-        const events = [];
-        const q = query(collection(db, "bookings"), where("society", "==", societyName));
-        const snapshot = await getDocs(q);
-        
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            events.push({ 
-                title: data.facility, // Shows facility name on the calendar
-                start: data.start 
-            });
-        });
+        document.getElementById('waContactLink').href = `https://wa.me/919033406816?text=Hello, I want to book a facility in ${targetSociety}`;
 
         const calendarEl = document.getElementById('calendar');
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
-            events: events,
-            headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth' }
+            events: [] // Initialize empty
         });
         calendar.render();
-    }
+
+        // Fetch and add events after render
+        const q = query(collection(db, "bookings"), where("society", "==", targetSociety));
+        const snapshot = await getDocs(q);
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            calendar.addEvent({ 
+                title: data.facility, 
+                start: data.start 
+            });
+        });
+    });
 </script>
 
 </body>
