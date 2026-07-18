@@ -2,21 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Facility Calendar</title>
+    <!-- CORRECTED CSS LINK -->
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
     <style>
         body { font-family: sans-serif; background-color: #fdf6e3; padding: 20px; }
         .brown-theme { background-color: #f4ece0; padding: 20px; border-radius: 16px; border: 2px solid #8d6e63; max-width: 400px; margin: 0 auto; }
         #calendar { background: white; padding: 10px; border-radius: 10px; margin-bottom: 20px; }
         
+        /* Summary Box */
         #eventDetails { 
             background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 20px; 
             border: 1px solid #8d6e63; text-align: center; display: none;
         }
         
-        /* Hides event text so only the dot shows */
+        /* Forces dots: Hides title and time text inside the calendar */
         .fc-event-title, .fc-event-time { display: none !important; }
+        .fc-event { border-radius: 50% !important; width: 10px !important; height: 10px !important; margin: 0 auto !important; }
     </style>
 </head>
 <body>
@@ -43,10 +45,9 @@
 
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
-            // Added 'today' to the toolbar
             headerToolbar: { left: 'prev,today,next', center: 'title', right: '' },
-            eventDisplay: 'list-item',
             dateClick: function(info) {
+                // Find all events on the clicked day
                 const dayBookings = calendar.getEvents().filter(e => e.startStr.split('T')[0] === info.dateStr);
                 
                 if (dayBookings.length > 0) {
@@ -54,9 +55,9 @@
                     document.getElementById('dispFacility').innerText = event.title;
                     document.getElementById('dispTime').innerText = 
                         `${formatTime(event.start)} - ${formatTime(event.end)}`;
-                    detailsBox.style.display = 'block';
+                    detailsBox.style.display = 'block'; // Shows box on click
                 } else {
-                    detailsBox.style.display = 'none';
+                    detailsBox.style.display = 'none'; // Hides box if no booking
                 }
             }
         });
@@ -78,7 +79,7 @@
                     end: data.end
                 });
             });
-        } catch (error) { console.error("Error loading bookings:", error); }
+        } catch (error) { console.error("Error:", error); }
     });
 </script>
 </body>
