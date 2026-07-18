@@ -34,6 +34,9 @@ function getLocalDateString() { return new Date().toLocaleDateString('en-CA'); }
 // --- Initialization Logic ---
 document.addEventListener('DOMContentLoaded', () => {
 
+    // Add this inside your DOMContentLoaded block, near your other event listeners
+document.getElementById('saveAllFacilityNamesBtn')?.addEventListener('click', saveAllFacilityNames);
+
     // 1. Auth & Session Persistence
     onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -99,12 +102,7 @@ window.updateFacilityName = async (fId) => {
     const newName = document.getElementById(`name_${fId}`).value.trim();
     if (!newName) return window.showModal("Please enter a name.");
     
-    // Update the mapping object
-    await setDoc(doc(db, "facilities", assignedSociety), { [fId]: newName }, { merge: true });
-    window.showModal(`${fId} updated to ${newName}`);
-    loadFacilitiesDropdown(); // Refresh dropdown
-};
-
+   
 async function saveAllFacilityNames() {
     const data = {
         F1: document.getElementById('name_F1').value,
