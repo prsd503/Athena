@@ -97,17 +97,16 @@ document.getElementById('saveAllFacilityNamesBtn')?.addEventListener('click', sa
         window.showModal("Notice deleted.");
     });
 
-   // --- 4. Facility Management (F1-F5 Mapping) ---
+// --- 4. Facility Management (F1-F5 Mapping) ---
 window.updateFacilityName = async (fId) => {
     const newName = document.getElementById(`name_${fId}`).value.trim();
     if (!newName) return window.showModal("Please enter a name.");
     
-    // Update the mapping object
     await setDoc(doc(db, "facilities", assignedSociety), { [fId]: newName }, { merge: true });
     window.showModal(`${fId} updated to ${newName}`);
-    loadFacilitiesDropdown();
-}; // <--- You were missing this closing brace
-   
+    loadFacilitiesDropdown(); 
+}; 
+
 async function saveAllFacilityNames() {
     const data = {
         F1: document.getElementById('name_F1').value,
@@ -117,7 +116,10 @@ async function saveAllFacilityNames() {
         F5: document.getElementById('name_F5').value
     };
     
-
+    await setDoc(doc(db, "facilities", assignedSociety), data, { merge: true });
+    window.showModal("Facility names updated!");
+    loadFacilitiesDropdown(); 
+}
 
     
 // --- Updated Dropdown Logic ---
