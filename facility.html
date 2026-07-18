@@ -2,134 +2,59 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Owl Watcher - Facility Calendar</title>
-    <!-- Import Caveat Font for Branding -->
-    <link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
-    <!-- Corrected FullCalendar CSS CDN Link to fix the 404 error -->
-    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
-    <style>
-        /* Brown Theme Palette */
-        body { font-family: sans-serif; background-color: #fdf6e3; padding: 20px; color: #5d4037; }
-        
-        .brown-theme { 
-            background-color: #efebe9; 
-            padding: 20px; 
-            border-radius: 20px; 
-            border: 2px solid #8d6e63; 
-            max-width: 400px; 
-            margin: 0 auto;
-            box-shadow: 0 4px 15px rgba(141, 110, 99, 0.2);
-        }
-        
-        #calendar { background: white; padding: 10px; border-radius: 12px; margin-bottom: 20px; }
-        
-        /* Branding */
-        .brand-header { 
-            font-family: 'Caveat', cursive; 
-            text-align: center; 
-            color: #5d4037; 
-            font-size: 32px; 
-            margin-bottom: 5px; 
-        }
-        
-        h1 { text-align: center; font-size: 22px; color: #3e2723; margin-top: 0; }
-        
-        /* Summary Box */
-        #eventDetails { 
-            background: #ffffff; padding: 15px; border-radius: 12px; margin-bottom: 20px; 
-            border: 1px solid #d7ccc8; text-align: center; display: none; color: #5d4037;
-        }
-        
-        /* Calendar Grid & Dot Resets */
-        .fc .fc-toolbar-title { font-size: 1.2rem !important; color: #3e2723; }
-        
-        /* Hide text inside calendar event boxes */
-        .fc-event-title, .fc-event-time { display: none !important; }
-        
-        /* Style events as custom clean brown dots */
-        .fc-event { 
-            border-radius: 50% !important; 
-            width: 10px !important; 
-            height: 10px !important; 
-            margin: 2px auto !important; 
-            background-color: #8d6e63 !important; 
-            border: none !important; 
-        }
-    </style>
+    <title>Facility Booking</title>
+    <!-- Include your existing CSS and FullCalendar libraries here -->
 </head>
 <body>
+    <h1 id="societyHeader">Loading...</h1>
+    <div id="calendar"></div>
 
-<div class="brown-theme">
-    <div class="brand-header">Owl Watcher 🦉</div>
-    <h1>Aangan Facility Calendar</h1>
-    
-    <div id="eventDetails">
-        <strong>Facility:</strong> <span id="dispFacility"></span><br>
-        <strong>Time:</strong> <span id="dispTime"></span>
-    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    <div id='calendar'></div>
-</div>
+        // ... Your firebaseConfig ...
+        const db = getFirestore(initializeApp(firebaseConfig));
 
-<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
-<script type="module">
-    import { db } from "./app.js"; 
-    import { collection, getDocs, doc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 1. Extract society ID from URL (e.g., facility.html?society=xyz)
+            const urlParams = new URLSearchParams(window.location.search);
+            const societyId = urlParams.get('society');
 
-    document.addEventListener('DOMContentLoaded', async () => {
-        const calendarEl = document.getElementById('calendar');
-        const detailsBox = document.getElementById('eventDetails');
-        
-        // Fetch Facility Mapping
-        const facilityMap = {};
-        try {
-            const facDocRef = doc(db, "facilities", "Aangan");
-            const facDocSnap = await getDoc(facDocRef);
-            if (facDocSnap.exists()) {
-                Object.assign(facilityMap, facDocSnap.data());
+            if (!societyId) {
+                document.getElementById('societyHeader').innerText = "Society not specified.";
+                return;
             }
-        } catch (e) { console.error("Error fetching facilities:", e); }
 
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            headerToolbar: { left: 'prev,today,next', center: 'title', right: '' },
-            dateClick: function(info) {
-                // Filters events down strictly to the single day clicked
-                const dayBookings = calendar.getEvents().filter(e => e.startStr.split('T')[0] === info.dateStr);
-                
-                if (dayBookings.length > 0) {
-                    const event = dayBookings[0];
-                    document.getElementById('dispFacility').innerText = facilityMap[event.title] || event.title;
-                    document.getElementById('dispTime').innerText = 
-                        `${formatTime(event.start)} - ${formatTime(event.end)}`;
-                    detailsBox.style.display = 'block';
-                } else {
-                    detailsBox.style.display = 'none';
+            try {
+                // 2. Fetch Society Display Name for Header
+                const societyDoc = await getDoc(doc(db, "societies", societyId));
+                if (societyDoc.exists()) {
+                    document.getElementById('societyHeader').innerText = `${societyDoc.data().name} Facility Calendar`;
                 }
+
+                // 3. Fetch Bookings dynamically for this society only
+                const q = query(collection(db, "bookings"), where("society", "==", societyId));
+                const snapshot = await getDocs(q);
+                
+                const events = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    events.push({
+                        title: data.facilityId,
+                        start: data.start,
+                        end: data.end
+                    });
+                });
+
+                // 4. Initialize your Calendar with 'events'
+                // example: calendar.addEventSource(events);
+                console.log("Loaded bookings for:", societyId, events);
+
+            } catch (error) {
+                console.error("Error loading data:", error);
             }
         });
-        calendar.render();
-
-        function formatTime(date) {
-            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase();
-        }
-
-        // Fetch bookings from Firestore
-        try {
-            const q = query(collection(db, "bookings"), where("society", "==", "Aangan"));
-            const snapshot = await getDocs(q);
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                calendar.addEvent({ 
-                    id: doc.id,
-                    title: data.facilityId, 
-                    start: data.start, 
-                    end: data.end 
-                });
-            });
-        } catch (error) { console.error("Error loading bookings:", error); }
-    });
-</script>
+    </script>
 </body>
 </html>
