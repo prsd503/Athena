@@ -38,54 +38,41 @@
     import { db } from "./app.js"; 
     import { collection, getDocs, query, where, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const targetSociety = urlParams.get('society') || "Aangan"; 
-
     document.addEventListener('DOMContentLoaded', async () => {
         const calendarEl = document.getElementById('calendar');
         
-        // 1. Fetch Facility Names Map first (e.g., F1: "Hall 1")
-        const facilityDoc = await getDoc(doc(db, "facilities", targetSociety));
-        const facilityMap = facilityDoc.exists() ? facilityDoc.data() : {};
-
-       // 2. Initialize Calendar
-const calendar = new FullCalendar.Calendar(calendarEl, {
-    initialView: 'dayGridMonth',
-    headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridDay' },
-    
-    // --- ADD THIS SECTION ---
-    eventTimeFormat: { 
-        hour: 'numeric',
-        minute: '2-digit',
-        meridiem: 'short'
-    },
-    displayEventTime: true, // Ensures the time range is shown
-    // ------------------------
-
-    events: [] 
-});
-
-    // 3. Fetch Bookings
-try {
-    const q = query(collection(db, "bookings"), where("society", "==", targetSociety));
-    const snapshot = await getDocs(q);
-    
-    snapshot.forEach(doc => {
-        const data = doc.data();
-        
-        // Use the map to get the display name, fallback to ID if not found
-        const displayName = facilityMap[data.facilityId] || data.facilityId || "Booked";
-        
-        calendar.addEvent({ 
-            title: displayName, // Now correctly using the mapped name
-            start: data.start, 
-            end: data.end,     // This end time will now be recognized
-            allDay: false      // This forces the calendar to respect the start/end times
+        // Initialize Calendar IMMEDIATELY
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridDay' },
+            eventTimeFormat: { hour: 'numeric', minute: '2-digit', meridiem: 'short' },
+            displayEventTime: true
         });
-    });
-} catch (e) {
-    console.error("Error fetching bookings:", e);
-}
+        calendar.render(); // Always render the calendar first
+
+        // Then attempt to load data
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const targetSociety = urlParams.get('society') || "Aangan"; 
+            
+            const facilityDoc = await getDoc(doc(db, "facilities", targetSociety));
+            const facilityMap = facilityDoc.exists() ? facilityDoc.data() : {};
+
+            const q = query(collection(db, "bookings"), where("society", "==", targetSociety));
+            const snapshot = await getDocs(q);
+            
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                calendar.addEvent({ 
+                    title: facilityMap[data.facilityId] || data.facilityId || "Booked", 
+                    start: data.start, 
+                    end: data.end, 
+                    allDay: false 
+                });
+            });
+        } catch (e) {
+            console.error("Data load error (calendar will still show):", e);
+        }
     });
 </script>
 
