@@ -4,25 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Facility Calendar</title>
-    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css' rel='stylesheet' />
+    <!-- Corrected CDN links -->
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
     <style>
         body { font-family: sans-serif; background-color: #fdf6e3; padding: 20px; }
-        .brown-theme { background-color: #f4ece0; padding: 20px; border-radius: 16px; border: 2px solid #8d6e63; max-width: 800px; margin: 0 auto; }
-        #calendar { background: white; padding: 10px; border-radius: 10px; margin-bottom: 20px; height: 500px; }
+        .brown-theme { background-color: #f4ece0; padding: 20px; border-radius: 16px; border: 2px solid #8d6e63; max-width: 400px; margin: 0 auto; }
+        #calendar { background: white; padding: 10px; border-radius: 10px; margin-bottom: 20px; }
         
+        /* Summary Box Styling */
         #eventDetails { 
             background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 20px; 
-            border: 1px solid #8d6e63; text-align: center; display: none; 
+            border: 1px solid #8d6e63; text-align: center; display: none;
         }
         
-        /* Forces events to appear as dots instead of bars */
-        .fc-event-title { display: none !important; }
+        /* Hides event titles/times inside the calendar grid */
+        .fc-event-title, .fc-event-time { display: none !important; }
     </style>
 </head>
 <body>
 
 <div class="brown-theme">
-    <h1 style="text-align: center;">Aangan Facility Calendar</h1>
+    <h1 style="text-align: center; font-size: 24px;">Aangan Facility Calendar</h1>
     
     <div id="eventDetails">
         <strong>Facility:</strong> <span id="dispFacility"></span><br>
@@ -43,18 +45,15 @@
 
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
-            eventDisplay: 'list-item', // Renders events as dots
+            headerToolbar: { left: 'prev,next', center: 'title', right: '' },
             dateClick: function(info) {
-                // Find all bookings for the clicked date
-                const dayBookings = calendar.getEvents().filter(e => 
-                    e.startStr.split('T')[0] === info.dateStr
-                );
+                const dayBookings = calendar.getEvents().filter(e => e.startStr.split('T')[0] === info.dateStr);
                 
                 if (dayBookings.length > 0) {
                     const event = dayBookings[0];
-                    document.getElementById('dispFacility').innerText = event.title;
+                    document.getElementById('dispFacility').innerText = event.title; // Shows Hall 1, etc.
                     document.getElementById('dispTime').innerText = 
-                        `${formatTime(event.start)} - ${event.end ? formatTime(event.end) : 'N/A'}`;
+                        `${formatTime(event.start)} - ${formatTime(event.end)}`;
                     detailsBox.style.display = 'block';
                 } else {
                     detailsBox.style.display = 'none';
@@ -64,10 +63,9 @@
         calendar.render();
 
         function formatTime(date) {
-            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase();
         }
 
-        // Fetch bookings from Firestore for society "Aangan"[cite: 11]
         try {
             const q = query(collection(db, "bookings"), where("society", "==", "Aangan"));
             const snapshot = await getDocs(q);
@@ -75,14 +73,12 @@
             snapshot.forEach(doc => {
                 const data = doc.data();
                 calendar.addEvent({ 
-                    title: data.facilityId || "Booked", 
-                    start: data.start, // Expected format: YYYY-MM-DDTHH:MM:SS[cite: 11]
+                    title: data.facilityId, // Ensure this holds "Hall 1", etc.
+                    start: data.start, 
                     end: data.end
                 });
             });
-        } catch (error) {
-            console.error("Error loading bookings:", error);
-        }
+        } catch (error) { console.error("Error loading bookings:", error); }
     });
 </script>
 
