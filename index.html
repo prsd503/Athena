@@ -141,7 +141,7 @@
         <hr style="border: 0; border-top: 1px solid #dcdde1; margin: 20px 0;">
 
     <!-- Add this link in your index page -->
-<a href="facility.html?society=Aangan" 
+<a id="factlityPage" href="facility.html?society=Aangan" 
    style="background: #8d6e63; color: white; padding: 10px; text-decoration: none; border-radius: 8px;">
    Go to Facility Booking
 </a>
@@ -479,6 +479,8 @@ function updateAdLinks(societyName = "") {
             document.getElementById("society-verification").style.display = "none";
             document.getElementById("vehicle-search").style.display = "block";
             document.getElementById("displaySocietyName").innerText = currentSociety;
+
+            document.getElementById("factlityPage").href = "facility.html?society=" + currentSociety;
             
             // Auto-fetch dynamic phone variables & configure WhatsApp advertisement tags cleanly
             updateAdLinks(societyName);
