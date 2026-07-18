@@ -523,6 +523,16 @@ async function addFacility(name) {
     }
 }
 
+async function loadFacilitiesDropdown() {
+    const facilityDoc = await getDoc(doc(db, "facilities", assignedSociety));
+    const select = document.getElementById('facilitySelect');
+    if (facilityDoc.exists()) {
+        const list = facilityDoc.data().list;
+        select.innerHTML = list.map(f => `<option value="${f}">${f}</option>`).join('');
+    }
+}
+
+    
     async function createBooking(facilityName, date, timeSlot) {
     await addDoc(collection(db, "bookings"), {
         society: assignedSociety,
@@ -531,6 +541,16 @@ async function addFacility(name) {
         title: `Booked: ${facilityName}`
     });
 }
+
+    document.getElementById('bookFacilityBtn')?.addEventListener('click', () => {
+    const fName = document.getElementById('facilitySelect').value;
+    const date = document.getElementById('bookingDate').value;
+    
+    if (!fName || !date) return window.showModal("Please select a facility and date.");
+    
+    createBooking(fName, date, "Full Day"); // Calling your existing function
+    window.showModal("Booking created for " + fName);
+});
     
     
 // --- 8. Ad Request Key Approval System ---
