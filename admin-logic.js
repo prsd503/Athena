@@ -105,6 +105,22 @@ window.updateFacilityName = async (fId) => {
     loadFacilitiesDropdown(); // Refresh dropdown
 };
 
+async function saveAllFacilityNames() {
+    const data = {
+        F1: document.getElementById('name_F1').value,
+        F2: document.getElementById('name_F2').value,
+        F3: document.getElementById('name_F3').value,
+        F4: document.getElementById('name_F4').value,
+        F5: document.getElementById('name_F5').value
+    };
+    
+    // Updates the document for the current society
+    await setDoc(doc(db, "facilities", assignedSociety), data, { merge: true });
+    window.showModal("Facility names updated!");
+    loadFacilitiesDropdown(); // Refreshes the booking dropdown
+}
+
+    
 // --- Updated Dropdown Logic ---
 async function loadFacilitiesDropdown() {
     if (!assignedSociety) return;
