@@ -40,31 +40,39 @@
     import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const urlParams = new URLSearchParams(window.location.search);
-    const targetSociety = urlParams.get('society');
+    const targetSociety = urlParams.get('society') || "Aangan"; // Default for testing
 
-    // Wait for the DOM to be fully ready
     document.addEventListener('DOMContentLoaded', async () => {
-        if (!targetSociety) return;
-        
+        document.getElementById('societyTitle').innerText = `${targetSociety} Facility Calendar`;
         document.getElementById('waContactLink').href = `https://wa.me/919033406816?text=Hello, I want to book a facility in ${targetSociety}`;
 
-        const calendarEl = document.getElementById('calendar');
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            events: [] // Initialize empty
-        });
-        calendar.render();
-
-        // Fetch and add events after render
+        // 1. Fetch data FIRST
         const q = query(collection(db, "bookings"), where("society", "==", targetSociety));
         const snapshot = await getDocs(q);
+        
+        const fetchedEvents = [];
         snapshot.forEach(doc => {
             const data = doc.data();
-            calendar.addEvent({ 
-                title: data.facility, 
+            fetchedEvents.push({ 
+                title: data.title || data.facility, // Uses your Firestore title format
                 start: data.start 
             });
         });
+
+        // 2. Initialize calendar WITH the events
+        const calendarEl = document.getElementById('calendar');
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            events: fetchedEvents, // Pass data here
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth'
+            },
+            eventColor: '#8d6e63' // Matches your theme
+        });
+        
+        calendar.render();
     });
 </script>
 
