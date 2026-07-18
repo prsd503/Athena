@@ -42,38 +42,42 @@
     import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     document.addEventListener('DOMContentLoaded', async () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const targetSociety = urlParams.get('society') || "Aangan"; 
-
         const calendarEl = document.getElementById('calendar');
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
-            headerToolbar: { left: 'prev,next', center: 'title', right: 'dayGridMonth' },
-            eventClick: function(info) {
-                const detailsBox = document.getElementById('eventDetails');
-                const start = info.event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                const end = info.event.end ? info.event.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
+            // Clicking a day shows bookings for that date
+            dateClick: function(info) {
+                const dayBookings = calendar.getEvents().filter(e => 
+                    e.startStr.split('T')[0] === info.dateStr
+                );
                 
-                document.getElementById('dispFacility').innerText = info.event.title;
-                document.getElementById('dispTime').innerText = `${start} - ${end}`;
-                detailsBox.style.display = 'block';
+                if (dayBookings.length > 0) {
+                    const event = dayBookings[0]; // Show first booking found
+                    const start = event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const end = event.end ? event.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
+                    
+                    document.getElementById('dispFacility').innerText = event.title; // Shows actual name
+                    document.getElementById('dispTime').innerText = `${start} - ${end}`;
+                    document.getElementById('eventDetails').style.display = 'block';
+                }
             }
         });
         calendar.render();
 
-        const q = query(collection(db, "bookings"), where("society", "==", targetSociety));
+        const q = query(collection(db, "bookings"), where("society", "==", "Aangan"));
         const snapshot = await getDocs(q);
         
         snapshot.forEach(doc => {
             const data = doc.data();
             calendar.addEvent({ 
-                title: data.facility || "Booked", 
+                title: data.facility, // Ensure 'facility' field exists in DB
                 start: data.start, 
                 end: data.end,
-                display: 'list-item' // Ensures only a dot/marker shows on the grid
+                display: 'list-item' // Ensures only dot/marker shows on grid
             });
         });
     });
 </script>
+
 </body>
 </html>
