@@ -206,6 +206,16 @@ function setupMasterAdminUI(isMaster) {
 
 document.addEventListener('DOMContentLoaded', () => {
 
+document.getElementById('addFacilityBtn')?.addEventListener('click', () => {
+    const fName = document.getElementById('newFacilityName').value.trim();
+    if (fName) {
+        addFacility(fName);
+        document.getElementById('newFacilityName').value = ""; // Clear input
+    } else {
+        window.showModal("Please enter a facility name.");
+    }
+});
+    
     // Add this inside document.addEventListener('DOMContentLoaded', ...)
 document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
