@@ -206,16 +206,7 @@ function setupMasterAdminUI(isMaster) {
 
 document.addEventListener('DOMContentLoaded', () => {
 
-document.getElementById('addFacilityBtn')?.addEventListener('click', () => {
-    const fName = document.getElementById('newFacilityName').value.trim();
-    if (fName) {
-        addFacility(fName); // This calls your existing function
-        document.getElementById('newFacilityName').value = ""; // Clear input
-    } else {
-        window.showModal("Please enter a facility name.");
-    }
-});
-    
+
     // Add this inside document.addEventListener('DOMContentLoaded', ...)
 document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
@@ -317,13 +308,25 @@ document.addEventListener("visibilitychange", () => {
             </div>`;
         });
     });
-
+    
+        document.getElementById('addFacilityBtn')?.addEventListener('click', () => {
+    const fName = document.getElementById('newFacilityName').value.trim();
+    if (fName) {
+        addFacility(fName); // This calls your existing function
+        document.getElementById('newFacilityName').value = ""; // Clear input
+    } else {
+        window.showModal("Please enter a facility name.");
+    }
+});
     // --- 4. Save/Update Vehicles ---
     document.getElementById('saveBtn')?.addEventListener('click', async () => {
         const v = document.getElementById('vNum').value.trim().toUpperCase();
         const f = document.getElementById('fNum').value.trim();
         const m = document.getElementById('mNum').value.trim();
         const type = document.getElementById('vType').value;
+
+
+    
 
         if (!v || !f) return window.showModal("Fill fields.");
 
