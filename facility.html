@@ -1,22 +1,90 @@
-<!-- Include FullCalendar via CDN -->
-<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
-<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owl Watcher | Facility Booking</title>
+    
+    <!-- Caveat Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
+    
+    <!-- FullCalendar CSS -->
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
+    
+    <style>
+        body { font-family: 'Caveat', cursive; background-color: #fdf6e3; color: #5d4037; }
+        
+        .brown-theme {
+            background-color: #f4ece0;
+            color: #4e342e;
+            padding: 20px;
+            border-radius: 16px;
+            border: 2px solid #8d6e63;
+            max-width: 800px;
+            margin: 20px auto;
+        }
+
+        .fc .fc-toolbar-title { color: #5d4037; font-size: 1.5rem; }
+        .fc .fc-button-primary { background-color: #8d6e63; border-color: #8d6e63; }
+        
+        .whatsapp-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #25d366;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
 
 <div class="brown-theme">
-    <h2>Society Facilities</h2>
+    <h1 style="text-align: center;">Booking Facility Portal</h1>
     <div id='calendar'></div>
-    <a href="https://wa.me/ADMIN_NUMBER?text=Hi,%20I%20want%20to%20book%20facility%20in%20YOUR_SOCIETY_NAME%20(using:Owl%20Watcher)" target="_blank">
-        Contact Admin to Book
-    </a>
+    
+    <div style="text-align: center;">
+        <a id="waContactBtn" href="#" target="_blank" class="whatsapp-link">
+            💬 Contact Admin to Book
+        </a>
+    </div>
 </div>
 
-<script>
-  document.addEventListener('DOMContentLoaded', async function() {
-    const calendarEl = document.getElementById('calendar');
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-      initialView: 'dayGridMonth',
-      events: await fetchBookingsFromFirestore() // Helper to get docs from Firestore
+<!-- Firebase & FullCalendar Scripts -->
+<script type="module">
+    import { db } from "./app.js"; // Ensure your firebase init is here
+    import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // Dynamic configuration (Use the society name you saved in local storage or auth)
+    const societyName = localStorage.getItem('societyName') || "Your Society";
+    const adminPhone = "919033406816"; // Central team or specific admin
+    
+    // Update WA link dynamically
+    const msg = encodeURIComponent(`Hi, I want to book facility in ${societyName} (using: Owl Watcher)`);
+    document.getElementById('waContactBtn').href = `https://wa.me/${adminPhone}?text=${msg}`;
+
+    async function fetchBookingsFromFirestore() {
+        const bookings = [];
+        const q = query(collection(db, "bookings"), where("society", "==", societyName));
+        const snapshot = await getDocs(q);
+        snapshot.forEach(doc => {
+            bookings.push(doc.data());
+        });
+        return bookings;
+    }
+
+    document.addEventListener('DOMContentLoaded', async function() {
+        const calendarEl = document.getElementById('calendar');
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            events: await fetchBookingsFromFirestore()
+        });
+        calendar.render();
     });
-    calendar.render();
-  });
 </script>
+
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+</body>
+</html>
