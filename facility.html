@@ -5,18 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Owl Watcher - Facility Calendar</title>
     <link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
-    <!-- Corrected FullCalendar CSS link -->
-<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css' rel='stylesheet' />
+    <!-- Corrected CSS path for FullCalendar v6 -->
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.css' rel='stylesheet' />
     <style>
-        /* Brown Theme Palette */
         body { font-family: sans-serif; background-color: #fdf6e3; padding: 20px; color: #5d4037; }
         .brown-theme { background-color: #efebe9; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; max-width: 400px; margin: 0 auto; box-shadow: 0 4px 15px rgba(141, 110, 99, 0.2); }
         #calendar { background: white; padding: 10px; border-radius: 12px; margin-bottom: 20px; }
         .brand-header { font-family: 'Caveat', cursive; text-align: center; color: #5d4037; font-size: 32px; margin-bottom: 5px; }
-        h1 { text-align: center; font-size: 22px; color: #3e2723; margin-top: 0; }
+        h1 { text-align: center; font-size: 20px; color: #3e2723; margin-top: 0; }
         #eventDetails { background: #ffffff; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #d7ccc8; text-align: center; display: none; color: #5d4037; }
         .fc .fc-toolbar-title { font-size: 1.2rem !important; color: #3e2723; }
-        .fc-event-title, .fc-event-time { display: none !important; }
         .fc-event { border-radius: 50% !important; width: 10px !important; height: 10px !important; margin: 0 auto !important; background-color: #8d6e63 !important; border: none !important; }
     </style>
 </head>
@@ -24,7 +22,7 @@
 
 <div class="brown-theme">
     <div class="brand-header">Owl Watcher 🦉</div>
-    <h1 id="societyHeader">Loading...</h1>
+    <h1 id="societyHeader">Initializing...</h1>
     
     <div id="eventDetails">
         <strong>Facility:</strong> <span id="dispFacility"></span><br>
@@ -40,69 +38,69 @@
     import { collection, getDocs, doc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     document.addEventListener('DOMContentLoaded', async () => {
-        // 1. Get society from URL
+        const header = document.getElementById('societyHeader');
         const urlParams = new URLSearchParams(window.location.search);
         const societyId = urlParams.get('society');
 
         if (!societyId) {
-            document.getElementById('societyHeader').innerText = "Society not specified";
+            header.innerText = "Error: No society selected";
             return;
         }
 
         const calendarEl = document.getElementById('calendar');
-        const detailsBox = document.getElementById('eventDetails');
         const facilityMap = {};
         
-        // 2. Fetch Society Info & Facilities dynamically
-try {
-    // Get Display Name
-    const socDoc = await getDoc(doc(db, "societies", societyId));
-    if (socDoc.exists()) {
-        // USE BACKTICKS HERE: ` `
-        document.getElementById('societyHeader').innerText = `${socDoc.data().name} Facility Calendar`;
-    }
-
-    // Get Facilities for THIS specific society
-    const facDocRef = doc(db, "facilities", societyId);
-    const facDocSnap = await getDoc(facDocRef);
-    if (facDocSnap.exists()) {
-        Object.assign(facilityMap, facDocSnap.data());
-    }
-} catch (e) { 
-    console.error("Error fetching data:", e); 
-}
-        // 3. Init Calendar
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            headerToolbar: { left: 'prev,today,next', center: 'title', right: '' },
-            dateClick: (info) => {
-                const dayBookings = calendar.getEvents().filter(e => e.startStr.split('T')[0] === info.dateStr);
-                if (dayBookings.length > 0) {
-                    const event = dayBookings[0];
-                    document.getElementById('dispFacility').innerText = facilityMap[event.title] || event.title;
-                    document.getElementById('dispTime').innerText = `${formatTime(event.start)} - ${formatTime(event.end)}`;
-                    detailsBox.style.display = 'block';
-                } else {
-                    detailsBox.style.display = 'none';
-                }
-            }
-        });
-        calendar.render();
-
-        function formatTime(date) {
-            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase();
-        }
-
-        // 4. Load Bookings for THIS society only
         try {
+            // 1. Fetch Society Name
+            const socDoc = await getDoc(doc(db, "societies", societyId));
+            if (socDoc.exists()) {
+                header.innerText = `${socDoc.data().name} Facility Calendar`;
+            } else {
+                header.innerText = "Error: Society ID not found in DB";
+                return;
+            }
+
+            // 2. Fetch Facilities
+            const facDocSnap = await getDoc(doc(db, "facilities", societyId));
+            if (facDocSnap.exists()) {
+                Object.assign(facilityMap, facDocSnap.data());
+            }
+
+            // 3. Initialize Calendar
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: { left: 'prev,today,next', center: 'title', right: '' },
+                dateClick: (info) => {
+                    const dayBookings = calendar.getEvents().filter(e => e.startStr.split('T')[0] === info.dateStr);
+                    if (dayBookings.length > 0) {
+                        const event = dayBookings[0];
+                        document.getElementById('dispFacility').innerText = facilityMap[event.title] || event.title;
+                        document.getElementById('dispTime').innerText = `${formatTime(event.start)} - ${formatTime(event.end)}`;
+                        document.getElementById('eventDetails').style.display = 'block';
+                    } else {
+                        document.getElementById('eventDetails').style.display = 'none';
+                    }
+                }
+            });
+            calendar.render();
+
+            // 4. Fetch Bookings
             const q = query(collection(db, "bookings"), where("society", "==", societyId));
             const snapshot = await getDocs(q);
             snapshot.forEach(doc => {
                 const data = doc.data();
                 calendar.addEvent({ id: doc.id, title: data.facilityId, start: data.start, end: data.end });
             });
-        } catch (error) { console.error("Error loading bookings:", error); }
+
+        } catch (e) {
+            console.error("DEBUG ERROR:", e);
+            header.innerText = "Error: " + e.message;
+        }
     });
+
+    function formatTime(date) {
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase();
+    }
 </script>
 </body>
 </html>
