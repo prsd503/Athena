@@ -491,7 +491,34 @@ document.addEventListener("visibilitychange", () => {
         document.getElementById('gName').value = "";
         document.getElementById('gPhone').value = "";
     }); 
+    
+async function addFacility(name) {
+    const ref = doc(db, "facilities", assignedSociety);
+    try {
+        await updateDoc(ref, {
+            list: arrayUnion(name)
+        });
+        window.showModal("Facility added successfully!");
+    } catch (e) {
+        // If the document doesn't exist yet, create it
+        if (e.code === 'not-found') {
+            await setDoc(ref, { list: [name] });
+            window.showModal("Facility created and added!");
+        } else {
+            window.showModal("Error adding facility: " + e.message);
+        }
+    }
+}
 
+    async function createBooking(facilityName, date, timeSlot) {
+    await addDoc(collection(db, "bookings"), {
+        society: assignedSociety,
+        facility: facilityName,
+        start: date, // FullCalendar format: YYYY-MM-DD
+        title: `Booked: ${facilityName}`
+    });
+}
+    
     
 // --- 8. Ad Request Key Approval System ---
     document.getElementById('approveAdBtn')?.addEventListener('click', async () => {
