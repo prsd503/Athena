@@ -94,22 +94,54 @@ document.addEventListener('DOMContentLoaded', () => {
         window.showModal("Notice deleted.");
     });
 
-    // 4. Facility & Booking
-    document.getElementById('addFacilityBtn')?.addEventListener('click', async () => {
-        const fName = document.getElementById('newFacilityName').value.trim();
-        if (!fName) return window.showModal("Enter facility name.");
-        await updateDoc(doc(db, "facilities", assignedSociety), { list: arrayUnion(fName) }, { merge: true });
-        loadFacilitiesDropdown();
-        window.showModal("Facility added!");
-    });
+   // --- 4. Facility Management (F1-F5 Mapping) ---
+window.updateFacilityName = async (fId) => {
+    const newName = document.getElementById(`name_${fId}`).value.trim();
+    if (!newName) return window.showModal("Please enter a name.");
+    
+    // Update the mapping object
+    await setDoc(doc(db, "facilities", assignedSociety), { [fId]: newName }, { merge: true });
+    window.showModal(`${fId} updated to ${newName}`);
+    loadFacilitiesDropdown(); // Refresh dropdown
+};
 
-    document.getElementById('bookFacilityBtn')?.addEventListener('click', async () => {
-        const f = document.getElementById('facilitySelect').value;
-        const d = document.getElementById('bookingDate').value;
-        await addDoc(collection(db, "bookings"), { society: assignedSociety, facility: f, start: d });
-        window.showModal("Booking created!");
+// --- Updated Dropdown Logic ---
+async function loadFacilitiesDropdown() {
+    if (!assignedSociety) return;
+    const fDoc = await getDoc(doc(db, "facilities", assignedSociety));
+    const data = fDoc.exists() ? fDoc.data() : {};
+    const select = document.getElementById('facilitySelect');
+    
+    // Populate F1-F5 based on mapping
+    select.innerHTML = "";
+    ['F1', 'F2', 'F3', 'F4', 'F5'].forEach(fId => {
+        const displayName = data[fId] || `Not Assigned (${fId})`;
+        select.innerHTML += `<option value="${fId}">${fId}: ${displayName}</option>`;
+        
+        // If you have inputs for F1-F5 in your HTML
+        const input = document.getElementById(`name_${fId}`);
+        if (input) input.value = data[fId] || "";
     });
+}
 
+// --- 5. Booking & Deletion ---
+document.getElementById('bookFacilityBtn')?.addEventListener('click', async () => {
+    const fId = document.getElementById('facilitySelect').value;
+    const d = document.getElementById('bookingDate').value;
+    await addDoc(collection(db, "bookings"), { 
+        society: assignedSociety, 
+        facilityId: fId, // Save the ID (F1-F5)
+        start: d 
+    });
+    window.showModal("Booking created!");
+});
+
+// New Function to Delete Bookings
+window.deleteBooking = async (bookingDocId) => {
+    await deleteDoc(doc(db, "bookings", bookingDocId));
+    window.showModal("Booking deleted.");
+    // Add logic here to re-fetch and refresh your bookings list view
+};
     // 5. Bulk Management
     document.getElementById('importBtn')?.addEventListener('click', () => {
         const file = document.getElementById('excelInput').files[0];
