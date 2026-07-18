@@ -135,14 +135,17 @@
             </div>
         </div>
 
-        <!-- NEW FACILITY MANAGEMENT SECTION -->
-        <hr style="margin:20px 0;">
-        <div class="card" style="border-color: #8d6e63; background-color: #f9f5f0;">
-            <h2>🏢 Manage Facilities</h2>
-            <input type="text" id="newFacilityName" placeholder="e.g. Badminton Court">
-            <button id="addFacilityBtn" style="background: #8d6e63;">Add Facility</button>
-            <p style="font-size: 0.9rem; color: #5d4037;">These will appear on the booking portal.</p>
-        </div>
+       <!-- REFINED FACILITY MANAGEMENT SECTION -->
+<hr style="margin:20px 0;">
+<div class="card" style="border-color: #8d6e63; background-color: #f9f5f0;">
+    <h2>🏢 Configure Facility Names (F1-F5)</h2>
+    <input type="text" id="name_F1" placeholder="Name for F1 (e.g. Hall 1)">
+    <input type="text" id="name_F2" placeholder="Name for F2 (e.g. Badminton Court)">
+    <input type="text" id="name_F3" placeholder="Name for F3 (e.g. Gym)">
+    <input type="text" id="name_F4" placeholder="Name for F4 (e.g. Swimming Pool)">
+    <input type="text" id="name_F5" placeholder="Name for F5 (e.g. Club House)">
+    <button id="saveAllFacilityNamesBtn" style="background: #8d6e63; width: 100%;">Save All Names</button>
+</div>
 
 
         <div id="facility-setup-section">
@@ -155,14 +158,21 @@
     <button onclick="saveAllFacilityNames()">Save All Changes</button>
 </div>
         
-        <!-- Add this to your admin.html -->
+      <!-- REFINED BOOKING SECTION -->
 <div id="booking-section" class="card">
-    <h3>📅 Facility Bookings</h3>
-  <select id="facilitySelect">
-    <option value="">Select a Facility</option>
-</select>
+    <h3>📅 Book a Facility</h3>
+    <select id="facilitySelect" style="width: 85%; padding: 10px; margin-bottom: 10px;"></select>
+    
+    <label>Date:</label>
     <input type="date" id="bookingDate">
-    <button id="bookFacilityBtn" style="background: #6d4c41; color: white;">Confirm Booking</button>
+    
+    <label>From:</label>
+    <input type="time" id="startTime">
+    
+    <label>To:</label>
+    <input type="time" id="endTime">
+    
+    <button id="bookFacilityBtn" style="background: #6d4c41; color: white; width: 100%;">Confirm Booking</button>
 </div>
         
         <hr style="margin:20px 0;">
