@@ -17,6 +17,20 @@
         
         /* Hide event titles on the calendar grid */
         .fc-event-title { display: none !important; }
+
+        
+    #eventDetails {
+        background: #fff;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #8d6e63;
+        text-align: center;
+        display: none; /* Initially hidden */
+    }
+
+    
+    
     </style>
 </head>
 <body>
@@ -24,12 +38,15 @@
 <div class="brown-theme">
     <h1 style="text-align: center;" id="societyTitle">Aangan Facility Calendar</h1>
     
-    <div id="eventDetails">
+    <!-- ADD THIS SECTION TO YOUR HTML -->
+    <div id="eventDetails" style="background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #8d6e63; text-align: center; display: none;">
         <strong>Facility:</strong> <span id="dispFacility"></span><br>
         <strong>Time:</strong> <span id="dispTime"></span>
     </div>
 
     <div id='calendar'></div>
+    
+
     
     <div style="text-align: center;">
         <a id="waContactLink" href="#" target="_blank">💬 Contact Society Admin for Booking</a>
