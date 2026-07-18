@@ -76,21 +76,28 @@
         const calendarEl = document.getElementById('calendar');
         const detailsBox = document.getElementById('eventDetails');
         
-        // 2. Fetch Society Info & Facilities dynamically
+// 2. Fetch Society Info & Facilities dynamically
         const facilityMap = {};
         try {
-            // Get Display Name
-            const socDoc = await getDoc(doc(db, "societies", societyId));
-            if (socDoc.exists()) {
-                document.getElementById('societyHeader').innerText = `${socDoc.data().name} Facility Calendar`;
-            }
+            const snap = await getDocs(collection(db, "societies"));
+            const match = snap.docs.find(d => d.data().name?.toLowerCase() === input);
+            if (match)
+            {
+                // Get Display Name
+                const socDoc = await getDoc(doc(db, "societies", societyId));
+                if (socDoc.exists()) {
+                    document.getElementById('societyHeader').innerText = ${socDoc.data().name} Facility Calendar;
+                }
 
-            // Get Facilities for THIS specific society
-            const facDocRef = doc(db, "facilities", societyId);
-            const facDocSnap = await getDoc(facDocRef);
-            if (facDocSnap.exists()) {
-                Object.assign(facilityMap, facDocSnap.data());
+                // Get Facilities for THIS specific society
+                const facDocRef = doc(db, "facilities", societyId);
+                const facDocSnap = await getDoc(facDocRef);
+                if (facDocSnap.exists()) {
+                    Object.assign(facilityMap, facDocSnap.data());
+                }
             }
+          
+           
         } catch (e) { console.error("Error fetching data:", e); }
 
         // 3. Initialize Calendar
