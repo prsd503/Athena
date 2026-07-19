@@ -47,6 +47,20 @@
             return;
         }
 
+
+    // Retrieve the society name from local storage instead of URL
+    const societyName = localStorage.getItem("savedSocietyName");
+    
+    if (!societyName) {
+        // Redirect back if no session exists
+        window.location.href = "index.html";
+    } else {
+        console.log("Booking for society: " + societyName);
+        // Proceed with your existing logic using 'societyName'
+    }
+
+    
+        
         const calendarEl = document.getElementById('calendar');
         const facilityMap = {};
         
