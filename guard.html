@@ -7,6 +7,38 @@
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
     <title> Security Guard Portal | Owl Watcher</title>
     <style>
+
+/* Ensure the hamburger button is visible and styled */
+.hamburger { 
+    display: none; 
+    background: none; 
+    border: none; 
+    font-size: 28px; 
+    cursor: pointer; 
+    color: #000; /* Sets lines to black */
+    z-index: 1001; /* Keeps it above other elements */
+}
+
+@media (max-width: 768px) {
+    .hamburger { display: block; }
+    
+    .nav-links {
+        display: none;
+        position: absolute;
+        top: 60px;
+        left: 0;
+        width: 100%;
+        background: #fdf6e3; /* Match your background */
+        flex-direction: column;
+        padding: 20px;
+        border-bottom: 2px solid #8d6e63;
+        z-index: 999; /* Higher than content, lower than button */
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Adds separation */
+    }
+    
+    .nav-links.active { display: flex; }
+}
+        
         body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
         .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; box-shadow: 5px 5px 0px #8d6e63; max-width: 100vw; margin: 0px 5px; margin-bottom: 20px; }
         input, select { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; box-sizing: border-box; }
