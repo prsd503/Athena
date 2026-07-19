@@ -7,7 +7,33 @@
     <title>Owl Watcher | Home</title>
     <style>
 
-/* Hide hamburger on desktop, show on mobile */
+/* Fixed professional header */
+.main-nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background: #fff;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #8d6e63;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.nav-links a {
+    margin: 0 15px;
+    text-decoration: none;
+    color: #5d4037;
+    font-weight: bold;
+    font-family: sans-serif; /* Clean font for menu */
+}
+
+/* Add padding to body so content isn't hidden behind the fixed menu */
+body { padding-top: 80px; }
+        
+        /* Hide hamburger on desktop, show on mobile */
 .hamburger { display: none; background: none; border: none; font-size: 24px; cursor: pointer; }
 
 @media (max-width: 768px) {
@@ -106,6 +132,9 @@
         <a href="https://wa.me/919033406816">Contact Us</a>
     </div>
 </nav>
+
+
+    
     
 <body>
     <div id="startOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#fdf6e3; z-index:10000; display:flex; justify-content:center; align-items:center; flex-direction:column;">
