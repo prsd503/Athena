@@ -12,6 +12,42 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
 
   <style>
+/* Navigation Container */
+.main-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: #fdf6e3;
+    border-bottom: 2px solid #8d6e63;
+    position: relative;
+    z-index: 1001;
+}
+
+.nav-logo { font-family: 'Caveat', cursive; color: #5d4037; font-size: 1.5rem; font-weight: bold; }
+.nav-links { display: flex; gap: 15px; }
+.nav-links a { text-decoration: none; color: #5d4037; font-weight: bold; font-family: sans-serif; }
+
+/* Mobile Menu Button */
+.menu-btn { display: none; background: #8d6e63; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-family: 'Caveat', cursive; font-size: 1.1rem; }
+
+@media (max-width: 768px) {
+    .menu-btn { display: block; }
+    .nav-links { 
+        display: none; 
+        flex-direction: column; 
+        position: absolute; 
+        top: 60px; 
+        left: 0;
+        width: 100%; 
+        background: #fdf6e3; 
+        padding: 20px; 
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .nav-links.active { display: flex; }
+}
+
+    
     :root {
       --brand-dark: #1D3557;
       --brand-light: #F1FAEE;
@@ -240,6 +276,20 @@
 </head>
 <body>
 
+<!-- Consistent Mobile-Responsive Nav -->
+<nav class="main-nav">
+    <div class="nav-logo">Owl Watcher 🦉</div>
+    <button class="menu-btn" id="menuToggle">Menu</button>
+    <div class="nav-links" id="navLinks">
+        <a href="index.html">Home</a>
+        <a href="admin.html">Admin Portal</a>
+        <a href="guard.html">Security Guard Portal</a>
+        <a href="studio.html">Photo Studio Portal</a>
+        <a href="https://wa.me/919033406816">Contact Us</a>
+    </div>
+</nav>
+
+  
   <div class="fixed-header-canvas-view">
     <div class="app-header">
       <h1>Owl Watcher 🦉<br>Photo Editor Studio</h1>
@@ -736,6 +786,11 @@
       canvas.remove(watermark); 
       canvas.renderAll();
     }
+
+document.getElementById('menuToggle').addEventListener('click', function() {
+    document.getElementById('navLinks').classList.toggle('active');
+});
+    
   </script>
   <hr style="border: 0; border-top: 1px solid #dcdde1; margin: 20px 0;">
   <a href="index.html" target="_self" class="admin-btn">Back to HOME</a>
