@@ -6,6 +6,33 @@
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
     <title>Owl Watcher | Admin</title>
     <style>
+/* Base Theme */
+        body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; margin: 0; }
+        
+        /* Navigation (Unified Style) */
+        .main-nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            background: #fdf6e3;
+            border-bottom: 2px solid #8d6e63;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .nav-logo { font-family: 'Caveat', cursive; color: #5d4037; font-size: 1.5rem; font-weight: bold; margin-right: 20px; }
+        .nav-links { display: flex; gap: 15px; }
+        .nav-links a { text-decoration: none; color: #5d4037; font-weight: bold; }
+        
+        /* Mobile Menu Button */
+        .menu-btn { display: none; background: #8d6e63; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-family: 'Caveat', cursive; font-size: 1.1rem; }
+
+        @media (max-width: 768px) {
+            .menu-btn { display: block; }
+            .nav-links { display: none; flex-direction: column; position: absolute; top: 70px; width: 100%; background: #fdf6e3; padding: 20px; z-index: 999; }
+            .nav-links.active { display: flex; }
+        }
+        
 
 .brown-theme {
     background-color: #f4ece0; /* Light parchment brown */
@@ -47,29 +74,29 @@
     </style>
 </head>
 <body>
-    <div class="card">
-       
-        <nav class="main-nav">
-            <h1 style="display:inline-block; float: left; margin-right: 23px;">Owl Watcher 🦉</h1>
-<button class="menu-btn" id="menuToggle">☰</button>
-    <div class="nav-links" id="navLinks">
-        <a  href="index.html">Home</a>
-        <a style="backgroud:#000; color:#fff" href="admin.html">Admin Portal</a>
-        <a href="guard.html">Security Guard Portal</a>
-        <a href="studio.html">Photo Studio Portal</a>
-        <a href="https://wa.me/919033406816">Contact Us</a>
-    </div>
-</nav>
-        
-        <p>Admin Portal</p>
-    </div>
+
+<nav class="main-nav">
+        <div class="nav-logo">Owl Watcher 🦉</div>
+        <button class="menu-btn" id="menuToggle">Menu</button>
+        <div class="nav-links" id="navLinks">
+            <a href="index.html">Home</a>
+            <a href="admin.html">Admin Portal</a>
+            <a href="guard.html">Security Guard Portal</a>
+            <a href="studio.html">Photo Studio Portal</a>
+            <a href="https://wa.me/919033406816">Contact Us</a>
+        </div>
+    </nav>
+
     
-    <div class="card" id="login-section">
+    
+   <div class="card" id="login-section">
         <h2>Admin Login</h2>
         <input type="email" id="email" placeholder="Email">
         <input type="password" id="pass" placeholder="Password">
         <br>
         <button id="loginBtn">Login</button>
+    </div>
+        
         <br>
         <hr style="border: 0; border-top: 1px solid #dcdde1; margin: 20px 0;">
         <a href="guard.html" class="contact-btn" target="_self">Security Guard Portal</a>
@@ -214,6 +241,11 @@
     </div>
 
     <script>
+// Menu Toggle
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            document.getElementById('navLinks').classList.toggle('active');
+        });
+        
         // Check local storage immediately upon parser load to reduce screen flash
         if (localStorage.getItem("adminLoggedIn") === "true") {
             document.getElementById("login-section").style.display = "none";
