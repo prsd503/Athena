@@ -118,7 +118,12 @@
     </div>
     </div>
     
-    <script type="module" src="app.js"></script>
+    <script type="module" src="app.js">
+document.getElementById('menuToggle').addEventListener('click', function() {
+    document.getElementById('navLinks').classList.toggle('active');
+});
+        
+    </script>
 
 <script type="module" src="guard-logic.js"></script>
 
