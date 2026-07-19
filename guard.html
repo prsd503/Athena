@@ -6,8 +6,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
     <title> Security Guard Portal | Owl Watcher</title>
+   
     <style>
+.main-nav {
+    display: flex;
+    justify-content: center; /* Centers everything */
+    align-items: center;
+    position: relative;
+    padding: 15px 20px;
+}
 
+.nav-logo {
+    position: absolute;
+    left: 20px; /* Keeps the logo on the left */
+}
+
+.nav-links {
+    display: flex;
+    justify-content: center; /* Centers the actual links */
+    gap: 20px;
+}
+        
 /* Ensure the hamburger button is visible and styled */
 .hamburger { 
     display: none; 
@@ -37,6 +56,12 @@
     }
     
     .nav-links.active { display: flex; }
+}
+
+        .nav-links {
+    display: flex;
+    flex-wrap: nowrap; /* Ensures they stay on one line */
+    white-space: nowrap;
 }
         
         body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
