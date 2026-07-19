@@ -140,11 +140,12 @@
         
         <hr style="border: 0; border-top: 1px solid #dcdde1; margin: 20px 0;">
 
-    <!-- Add this link in your index page -->
-<a id="factlityPage" href="facility.html?society=Aangan" 
-   style="background: #8d6e63; color: white; padding: 10px; text-decoration: none; border-radius: 8px;">
+   <!-- Updated link: href is now # -->
+<a id="factlityPage" href="#" 
+   style="background: #8d6e63; color: white; padding: 10px; text-decoration: none; border-radius: 8px; display: inline-block; margin-top: 15px;">
    Go to Facility Booking
 </a>
+
    
         <a href="admin.html" target="_self" class="admin-btn">Admin Portal</a>
         <a href="guard.html" target="_self" class="admin-btn">Security Guard Portal</a>
@@ -394,6 +395,7 @@ function updateAdLinks(societyName = "") {
                     }
                 } else {
                     slider.innerHTML = `<p id="global-ad-placeholder" style="color: #a1887f;">Space Available for Your Content</p>`;
+
                     controls.style.display = "none";
                 }
             } catch (error) {
@@ -480,7 +482,9 @@ function updateAdLinks(societyName = "") {
             document.getElementById("vehicle-search").style.display = "block";
             document.getElementById("displaySocietyName").innerText = currentSociety;
 
-            document.getElementById("factlityPage").href = "facility.html?society=" + currentSociety;
+            // Dynamically set the URL here
+    document.getElementById("factlityPage").href = "facility.html?society=" + encodeURIComponent(currentSociety);
+    
             
             // Auto-fetch dynamic phone variables & configure WhatsApp advertisement tags cleanly
             updateAdLinks(societyName);
@@ -633,3 +637,4 @@ function updateAdLinks(societyName = "") {
 <audio id="hootSound" src="theme.mp3" preload="auto"></audio>
 </body>
 </html>
+               
