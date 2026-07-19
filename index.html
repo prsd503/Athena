@@ -7,31 +7,28 @@
     <title>Owl Watcher | Home</title>
     <style>
 
-/* Fixed professional header */
-.main-nav {
-    position: fixed;
-    top: 0;
-    width: 100%;
-    background: #fff;
-    padding: 15px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 2px solid #8d6e63;
-    z-index: 1000;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
+/* Hide hamburger on desktop, show on mobile */
+.hamburger { display: none; background: none; border: none; font-size: 24px; cursor: pointer; }
 
-.nav-links a {
-    margin: 0 15px;
-    text-decoration: none;
-    color: #5d4037;
-    font-weight: bold;
-    font-family: sans-serif; /* Clean font for menu */
+@media (max-width: 768px) {
+    .hamburger { display: block; }
+    
+    .nav-links {
+        display: none; /* Hidden by default */
+        position: absolute;
+        top: 60px;
+        left: 0;
+        width: 100%;
+        background: #fff;
+        flex-direction: column;
+        padding: 20px;
+        border-bottom: 2px solid #8d6e63;
+    }
+    
+    .nav-links.active { display: flex; } /* Shown when toggled */
+    
+    .nav-links a { margin: 10px 0; }
 }
-
-/* Add padding to body so content isn't hidden behind the fixed menu */
-body { padding-top: 80px; }
 
         
         body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
@@ -96,7 +93,12 @@ body { padding-top: 80px; }
 
 <nav class="main-nav">
     <div class="nav-logo">Owl Watcher 🦉</div>
-    <div class="nav-links">
+    
+    <!-- Hamburger Button -->
+    <button class="hamburger" id="menuToggle">☰</button>
+    
+    <!-- Links Container -->
+    <div class="nav-links" id="navLinks">
         <a href="index.html">Home</a>
         <a href="admin.html">Admin Portal</a>
         <a href="guard.html">Security Guard Portal</a>
@@ -242,6 +244,11 @@ const themeAudio = new Audio('theme.mp3');
         function showModal(content) { document.getElementById("result").innerHTML = content; modal.style.display = "block"; }
         window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
 
+    document.getElementById('menuToggle').addEventListener('click', function() {
+    document.getElementById('navLinks').classList.toggle('active');
+});
+        
+        
         // Fetch dynamic Owl Watcher Team contact number configured by Master Admin
         async function fetchTeamPhone() {
             try {
