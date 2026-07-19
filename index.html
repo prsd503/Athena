@@ -177,7 +177,9 @@
             appId: "1:1011347100861:web:24246f9a4eb24d812cd3d4"
         };
 
-  
+  // Add this to your variable declarations at the top of your <script type="module">
+const themeAudio = new Audio('theme.mp3'); 
+        
 
         
         const app = initializeApp(firebaseConfig);
@@ -530,9 +532,13 @@ document.getElementById("factlityPage").href = "facility.html";
 
         // Vehicle Search Logic
         document.getElementById("searchBtn").addEventListener("click", async () => {
-            const vNum = document.getElementById("vehicleInput").value.trim().toUpperCase();
-            if (!vNum) return showModal("<p>⚠️ Please enter a vehicle number.</p>");
-            
+    // 1. Play the audio immediately upon clicking
+    themeAudio.currentTime = 0; // Rewind to start if played previously
+    themeAudio.play().catch(e => console.error("Audio playback failed:", e));
+
+    const vNum = document.getElementById("vehicleInput").value.trim().toUpperCase();
+    if (!vNum) return showModal("<p>⚠️ Please enter a vehicle number.</p>");
+    
             const snap = await getDocs(collection(db, "vehicles"));
             const matches = snap.docs.filter(d => d.data().societyName?.toLowerCase() === currentSociety.toLowerCase() && d.data().vehicleNumber?.toUpperCase() === vNum);
             if (matches.length > 0) {
