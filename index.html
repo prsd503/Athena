@@ -6,6 +6,34 @@
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
     <title>Owl Watcher | Home</title>
     <style>
+
+/* Fixed professional header */
+.main-nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background: #fff;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #8d6e63;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.nav-links a {
+    margin: 0 15px;
+    text-decoration: none;
+    color: #5d4037;
+    font-weight: bold;
+    font-family: sans-serif; /* Clean font for menu */
+}
+
+/* Add padding to body so content isn't hidden behind the fixed menu */
+body { padding-top: 80px; }
+
+        
         body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
         .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; box-shadow: 5px 5px 0px #8d6e63; max-width: 100vw; margin: 0px 5px; }
         input { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; }
@@ -65,6 +93,18 @@
     
     </style>
 </head>
+
+<nav class="main-nav">
+    <div class="nav-logo">Owl Watcher 🦉</div>
+    <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="admin.html">Admin Portal</a>
+        <a href="guard.html">Security Guard Portal</a>
+        <a href="studio.html">Photo Studio Portal</a>
+        <a href="https://wa.me/919033406816">Contact Us</a>
+    </div>
+</nav>
+    
 <body>
     <div id="startOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#fdf6e3; z-index:10000; display:flex; justify-content:center; align-items:center; flex-direction:column;">
     <h1 style="font-family: 'Caveat', cursive; color: #5d4037; margin-bottom: 20px;">Welcome <br>to <br>Owl Watcher🦉</h1>
