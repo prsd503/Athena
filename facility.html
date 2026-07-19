@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Owl Watcher - Facility Calendar</title>
     <link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
-    <!-- Corrected CSS path for FullCalendar v6 -->
-    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.css' rel='stylesheet' />
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
     <style>
         body { font-family: sans-serif; background-color: #fdf6e3; padding: 20px; color: #5d4037; }
         .brown-theme { background-color: #efebe9; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; max-width: 400px; margin: 0 auto; box-shadow: 0 4px 15px rgba(141, 110, 99, 0.2); }
@@ -39,56 +38,31 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
         const header = document.getElementById('societyHeader');
-        const urlParams = new URLSearchParams(window.location.search);
-        const societyId = urlParams.get('society');
+        
+        // Retrieve data from localStorage set by index.html[span_1](start_span)[span_1](end_span)
+        const societyId = localStorage.getItem("savedSocietyId");
+        const societyName = localStorage.getItem("savedSocietyName");
 
-        if (!societyId) {
+        // Verify session exists[span_2](start_span)[span_2](end_span)
+        if (!societyId || !societyName) {
             header.innerText = "Error: No society selected";
+            document.body.innerHTML += `<div style="text-align:center;"><a href="index.html">Go Back to Home</a></div>`;
             return;
         }
 
+        header.innerText = `${societyName} Facility Calendar`;
 
-    // Add this script to your facility.html file
-const societyName = localStorage.getItem("savedSocietyName");
-
-if (!societyName) {
-    // If no society is found in localStorage, show the error
-    document.body.innerHTML = `
-        <div style="text-align: center; margin-top: 50px;">
-            <h1>Owl Watcher 🦉</h1>
-            <p>Error: No society selected</p>
-            <a href="index.html">Go Back to Home</a>
-        </div>
-    `;
-} else {
-    // Proceed with your booking logic using 'societyName'
-    console.log("Society identified: " + societyName);
-    // Continue with your existing code to load facilities...
-}
-
-
-    
-        
         const calendarEl = document.getElementById('calendar');
         const facilityMap = {};
         
         try {
-            // 1. Fetch Society Name
-            const socDoc = await getDoc(doc(db, "societies", societyId));
-            if (socDoc.exists()) {
-                header.innerText = `${socDoc.data().name} Facility Calendar`;
-            } else {
-                header.innerText = "Error: Society ID not found in DB";
-                return;
-            }
-
-            // 2. Fetch Facilities
+            // Fetch Facilities data[span_3](start_span)[span_3](end_span)
             const facDocSnap = await getDoc(doc(db, "facilities", societyId));
             if (facDocSnap.exists()) {
                 Object.assign(facilityMap, facDocSnap.data());
             }
 
-            // 3. Initialize Calendar
+            // Initialize Calendar[span_4](start_span)[span_4](end_span)
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 headerToolbar: { left: 'prev,today,next', center: 'title', right: '' },
@@ -106,7 +80,7 @@ if (!societyName) {
             });
             calendar.render();
 
-            // 4. Fetch Bookings
+            // Fetch Bookings for this society[span_5](start_span)[span_5](end_span)
             const q = query(collection(db, "bookings"), where("society", "==", societyId));
             const snapshot = await getDocs(q);
             snapshot.forEach(doc => {
@@ -116,7 +90,7 @@ if (!societyName) {
 
         } catch (e) {
             console.error("DEBUG ERROR:", e);
-            header.innerText = "Error: " + e.message;
+            header.innerText = "Error loading data.";
         }
     });
 
