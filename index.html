@@ -21,6 +21,27 @@
     left: 20px; /* Keeps the logo on the left */
 }
 
+        /* Style the new Menu button */
+.menu-btn {
+    background: #8d6e63; /* Brown theme color */
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Caveat', cursive;
+    font-size: 1.1rem;
+    z-index: 1001;
+}
+
+/* Restore Caveat font and brown color to logo */
+.nav-logo {
+    font-family: 'Caveat', cursive;
+    color: #5d4037;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
 .nav-links {
     display: flex;
     justify-content: center; /* Centers the actual links */
@@ -146,7 +167,8 @@ body { padding-top: 80px; }
     <div class="nav-logo">Owl Watcher 🦉</div>
     
     <!-- Hamburger Button -->
-    <button class="hamburger" id="menuToggle">☰</button>
+ 
+<button class="menu-btn" id="menuToggle">Menu</button>
     
     <!-- Links Container -->
     <div class="nav-links" id="navLinks">
