@@ -482,9 +482,9 @@ function updateAdLinks(societyName = "") {
             document.getElementById("vehicle-search").style.display = "block";
             document.getElementById("displaySocietyName").innerText = currentSociety;
 
-            // Dynamically set the URL here
-    document.getElementById("factlityPage").href = "facility.html?society=" + encodeURIComponent(currentSociety);
-    
+            // Keep the link pointing to the file only, without query parameters
+document.getElementById("factlityPage").href = "facility.html";
+
             
             // Auto-fetch dynamic phone variables & configure WhatsApp advertisement tags cleanly
             updateAdLinks(societyName);
