@@ -36,9 +36,14 @@
     import { db } from "./app.js"; 
     import { collection, getDocs, doc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // Shared function to show event summary
+    // Global variable to hold the mapping of IDs to readable names
+    let facilityMap = {};
+
+    // Function to show event summary
     function showSummary(event) {
-        document.getElementById('dispFacility').innerText = event.title;
+        // Use the map to show the readable name, fallback to ID if name not found
+        const facilityReadableName = facilityMap[event.title] || event.title;
+        document.getElementById('dispFacility').innerText = facilityReadableName;
         document.getElementById('dispTime').innerText = `${formatTime(event.start)} - ${formatTime(event.end)}`;
         document.getElementById('eventDetails').style.display = 'block';
     }
@@ -55,29 +60,29 @@
 
         header.innerText = `${societyName} Facility Calendar`;
 
+        // 1. Fetch Facility Mapping first
+        try {
+            const facDocSnap = await getDoc(doc(db, "facilities", societyId));
+            if (facDocSnap.exists()) {
+                facilityMap = facDocSnap.data();
+            }
+        } catch (e) { console.error("Error loading facility names:", e); }
+
+        // 2. Initialize Calendar
         const calendarEl = document.getElementById('calendar');
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
-            displayEventTime: false, // Hides the time text next to the dot
+            displayEventTime: false, 
             headerToolbar: { left: 'prev,today,next', center: 'title', right: '' },
-            
-            // Triggered when clicking the event dot
-            eventClick: (info) => {
-                showSummary(info.event);
-            },
-            
-            // Triggered when clicking empty space in the date cell
+            eventClick: (info) => showSummary(info.event),
             dateClick: (info) => {
                 const dayBookings = calendar.getEvents().filter(e => e.startStr.split('T')[0] === info.dateStr);
-                if (dayBookings.length > 0) {
-                    showSummary(dayBookings[0]);
-                } else {
-                    document.getElementById('eventDetails').style.display = 'none';
-                }
+                dayBookings.length > 0 ? showSummary(dayBookings[0]) : (document.getElementById('eventDetails').style.display = 'none');
             }
         });
         calendar.render();
 
+        // 3. Fetch Bookings
         try {
             const q = query(collection(db, "bookings"), where("society", "==", societyId));
             const snapshot = await getDocs(q);
@@ -85,9 +90,7 @@
                 const data = doc.data();
                 calendar.addEvent({ id: doc.id, title: data.facilityId, start: data.start, end: data.end });
             });
-        } catch (e) {
-            console.error("DEBUG ERROR:", e);
-        }
+        } catch (e) { console.error("Error loading bookings:", e); }
     });
 
     function formatTime(date) {
