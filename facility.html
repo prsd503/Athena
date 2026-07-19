@@ -48,16 +48,24 @@
         }
 
 
-    // Retrieve the society name from local storage instead of URL
-    const societyName = localStorage.getItem("savedSocietyName");
-    
-    if (!societyName) {
-        // Redirect back if no session exists
-        window.location.href = "index.html";
-    } else {
-        console.log("Booking for society: " + societyName);
-        // Proceed with your existing logic using 'societyName'
-    }
+    // Add this script to your facility.html file
+const societyName = localStorage.getItem("savedSocietyName");
+
+if (!societyName) {
+    // If no society is found in localStorage, show the error
+    document.body.innerHTML = `
+        <div style="text-align: center; margin-top: 50px;">
+            <h1>Owl Watcher 🦉</h1>
+            <p>Error: No society selected</p>
+            <a href="index.html">Go Back to Home</a>
+        </div>
+    `;
+} else {
+    // Proceed with your booking logic using 'societyName'
+    console.log("Society identified: " + societyName);
+    // Continue with your existing code to load facilities...
+}
+
 
     
         
