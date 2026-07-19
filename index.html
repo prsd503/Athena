@@ -9,19 +9,30 @@
 
 /* Fixed professional header */
 .main-nav {
-    position: fixed;
-    top: 0;
-    width: 100%;
-    background: #fff;
-    padding: 15px 20px;
     display: flex;
-    justify-content: space-between;
+    justify-content: center; /* Centers everything */
     align-items: center;
-    border-bottom: 2px solid #8d6e63;
-    z-index: 1000;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    position: relative;
+    padding: 15px 20px;
 }
 
+.nav-logo {
+    position: absolute;
+    left: 20px; /* Keeps the logo on the left */
+}
+
+.nav-links {
+    display: flex;
+    justify-content: center; /* Centers the actual links */
+    gap: 20px;
+}
+
+.nav-links {
+    display: flex;
+    flex-wrap: nowrap; /* Ensures they stay on one line */
+    white-space: nowrap;
+}
+        
 .nav-links a {
     margin: 0 15px;
     text-decoration: none;
