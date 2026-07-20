@@ -696,5 +696,73 @@ body { padding-top: 80px; }
     </script>
     <canvas id="fireCanvas" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9999;"></canvas>
     <audio id="hootSound" src="tapenter.mp3" preload="auto"></audio>
+    <!-- Paste this anywhere in your HTML file (preferably just before the closing </body> tag) -->
+
+<div id="owl-container">
+  <!-- Owl Icon Container -->
+  <div id="owl-icon" onclick="activateOwlEffect()">
+    🦉
+  </div>
+  <!-- Audio element playing theme.mp3 -->
+  <audio id="owl-audio" src="theme.mp3" preload="auto"></audio>
+</div>
+
+<style>
+  #owl-container {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 9999;
+  }
+
+  #owl-icon {
+    font-size: 60px;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.3s ease;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+  }
+
+  #owl-icon:hover {
+    transform: scale(1.15);
+  }
+
+  /* Animation for Enlarging and Shrinking 2 Times */
+  @keyframes enlargeAndShrinkTwice {
+    0% { transform: scale(1); }
+    25% { transform: scale(1.6); }
+    50% { transform: scale(1); }
+    75% { transform: scale(1.6); }
+    100% { transform: scale(1); }
+  }
+
+  .active-effect {
+    animation: enlargeAndShrinkTwice 2s ease-in-out forwards;
+  }
+</style>
+
+<script>
+  function activateOwlEffect() {
+    const container = document.getElementById('owl-container');
+    const audio = document.getElementById('owl-audio');
+
+    // Prevent spam clicking while animation is active
+    if (container.classList.contains('active-effect')) return;
+
+    // Play the theme audio
+    audio.currentTime = 0;
+    audio.play().catch(error => {
+      console.log("Audio playback blocked or file not found:", error);
+    });
+
+    // Trigger the enlarge and shrink animation (lasts 2 seconds)
+    container.classList.add('active-effect');
+
+    // Reset after the animation finishes
+    setTimeout(() => {
+      container.classList.remove('active-effect');
+    }, 2000);
+  }
+</script>
 </body>
 </html>
