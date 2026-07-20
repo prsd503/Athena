@@ -210,12 +210,35 @@ window.deleteBooking = async (bookingDocId) => {
 // --- Independent Helpers ---
 async function loadNoticeData() {
     if (!assignedSociety) return;
-    const docSnap = await getDoc(doc(db, "notices", assignedSociety));
+    
+    const docRef = doc(db, "notices", assignedSociety);
+    const docSnap = await getDoc(docRef);
+    
     if (docSnap.exists()) {
         const data = docSnap.data();
-        if (document.getElementById('todayMsg')) document.getElementById('todayMsg').value = data.todayMessage || "";
-        if (document.getElementById('tomorrowMsg')) document.getElementById('tomorrowMsg').value = data.tomorrowMessage || "";
+        const storedDate = data.date; // Format: YYYY-MM-DD
+        const today = getLocalDateString(); // Format: YYYY-MM-DD
+
+        // Check if the date has changed
+        if (storedDate !== today) {
+            // Logic: Move Tomorrow -> Today, Clear Tomorrow
+            const newData = {
+                todayMessage: data.tomorrowMessage || "",
+                tomorrowMessage: "",
+                date: today,
+                updatedAt: serverTimestamp()
+            };
+
+            // Update Firestore with the shifted data
+            await setDoc(docRef, newData, { merge: true });
+            
+            // Update local UI
+            document.getElementById('todayMsg').value = newData.todayMessage;
+            document.getElementById('tomorrowMsg').value = "";
+        } else {
+            // Date is the same, just load normally
+            if (document.getElementById('todayMsg')) document.getElementById('todayMsg').value = data.todayMessage || "";
+            if (document.getElementById('tomorrowMsg')) document.getElementById('tomorrowMsg').value = data.tomorrowMessage || "";
+        }
     }
 }
-
-
