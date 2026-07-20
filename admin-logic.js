@@ -169,7 +169,8 @@ window.deleteVehicleDoc = async (docId) => {
     }
 });
 
-// --- Save Single Vehicle Registry Logic ---
+
+// --- Save or Update Single Vehicle Registry Logic ---
 document.getElementById('saveBtn')?.addEventListener('click', async () => {
     const vNum = document.getElementById('vNum').value.trim().toUpperCase();
     const fNum = document.getElementById('fNum').value.trim();
@@ -179,20 +180,46 @@ document.getElementById('saveBtn')?.addEventListener('click', async () => {
     if (!vNum || !fNum) return window.showModal("Vehicle number and Flat number are required.");
 
     try {
-        await addDoc(collection(db, "vehicles"), {
-            vehicleNumber: vNum,
-            flatNumber: fNum,
-            mobileNumber: mNum,
-            vehicleType: vType,
-            societyName: assignedSociety,
-            createdAt: serverTimestamp()
-        });
-        window.showModal("Vehicle saved to registry successfully!");
+        // Check if this vehicle number already exists for this society
+        const q = query(
+            collection(db, "vehicles"), 
+            where("vehicleNumber", "==", vNum), 
+            where("societyName", "==", assignedSociety)
+        );
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            // If it exists, update the first matching document instead of adding a new one
+            const existingDocId = querySnapshot.docs[0].id;
+            await setDoc(doc(db, "vehicles", existingDocId), {
+                flatNumber: fNum,
+                mobileNumber: mNum,
+                vehicleType: vType,
+                updatedAt: serverTimestamp()
+            }, { merge: true });
+
+            window.showModal("Vehicle details updated successfully!");
+        } else {
+            // Otherwise, create a new vehicle entry
+            await addDoc(collection(db, "vehicles"), {
+                vehicleNumber: vNum,
+                flatNumber: fNum,
+                mobileNumber: mNum,
+                vehicleType: vType,
+                societyName: assignedSociety,
+                createdAt: serverTimestamp()
+            });
+
+            window.showModal("Vehicle saved to registry successfully!");
+        }
+
+        // Clear input fields
         document.getElementById('vNum').value = "";
         document.getElementById('fNum').value = "";
         document.getElementById('mNum').value = "";
     } catch (err) {
         window.showModal("Failed to save vehicle.");
+        console.error(err);
     }
 });
 
