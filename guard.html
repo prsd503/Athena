@@ -94,11 +94,13 @@
 
 <!-- Paste this anywhere in your HTML file (preferably just before the closing </body> tag) -->
 
+<!-- Paste this anywhere in your HTML file (preferably just before the closing </body> tag) -->
+
 <div id="owl-container">
   <!-- Owl Icon Container -->
   <div id="owl-icon" onclick="activateOwlEffect()">
     🦉
-    
+  </div>
   <!-- Audio element playing theme.mp3 -->
   <audio id="owl-audio" src="theme.mp3" preload="auto"></audio>
 </div>
@@ -112,7 +114,6 @@
   }
 
   #owl-icon {
-    position: relative;
     font-size: 60px;
     cursor: pointer;
     user-select: none;
@@ -124,27 +125,15 @@
     transform: scale(1.15);
   }
 
-  /* Glowing and Shining Eyes Styling */
-  .owl-eyes {
-    position: absolute;
-    top: 22px;
-    left: 17px;
-    width: 26px;
-    height: 10px;
-    background: radial-gradient(circle, #ffff00 0%, #ff8800 100%);
-    box-shadow: 0 0 10px #ffea00, 0 0 20px #ff4500;
-    border-radius: 50%;
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  /* Animation for Enlarging the Owl */
+  /* Animation for Enlarging the Owl Only */
   @keyframes enlargeOwl {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.6); }
   }
 
-
+  .active-effect {
+    animation: enlargeOwl 1.5s ease-in-out forwards;
+  }
 </style>
 
 <script>
@@ -161,7 +150,7 @@
       console.log("Audio playback blocked or file not found:", error);
     });
 
-    // Trigger the enlarge and eye shine animation
+    // Trigger the enlarge animation
     container.classList.add('active-effect');
 
     // Reset after the animation finishes (1.5 seconds)
@@ -169,8 +158,7 @@
       container.classList.remove('active-effect');
     }, 1500);
   }
-</script>    
-        
+</script>        
         
         
         
