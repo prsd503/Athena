@@ -29,6 +29,81 @@ window.downloadCSV = (content, filename) => {
     URL.revokeObjectURL(url);
 };
 
+// --- Security Guard Management Logic ---
+
+// 1. Search Guard by Name
+document.getElementById('searchGuardBtn')?.addEventListener('click', async () => {
+    const searchName = document.getElementById('searchGuardName').value.trim();
+    if (!searchName) return window.showModal("Please enter a guard name to search.");
+
+    try {
+        const q = query(
+            collection(db, "guards"), 
+            where("societyName", "==", assignedSociety),
+            where("name", "==", searchName)
+        );
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+            window.showModal("No guard found with that name.");
+            return;
+        }
+
+        querySnapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            document.getElementById('gEmail').value = data.email || docSnap.id;
+            document.getElementById('gName').value = data.name || "";
+            document.getElementById('gPhone').value = data.phone || "";
+            window.showModal("Guard details loaded into form.");
+        });
+    } catch (err) {
+        window.showModal("Error searching for guard.");
+    }
+});
+
+// 2. Save / Add Guard
+document.getElementById('addGuardBtn')?.addEventListener('click', async () => {
+    const email = document.getElementById('gEmail').value.trim().toLowerCase();
+    const name = document.getElementById('gName').value.trim();
+    const phone = document.getElementById('gPhone').value.trim();
+
+    if (!email || !name) return window.showModal("Guard Email and Name are required.");
+
+    try {
+        // Using email as the document ID for easy reference
+        await setDoc(doc(db, "guards", email), {
+            email: email,
+            name: name,
+            phone: phone,
+            societyName: assignedSociety,
+            updatedAt: serverTimestamp()
+        }, { merge: true });
+
+        window.showModal("Guard saved successfully!");
+    } catch (err) {
+        window.showModal("Failed to save guard details.");
+    }
+});
+
+// 3. Delete Guard
+document.getElementById('deleteGuardBtn')?.addEventListener('click', async () => {
+    const email = document.getElementById('gEmail').value.trim().toLowerCase();
+    if (!email) return window.showModal("Please specify or search the guard email to delete.");
+
+    try {
+        await deleteDoc(doc(db, "guards", email));
+        window.showModal("Guard deleted successfully.");
+        
+        // Clear input fields
+        document.getElementById('gEmail').value = "";
+        document.getElementById('gName').value = "";
+        document.getElementById('gPhone').value = "";
+    } catch (err) {
+        window.showModal("Failed to delete guard record.");
+    }
+});
+
+
 // --- Vehicle Search Logic ---
 document.getElementById('adminSearchBtn')?.addEventListener('click', async () => {
     const searchVal = document.getElementById('adminSearch').value.trim().toUpperCase();
@@ -63,6 +138,7 @@ window.deleteVehicleDoc = async (docId) => {
             resultsDiv.innerHTML += `
                 <div style="background:#f4ece0; padding:10px; margin-top:5px; border-radius:8px;">
                     <b>Vehicle:</b> ${data.vehicleNumber}<br>
+                    <b>Vehicle Type:</b> ${data.vehicleType}<br>
                     <b>Flat:</b> ${data.flatNumber}<br>
                     <button onclick="window.deleteVehicleDoc('${docSnap.id}')" style="background:#d32f2f; font-size:0.9rem; padding:5px 10px;">Delete</button>
                 </div>
@@ -102,7 +178,7 @@ document.getElementById('saveBtn')?.addEventListener('click', async () => {
 
 // --- CSV Template Download Helper ---
 document.getElementById('downloadTemplateBtn')?.addEventListener('click', () => {
-    const csvContent = "VehicleNumber,FlatNumber,MobileNumber\nKA01AB1234,101,9876543210\n";
+    const csvContent = "VehicleNumber,FlatNumber,MobileNumber,VehicleType\nKA01AB1234,101,9876543210,2W\n";
     window.downloadCSV(csvContent, "vehicle_template.csv");
 });
 
