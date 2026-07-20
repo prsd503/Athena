@@ -29,6 +29,61 @@ window.downloadCSV = (content, filename) => {
     URL.revokeObjectURL(url);
 };
 
+
+let owlWatcherTeamPhone = "919033406816";
+
+        async function fetchTeamPhone() {
+            try {
+                const configDoc = await getDoc(doc(db, "configs", "owlwatcher"));
+                if (configDoc.exists()) {
+                    const data = configDoc.data();
+                    if (data.teamPhone) {
+                        owlWatcherTeamPhone = data.teamPhone.replace(/\D/g, '');
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to fetch dynamic master admin phone, using fallback.", err);
+            }
+        }
+
+        async function updateContactUsWhatsAppLink() {
+            try {
+                await fetchTeamPhone();
+
+                const whatsappLinks = document.querySelectorAll('a[href*="wa.me"]');
+                whatsappLinks.forEach(link => {
+                    const urlObj = new URL(link.href);
+                    link.href = `https://wa.me/${owlWatcherTeamPhone}${urlObj.search}`;
+                });
+            } catch (err) {
+                console.error("Failed to fetch team phone for WhatsApp link:", err);
+            }
+        }
+
+window.addEventListener("DOMContentLoaded", async () => {
+            await updateContactUsWhatsAppLink();
+
+            // Intercept manual login click to save persistence key
+            document.getElementById("loginBtn").addEventListener("click", () => {
+                setTimeout(() => {
+                    if (document.getElementById("login-section").style.display === "none") {
+                        localStorage.setItem("adminLoggedIn", "true");
+                    }
+                }, 1000);
+            });
+
+            // Intercept logout button to clear validation state
+            document.getElementById("logoutBtn").addEventListener("click", () => {
+                localStorage.removeItem("adminLoggedIn");
+                document.getElementById("login-section").style.display = "block";
+                document.getElementById("search-section").style.display = "none";
+                document.getElementById("data-section").style.display = "none";
+                const masterPanel = document.getElementById("master-admin-panel");
+                if (masterPanel) masterPanel.style.display = "none";
+            });
+        });
+
+
 // --- Security Guard Management Logic ---
 
 // 1. Search Guard by Name
