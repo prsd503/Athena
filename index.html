@@ -273,7 +273,6 @@ body { padding-top: 80px; }
         
         async function fetchTeamPhone() {
             try {
-                // Corrected path to match configs/owlwatcher in Firestore
                 const configDoc = await getDoc(doc(db, "configs", "owlwatcher"));
                 if (configDoc.exists()) {
                     const data = configDoc.data();
@@ -602,9 +601,12 @@ body { padding-top: 80px; }
             clearSocietySession();
         });
 
-        document.getElementById("studioPortalBtn").addEventListener("click", () => {
-            window.open("studio.html", "_self");
-        });
+        const studioPortalBtn = document.getElementById("studioPortalBtn");
+        if (studioPortalBtn) {
+            studioPortalBtn.addEventListener("click", () => {
+                window.open("studio.html", "_self");
+            });
+        }
 
         document.getElementById("backToHomeBtn").addEventListener("click", () => {
             clearSocietySession();
