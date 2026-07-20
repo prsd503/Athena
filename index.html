@@ -608,27 +608,28 @@ body { padding-top: 80px; }
             clearSocietySession();
         });
         
-        async function updateContactUsWhatsAppLink() {
-            try {
-                const configDoc = await getDoc(doc(db, "configs", "owlwatcher"));
-                let phoneNumber = "919033406816";
-                
-                if (configDoc.exists()) {
-                    const data = configDoc.data();
-                    if (data.teamPhone) {
-                        phoneNumber = data.teamPhone.replace(/\D/g, '');
-                    }
-                }
-
-                const whatsappLinks = document.querySelectorAll('a[href*="wa.me"]');
-                whatsappLinks.forEach(link => {
-                    const urlObj = new URL(link.href);
-                    link.href = `https://wa.me/${phoneNumber}${urlObj.search}`;
-                });
-            } catch (err) {
-                console.error("Failed to fetch team phone for WhatsApp link:", err);
+async function updateContactUsWhatsAppLink() {
+    try {
+        // Corrected collection path from "configs" to match your Firestore structure
+        const configDoc = await getDoc(doc(db, "configs", "owlwatcher"));
+        let phoneNumber = "919033406816";
+        
+        if (configDoc.exists()) {
+            const data = configDoc.data();
+            if (data.teamPhone) {
+                phoneNumber = data.teamPhone.replace(/\D/g, '');
             }
         }
+
+        const whatsappLinks = document.querySelectorAll('a[href*="wa.me"]');
+        whatsappLinks.forEach(link => {
+            const urlObj = new URL(link.href);
+            link.href = `https://wa.me/${phoneNumber}${urlObj.search}`;
+        });
+    } catch (err) {
+        console.error("Failed to fetch team phone for WhatsApp link:", err);
+    }
+}
         
         window.addEventListener("DOMContentLoaded", async () => {
             await fetchTeamPhone();
