@@ -101,12 +101,16 @@
 
         summaryContent.innerHTML = html;
 
-        // Render WhatsApp contact button for any day clicked
+        // Render WhatsApp contact button with context-specific messages
         if (societyAdminPhone) {
-            const encodedMsg = encodeURIComponent(`Hi, I want to book a facility on ${dateStr}. Please assist.`);
+            const msgText = bookings.length > 0 
+                ? `Hi, I have an inquiry regarding bookings on ${dateStr}.` 
+                : `Hi, I want to book a facility on ${dateStr}. Please assist.`;
+            
+            const encodedMsg = encodeURIComponent(msgText);
             adminContactContainer.innerHTML = `
                 <a href="https://wa.me/${societyAdminPhone}?text=${encodedMsg}" target="_blank" class="whatsapp-btn">
-                    💬 Contact Admin for Booking
+                    💬 Contact Admin via WhatsApp
                 </a>
             `;
         } else {
@@ -178,7 +182,6 @@
 
             dateClick: (info) => {
                 const dayBookings = allLoadedBookings.filter(b => b.start && b.start.startsWith(info.dateStr));
-                // Now triggers for any cell clicked, showing summary or "No bookings"
                 showSummaryForDate(info.dateStr, dayBookings);
             }
         });
