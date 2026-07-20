@@ -32,6 +32,20 @@
         }
 
         .back-btn { background: #8d6e63; color: white; border: none; padding: 8px 20px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; font-family: 'Caveat', cursive; text-decoration: none; display: inline-block; }
+        
+        .whatsapp-btn {
+            background-color: #25d366;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -43,6 +57,7 @@
     <div id="eventDetails">
         <strong>Bookings Summary:</strong><br>
         <div id="dispSummaryContent"></div>
+        <div id="adminContactContainer" style="margin-top: 15px;"></div>
     </div>
 
     <div id='calendar'></div>
@@ -59,10 +74,13 @@
 
     let facilityMap = {};
     let allLoadedBookings = [];
+    let societyAdminPhone = ""; // Stored admin phone number for WhatsApp contact
 
-    // Function to render all bookings for a specific day inside the summary box
+    // Function to render all bookings and WhatsApp contact button for a specific day
     function showSummaryForDate(dateStr, bookings) {
         const summaryContent = document.getElementById('dispSummaryContent');
+        const adminContactContainer = document.getElementById('adminContactContainer');
+        
         let html = `<div style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 5px;">${dateStr}</div>`;
         
         bookings.forEach(b => {
@@ -78,6 +96,19 @@
         });
 
         summaryContent.innerHTML = html;
+
+        // Render WhatsApp contact button if admin phone number is available
+        if (societyAdminPhone) {
+            const encodedMsg = encodeURIComponent(`Hi, I have an inquiry regarding facility bookings on ${dateStr}.`);
+            adminContactContainer.innerHTML = `
+                <a href="https://wa.me/${societyAdminPhone}?text=${encodedMsg}" target="_blank" class="whatsapp-btn">
+                    💬 Contact Admin via WhatsApp
+                </a>
+            `;
+        } else {
+            adminContactContainer.innerHTML = "";
+        }
+
         document.getElementById('eventDetails').style.display = 'block';
     }
 
@@ -93,13 +124,21 @@
 
         header.innerText = `${societyName} Facility Calendar`;
 
-        // 1. Fetch Facility Mapping first
+        // 1. Fetch Facility Mapping & Society Admin Contact Info
         try {
             const facDocSnap = await getDoc(doc(db, "facilities", societyId));
             if (facDocSnap.exists()) {
                 facilityMap = facDocSnap.data();
             }
-        } catch (e) { console.error("Error loading facility names:", e); }
+
+            // Fetching admin info from 'admins' or config collection to get contact number
+            // Adjust the query based on how admin phone is linked to the society in your project
+            const adminQuery = query(collection(db, "admins"), where("society", "==", societyName));
+            const adminSnap = await getDocs(adminQuery);
+            if (!adminSnap.empty) {
+                societyAdminPhone = adminSnap.docs[0].data().phone || "";
+            }
+        } catch (e) { console.error("Error loading metadata:", e); }
 
         // 2. Fetch Bookings First so they are available when rendering day cells
         try {
@@ -117,7 +156,6 @@
             initialView: 'dayGridMonth',
             headerToolbar: { left: 'prev,today,next', center: 'title', right: '' },
             
-            // Custom cell render to inject count numbers (1, 2, 3...) instead of dots
             dayCellDidMount: (info) => {
                 const cellDateStr = info.date.toLocaleDateString('en-CA');
                 const dayBookings = allLoadedBookings.filter(b => b.start && b.start.startsWith(cellDateStr));
