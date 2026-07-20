@@ -274,6 +274,26 @@ function getLocalDateString() { return new Date().toLocaleDateString('en-CA'); }
 
 // --- Initialization Logic ---
 document.addEventListener('DOMContentLoaded', () => {
+    
+    // --- Booking Date Boundary Setup ---
+function setupBookingDateLimits() {
+    const dateInput = document.getElementById('bookingDate');
+    if (!dateInput) return;
+
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+
+    // Calculate date exactly 6 months from today
+    const maxDate = new Date();
+    maxDate.setMonth(maxDate.getMonth() + 6);
+    const maxDateStr = maxDate.toISOString().split('T')[0];
+
+    dateInput.min = todayStr;
+    dateInput.max = maxDateStr;
+}
+
+// Ensure this is called inside your DOMContentLoaded listener:
+// setupBookingDateLimits();
 
     // Add this inside your DOMContentLoaded block, near your other event listeners
 document.getElementById('saveAllFacilityNamesBtn')?.addEventListener('click', saveAllFacilityNames);
@@ -458,16 +478,27 @@ async function loadActiveBookings() {
         console.error(err);
     }
 }
-
-// Updated Booking Handler using clean Dropdown Time Pickers
+    
+// --- Updated Booking Handler with date verification ---
 document.getElementById('bookFacilityBtn')?.addEventListener('click', async () => {
     const fId = document.getElementById('facilitySelect').value;
-    const date = document.getElementById('bookingDate').value; 
+    const dateInput = document.getElementById('bookingDate');
+    const date = dateInput.value; 
     
     const startT = getSelectedTimeString('start'); 
     const endT = getSelectedTimeString('end');     
 
     if (!date || !startT || !endT) return window.showModal("Please select a date and valid start/end times.");
+
+    // Validate date: prevent past dates or dates > 6 months out
+    const todayStr = new Date().toISOString().split('T')[0];
+    const maxDate = new Date();
+    maxDate.setMonth(maxDate.getMonth() + 6);
+    const maxDateStr = maxDate.toISOString().split('T')[0];
+
+    if (date < todayStr || date > maxDateStr) {
+        return window.showModal("Bookings are only allowed from today up to 6 months in advance.");
+    }
 
     try {
         await addDoc(collection(db, "bookings"), { 
