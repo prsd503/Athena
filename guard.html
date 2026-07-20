@@ -90,105 +90,198 @@
          <h2>Security Guard Login</h2>
 
 
-        <style>
-  .owl-flight-wrapper {
-    position: relative;
-    display: inline-block;
-    cursor: pointer;
-  }
-
-  /* Custom SVG Owl Container designed for wing flapping animation */
-  .owl-svg-container {
-    width: 80px;
-    height: 80px;
-    display: inline-block;
-    transform-origin: center center;
-  }
-
-  @keyframes wingFlap {
-    0%, 100% { transform: scaleX(1) translateY(0); }
-    50% { transform: scaleX(0.7) translateY(-3px); }
-  }
-
-  @keyframes realFlightPath {
-    0% {
-      transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
-      opacity: 1;
-    }
-    20% {
-      transform: translate3d(-30px, -50px, 50px) scale(1.1) rotate(-8deg);
-    }
-    50% {
-      transform: translate3d(80px, -180px, 150px) scale(0.9) rotate(12deg);
-    }
-    80% {
-      transform: translate3d(-40px, -350px, 300px) scale(0.5) rotate(-15deg);
-    }
-    100% {
-      transform: translate3d(150px, -550px, 500px) scale(0.15) rotate(-30deg);
-      opacity: 0;
-    }
-  }
-
-  .owl-svg-container.flapping {
-    animation: wingFlap 0.25s infinite ease-in-out, realFlightPath 2.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-  }
-</style>
-
-<div class="owl-flight-wrapper" onclick="triggerRealisticOwlFlight()" title="Click to launch real owl flying!">
-  <div class="owl-svg-container" id="owlContainer">
-    <!-- Detailed SVG Owl Graphic with distinct body and wings for realistic motion scaling -->
-    <svg viewBox="0 0 100 100" width="100%" height="100%">
-      <!-- Body & Head -->
-      <ellipse cx="50" cy="55" rx="22" ry="26" fill="#8B4513" />
-      <circle cx="50" cy="35" r="18" fill="#A0522D" />
-      
-      <!-- Big Owl Eyes -->
-      <circle cx="42" cy="33" r="7" fill="#FFF" />
-      <circle cx="58" cy="33" r="7" fill="#FFF" />
-      <circle cx="43" cy="33" r="3" fill="#000" />
-      <circle cx="57" cy="33" r="3" fill="#000" />
-      
-      <!-- Beak -->
-      <polygon points="50,37 46,43 54,43" fill="#FFA500" />
-
-      <!-- Left Wing -->
-      <path id="leftWing" d="M28 45 Q 15 55 25 75 Q 35 65 32 50 Z" fill="#654321" />
-      
-      <!-- Right Wing -->
-      <path id="rightWing" d="M72 45 Q 85 55 75 75 Q 65 65 68 50 Z" fill="#654321" />
-
-      <!-- Tail feathers -->
-      <path d="M42 75 L50 88 L58 75 Z" fill="#654321" />
-    </svg>
-  </div>
+       <div style="text-align: center; padding: 20px;">
+  <canvas id="owlCanvas" width="300" height="300" style="cursor: pointer; background: transparent;" onclick="triggerCanvasOwlFlight()" title="Click to launch real flying owl!"></canvas>
 </div>
 
 <audio id="owlAudioTheme" src="theme.mp3" preload="auto"></audio>
 
 <script>
-  function triggerRealisticOwlFlight() {
-    const container = document.getElementById('owlContainer');
-    const audio = document.getElementById('owlAudioTheme');
+  const canvas = document.getElementById('owlCanvas');
+  const ctx = canvas.getContext('2d');
 
-    // Play theme.mp3 audio
+  // Owl flight animation state variables
+  let isFlying = false;
+  let flightProgress = 0; // 0 to 1
+  let animId = null;
+
+  // Draw initial resting real-looking vibrant owl
+  function drawOwl(x, y, scale = 1, wingAngle = 0, opacity = 1) {
+    ctx.save();
+    ctx.globalAlpha = opacity;
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+
+    // --- Vibrant Feathers & Body Back Layer ---
+    // Body gradient (Golden brown, warm amber, and vibrant teal/turquoise chest highlights)
+    let bodyGrad = ctx.createRadialGradient(0, 10, 5, 0, 10, 45);
+    bodyGrad.addColorStop(0, '#FFD700'); // Vibrant gold center
+    bodyGrad.addColorStop(0.4, '#D2691E'); // Rich chocolate brown
+    bodyGrad.addColorStop(1, '#1E3A8A'); // Deep midnight blue tint
+    
+    ctx.fillStyle = bodyGrad;
+    ctx.beginPath();
+    ctx.ellipse(0, 15, 30, 42, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Vibrant chest pattern feathers (Teal & Orange accents)
+    ctx.fillStyle = '#0D9488'; // Vibrant teal
+    for(let i = -15; i <= 15; i += 10) {
+      ctx.beginPath();
+      ctx.arc(i, 20, 5, 0, Math.PI);
+      ctx.fill();
+    }
+    ctx.fillStyle = '#F59E0B'; // Bright amber
+    for(let i = -10; i <= 10; i += 10) {
+      ctx.beginPath();
+      ctx.arc(i, 30, 4, 0, Math.PI);
+      ctx.fill();
+    }
+
+    // --- Wings (Movable for flapping animation) ---
+    ctx.save();
+    // Left Wing
+    ctx.translate(-22, -5);
+    ctx.rotate(wingAngle);
+    let leftWingGrad = ctx.createLinearGradient(-30, 0, 0, 50);
+    leftWingGrad.addColorStop(0, '#B45309');
+    leftWingGrad.addColorStop(0.5, '#451A03');
+    leftWingGrad.addColorStop(1, '#0F766E'); // Teal feather tips
+    ctx.fillStyle = leftWingGrad;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(-35, 10, -45, 45, -15, 60);
+    ctx.bezierCurveTo(-5, 50, 0, 20, 0, 0);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    // Right Wing
+    ctx.translate(22, -5);
+    ctx.rotate(-wingAngle);
+    let rightWingGrad = ctx.createLinearGradient(30, 0, 0, 50);
+    rightWingGrad.addColorStop(0, '#B45309');
+    rightWingGrad.addColorStop(0.5, '#451A03');
+    rightWingGrad.addColorStop(1, '#0F766E');
+    ctx.fillStyle = rightWingGrad;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(35, 10, 45, 45, 15, 60);
+    ctx.bezierCurveTo(5, 50, 0, 20, 0, 0);
+    ctx.fill();
+    ctx.restore();
+
+    // --- Head & Facial Disc ---
+    let headGrad = ctx.createRadialGradient(0, -25, 2, 0, -25, 28);
+    headGrad.addColorStop(0, '#FBBF24');
+    headGrad.addColorStop(0.7, '#B45309');
+    headGrad.addColorStop(1, '#78350F');
+    ctx.fillStyle = headGrad;
+    ctx.beginPath();
+    ctx.arc(0, -25, 26, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Ear Tufts (Horn-like feathers)
+    ctx.fillStyle = '#78350F';
+    ctx.beginPath();
+    ctx.moveTo(-18, -45); ctx.lineTo(-28, -60); ctx.lineTo(-10, -48); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(18, -45); ctx.lineTo(28, -60); ctx.lineTo(10, -48); ctx.fill();
+
+    // Big Piercing Owl Eyes (Outer rings)
+    ctx.fillStyle = '#065F46'; // Deep emerald green ring
+    ctx.beginPath(); ctx.arc(-11, -27, 11, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(11, -27, 11, 0, Math.PI * 2); ctx.fill();
+
+    // Eye Whites / Gold Iris
+    ctx.fillStyle = '#F59E0B';
+    ctx.beginPath(); ctx.arc(-11, -27, 8, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(11, -27, 8, 0, Math.PI * 2); ctx.fill();
+
+    // Pupils (Black)
+    ctx.fillStyle = '#000000';
+    ctx.beginPath(); ctx.arc(-11, -27, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(11, -27, 4, 0, Math.PI * 2); ctx.fill();
+
+    // Eye highlights (Lifelike sparkle)
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath(); ctx.arc(-13, -29, 1.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(9, -29, 1.5, 0, Math.PI * 2); ctx.fill();
+
+    // Sharp Curved Beak
+    ctx.fillStyle = '#D97706';
+    ctx.beginPath();
+    ctx.moveTo(0, -32);
+    ctx.lineTo(-4, -20);
+    ctx.lineTo(0, -14);
+    ctx.lineTo(4, -20);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#B45309';
+    ctx.beginPath();
+    ctx.moveTo(0, -14);
+    ctx.lineTo(-3, -19);
+    ctx.lineTo(3, -19);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  // Initial draw render
+  function renderStaticOwl() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawOwl(150, 160, 1, 0, 1);
+  }
+  renderStaticOwl();
+
+  // Trigger flight sequence
+  function triggerCanvasOwlFlight() {
+    if (isFlying) return;
+    isFlying = true;
+    flightProgress = 0;
+
+    const audio = document.getElementById('owlAudioTheme');
     if (audio) {
       audio.currentTime = 0;
-      audio.play().catch(e => console.log("Audio play blocked or missing file:", e));
+      audio.play().catch(e => console.log("Audio play error:", e));
     }
 
-    // Trigger vector wing-flap and 3D soaring flight animation
-    if (!container.classList.contains('flapping')) {
-      container.classList.add('flapping');
+    const startTime = performance.now();
+    const duration = 2000; // 2 seconds flight duration
 
-      // Reset after animation finishes (2.2 seconds)
-      setTimeout(() => {
-        container.classList.remove('flapping');
-      }, 2200);
+    function animate(currentTime) {
+      const elapsed = currentTime - startTime;
+      flightProgress = Math.min(elapsed / duration, 1);
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Calculate smooth trajectory (Fly up and away to the top right with 3D scaling down)
+      let startX = 150, startY = 160;
+      let targetX = 260, targetY = -50;
+      
+      let currentX = startX + (targetX - startX) * flightProgress;
+      let currentY = startY + (targetY - startY) * flightProgress - Math.sin(flightProgress * Math.PI) * 40; // slight arc
+      let currentScale = 1 - (flightProgress * 0.75); // scales down into distance
+      let currentOpacity = 1 - flightProgress;
+
+      // Realistic flapping wing calculation based on sine wave
+      let flapSpeed = 25; // frequency of wing beats
+      let wingAngle = Math.sin(flightProgress * flapSpeed) * 0.65; // radians rotation
+
+      drawOwl(currentX, currentY, Math.max(currentScale, 0.25), wingAngle, Math.max(currentOpacity, 0));
+
+      if (flightProgress < 1) {
+        animId = requestAnimationFrame(animate);
+      } else {
+        isFlying = false;
+        setTimeout(renderStaticOwl, 300); // Reset back to initial resting post
+      }
     }
+
+    animId = requestAnimationFrame(animate);
   }
-</script>
-        
+</script>        
       
 
         
