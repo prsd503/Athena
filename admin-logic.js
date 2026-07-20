@@ -275,27 +275,61 @@ function getLocalDateString() { return new Date().toLocaleDateString('en-CA'); }
 // --- Initialization Logic ---
 document.addEventListener('DOMContentLoaded', () => {
 
-    // Master Admin: Change Active Society override
-document.getElementById('masterSaveSocietyBtn')?.addEventListener('click', () => {
+// Master Admin: Change Active Society override with existence verification
+document.getElementById('masterSaveSocietyBtn')?.addEventListener('click', async () => {
     const newSociety = document.getElementById('masterSocietyInput').value.trim();
     if (!newSociety) return window.showModal("Please enter a valid society name.");
     
-    assignedSociety = newSociety;
-    window.showModal(`Active society switched to: ${assignedSociety}`);
-    
-    // Refresh relevant data views for the new society
-    if (typeof loadNoticeData === 'function') loadNoticeData();
-    if (typeof loadFacilitiesDropdown === 'function') loadFacilitiesDropdown();
-    if (typeof loadActiveBookings === 'function') loadActiveBookings();
+    try {
+        // Query the 'admins' collection to check if the target society exists
+        const q = query(collection(db, "admins"), where("society", "==", newSociety));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+            return window.showModal(`Society "${newSociety}" does not exist in the system.`);
+        }
+
+        assignedSociety = newSociety;
+        window.showModal(`Active society switched to: ${assignedSociety}`);
+        
+        // Refresh relevant data views for the new society
+        if (typeof loadNoticeData === 'function') loadNoticeData();
+        if (typeof loadFacilitiesDropdown === 'function') loadFacilitiesDropdown();
+        if (typeof loadActiveBookings === 'function') loadActiveBookings();
+
+        // Render linked data summary below the control section
+        let resultsContainer = document.getElementById('master-society-data');
+        if (!resultsContainer) {
+            resultsContainer = document.createElement('div');
+            resultsContainer.id = 'master-society-data';
+            resultsContainer.style.cssText = "margin-top: 15px; text-align: left; font-size: 0.9rem; background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #d32f2f;";
+            document.getElementById('master-admin-panel').appendChild(resultsContainer);
+        }
+
+        resultsContainer.innerHTML = `<b>Linked Data for ${assignedSociety}:</b><br>Found ${querySnapshot.size} admin profile(s) linked to this society.`;
+
+    } catch (err) {
+        console.error("Error verifying society existence:", err);
+        window.showModal("Failed to verify society name.");
+    }
 });
 
-// Master Admin: Update Team Phone
-document.getElementById('masterSavePhoneBtn')?.addEventListener('click', () => {
+document.getElementById('masterSavePhoneBtn')?.addEventListener('click', async () => {
     const newPhone = document.getElementById('masterPhoneInput').value.trim();
     if (!newPhone) return window.showModal("Please enter a valid phone number.");
     
-    teamPhone = newPhone;
-    window.showModal(`Team WhatsApp phone updated to: ${teamPhone}`);
+    try {
+        // Save the phone number globally or per-society in Firestore
+        await setDoc(doc(db, "settings", "globalConfig"), {
+            teamPhone: newPhone
+        }, { merge: true });
+
+        teamPhone = newPhone;
+        window.showModal(`Team WhatsApp phone updated and saved to database: ${teamPhone}`);
+    } catch (err) {
+        console.error("Error saving team phone:", err);
+        window.showModal("Failed to save phone number.");
+    }
 });
     
     // --- Booking Date Boundary Setup ---
