@@ -33,14 +33,14 @@ window.downloadCSV = (content, filename) => {
 
 // 1. Search Guard by Name
 document.getElementById('searchGuardBtn')?.addEventListener('click', async () => {
-    const searchName = document.getElementById('searchGuardName').value.trim();
+    const searchName = document.getElementById('searchGuardName').value.trim().toLowerCase();
     if (!searchName) return window.showModal("Please enter a guard name to search.");
 
     try {
         const q = query(
             collection(db, "guards"), 
-            where("societyName", "==", assignedSociety),
-            where("name", "==", searchName)
+            where("society", "==", assignedSociety),
+            where("name_lower", "==", searchName)
         );
         const querySnapshot = await getDocs(q);
 
@@ -57,7 +57,8 @@ document.getElementById('searchGuardBtn')?.addEventListener('click', async () =>
             window.showModal("Guard details loaded into form.");
         });
     } catch (err) {
-        window.showModal("Error searching for guard.");
+        window.showModal("Error searching for guard. Check console indexes if needed.");
+        console.error(err);
     }
 });
 
@@ -74,8 +75,9 @@ document.getElementById('addGuardBtn')?.addEventListener('click', async () => {
         await setDoc(doc(db, "guards", email), {
             email: email,
             name: name,
+            name_lower: name.toLowerCase(), // Added so lowercase search matches correctly
             phone: phone,
-            societyName: assignedSociety,
+            society: assignedSociety,       // Fixed from societyName to match database field
             updatedAt: serverTimestamp()
         }, { merge: true });
 
