@@ -88,7 +88,7 @@
     <!-- Login Section -->
     <div class="card" id="login-section">
          <h2>Security Guard Login</h2>
-        <style>
+       <style>
   .flying-owl-btn {
     background: none;
     border: none;
@@ -97,33 +97,38 @@
     padding: 10px;
     outline: none;
     display: inline-block;
-    transition: transform 0.3s ease;
+    perspective: 1000px;
+    transform-style: preserve-3d;
+    transition: transform 0.1s ease;
   }
   
   .flying-owl-btn:active {
     transform: scale(0.9);
   }
 
-  @keyframes flyAway {
+  @keyframes flyAway3D {
     0% {
-      transform: translate(0, 0) scale(1) rotate(0deg);
+      transform: translate3d(0, 0, 0) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
       opacity: 1;
     }
-    30% {
-      transform: translate(-30px, -40px) scale(1.1) rotate(-10deg);
+    20% {
+      transform: translate3d(-20px, -30px, 100px) scale3d(1.2, 1.2, 1.2) rotateX(15deg) rotateY(-20deg) rotateZ(-10deg);
+    }
+    50% {
+      transform: translate3d(80px, -150px, 300px) scale3d(0.8, 0.8, 0.8) rotateX(-25deg) rotateY(45deg) rotateZ(-20deg);
     }
     100% {
-      transform: translate(350px, -500px) scale(0.2) rotate(-25deg);
+      transform: translate3d(300px, -500px, 800px) scale3d(0.1, 0.1, 0.1) rotateX(-45deg) rotateY(90deg) rotateZ(-45deg);
       opacity: 0;
     }
   }
 
   .flying-owl-btn.flying {
-    animation: flyAway 1.2s ease-in-out forwards;
+    animation: flyAway3D 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
   }
 </style>
 
-<button class="flying-owl-btn" id="flyingOwlBtn" onclick="triggerOwlFlight()" title="Click to watch the owl fly!">
+<button class="flying-owl-btn" id="flyingOwlBtn" onclick="triggerOwlFlight()" title="Click to watch the 3D owl fly!">
   🦉
 </button>
 
@@ -140,17 +145,19 @@
       audio.play().catch(e => console.log("Audio play blocked or missing file:", e));
     }
 
-    // Trigger flying animation if not already flying
+    // Trigger 3D flying animation if not already flying
     if (!btn.classList.contains('flying')) {
       btn.classList.add('flying');
 
-      // Reset button position and opacity after the animation completes (1.2s)
+      // Reset button position and opacity after the animation completes (1.5s)
       setTimeout(() => {
         btn.classList.remove('flying');
-      }, 1200);
+      }, 1500);
     }
   }
 </script>
+        
+        
         <input type="email" id="email" placeholder="Email">
         <input type="password" id="pass" placeholder="Password">
         <br>
