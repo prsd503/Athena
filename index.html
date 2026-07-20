@@ -679,40 +679,72 @@ document.getElementById("factlityPage").href = "facility.html";
             clearSocietySession();
         });
         
+       // --- Function to fetch and update the Contact Us WhatsApp link dynamically ---
+        async function updateContactUsWhatsAppLink() {
+            try {
+                // Fetch the config document from your actual Firestore path: configs -> owlwatcher
+                const configDoc = await getDoc(doc(db, "configs", "owlwatcher"));
+                
+                let phoneNumber = "919033406816"; // Default fallback number
+                
+                if (configDoc.exists()) {
+                    const data = configDoc.data();
+                    if (data.teamPhone) {
+                        phoneNumber = data.teamPhone.replace(/\D/g, ''); // Ensure safe digits
+                    }
+                }
+
+                // Find all anchor tags pointing to wa.me and update them dynamically
+                const whatsappLinks = document.querySelectorAll('a[href*="wa.me"]');
+                whatsappLinks.forEach(link => {
+                    // Retain any existing text query parameters if present, or just update the base number
+                    const urlObj = new URL(link.href);
+                    // Rebuild the path segment with the dynamic phone number
+                    link.href = `https://wa.me/${phoneNumber}${urlObj.search}`;
+                });
+
+                console.log(`WhatsApp contact links updated with team phone: ${phoneNumber}`);
+            } catch (err) {
+                console.error("Failed to fetch team phone for WhatsApp link:", err);
+            }
+        }
+        
         // Lifecycle: Check for persistent session on page load/refresh
         window.addEventListener("DOMContentLoaded", async () => {
             await fetchTeamPhone(); // Retrieve configurations before updating links
+            await updateContactUsWhatsAppLink(); // Dynamically fetch and replace fixed WhatsApp numbers
             updateAdLinks(); // Establish initial clean addresses
-// --- Function to fetch and update the Contact Us WhatsApp link dynamically ---
-async function updateContactUsWhatsAppLink() {
-    try {
-        // Fetch the config document from Firestore
-        const configDoc = await getDoc(doc(db, "configs", "owlwatcher"));
-        
-        let phoneNumber = "919033406816"; // Default fallback number
-        
-        if (configDoc.exists()) {
-            const data = configDoc.data();
-            if (data.teamPhone) {
-                phoneNumber = data.teamPhone;
-            }
-        }
 
-        // Find all anchor tags pointing to wa.me and update them dynamically
-        const whatsappLinks = document.querySelectorAll('a[href*="wa.me"]');
-        whatsappLinks.forEach(link => {
-            link.href = `https://wa.me/${phoneNumber}`;
-        });
-
-        console.log(`WhatsApp contact link updated with team phone: ${phoneNumber}`);
-    } catch (err) {
-        console.error("Failed to fetch team phone for WhatsApp link:", err);
-    }
-}
-
-// Call this function inside your DOMContentLoaded or initialization block:
-// updateContactUsWhatsAppLink();
             const savedName = localStorage.getItem("savedSocietyName");
+            const savedId = localStorage.getItem("savedSocietyId");
+            const loginTime = localStorage.getItem("societyLoginTime");
+            
+            if (savedName && savedId && loginTime) {
+                const elapsed = Date.now() - parseInt(loginTime, 10);
+                const fifteenMinutes = 15 * 60 * 1000;
+
+                if (elapsed >= fifteenMinutes) {
+                    clearSocietySession();
+                } else {
+                    showSearchScreen(savedName, savedId);
+                    
+                    // Setup a precise timeout to clear the session when the remaining time is up
+                    setTimeout(() => {
+                        clearSocietySession();
+                    }, fifteenMinutes - elapsed);
+                }
+            } else {
+                loadGlobalAdsPreLogin(); // Run if landing on the screen before log-in setup
+            }
+
+            // Auto-Refresh Logic (Runs every 5 minutes to fetch updated notices and guard details)
+            setTimeout(() => {
+                window.location.reload();
+            }, 5 * 60 * 1000);
+        });
+        
+        
+        const savedName = localStorage.getItem("savedSocietyName");
             const savedId = localStorage.getItem("savedSocietyId");
             const loginTime = localStorage.getItem("societyLoginTime");
             
