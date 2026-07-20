@@ -29,6 +29,73 @@ window.downloadCSV = (content, filename) => {
     URL.revokeObjectURL(url);
 };
 
+// --- Vehicle Search Logic ---
+document.getElementById('adminSearchBtn')?.addEventListener('click', async () => {
+    const searchVal = document.getElementById('adminSearch').value.trim().toUpperCase();
+    const resultsDiv = document.getElementById('admin-results');
+    if (!searchVal) return window.showModal("Please enter a vehicle number to search.");
+
+    resultsDiv.innerHTML = "Searching...";
+    try {
+        const q = query(collection(db, "vehicles"), where("vehicleNumber", "==", searchVal), where("societyName", "==", assignedSociety));
+        const querySnapshot = await getDocs(q);
+        
+        if (querySnapshot.empty) {
+            resultsDiv.innerHTML = "<p>No vehicle found.</p>";
+            return;
+        }
+
+        resultsDiv.innerHTML = "";
+        querySnapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            resultsDiv.innerHTML += `
+                <div style="background:#f4ece0; padding:10px; margin-top:5px; border-radius:8px;">
+                    <b>Vehicle:</b> ${data.vehicleNumber}<br>
+                    <b>Flat:</b> ${data.flatNumber}<br>
+                    <button onclick="window.deleteVehicleDoc('${docSnap.id}')" style="background:#d32f2f; font-size:0.9rem; padding:5px 10px;">Delete</button>
+                </div>
+            `;
+        });
+    } catch (err) {
+        window.showModal("Error searching vehicle data.");
+    }
+});
+
+// --- Save Single Vehicle Registry Logic ---
+document.getElementById('saveBtn')?.addEventListener('click', async () => {
+    const vNum = document.getElementById('vNum').value.trim().toUpperCase();
+    const fNum = document.getElementById('fNum').value.trim();
+    const mNum = document.getElementById('mNum').value.trim();
+    const vType = document.getElementById('vType').value;
+
+    if (!vNum || !fNum) return window.showModal("Vehicle number and Flat number are required.");
+
+    try {
+        await addDoc(collection(db, "vehicles"), {
+            vehicleNumber: vNum,
+            flatNumber: fNum,
+            mobileNumber: mNum,
+            vehicleType: vType,
+            societyName: assignedSociety,
+            createdAt: serverTimestamp()
+        });
+        window.showModal("Vehicle saved to registry successfully!");
+        document.getElementById('vNum').value = "";
+        document.getElementById('fNum').value = "";
+        document.getElementById('mNum').value = "";
+    } catch (err) {
+        window.showModal("Failed to save vehicle.");
+    }
+});
+
+// --- CSV Template Download Helper ---
+document.getElementById('downloadTemplateBtn')?.addEventListener('click', () => {
+    const csvContent = "VehicleNumber,FlatNumber,MobileNumber\nKA01AB1234,101,9876543210\n";
+    window.downloadCSV(csvContent, "vehicle_template.csv");
+});
+
+
+
 function getLocalDateString() { return new Date().toLocaleDateString('en-CA'); }
 
 // --- Initialization Logic ---
