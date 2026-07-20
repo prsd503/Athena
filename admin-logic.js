@@ -74,6 +74,7 @@ document.getElementById('addGuardBtn')?.addEventListener('click', async () => {
     try {
         const nameLower = name.toLowerCase();
         
+        // Check if a guard with this name already exists in the same society
         const q = query(
             collection(db, "guards"),
             where("society", "==", assignedSociety),
@@ -81,12 +82,14 @@ document.getElementById('addGuardBtn')?.addEventListener('click', async () => {
         );
         const querySnapshot = await getDocs(q);
 
-        let targetDocId = email; 
+        let targetDocId = email; // Default to email as ID if not found
 
         if (!querySnapshot.empty) {
+            // If found, grab the existing document's ID so we update it instead of creating a new one
             targetDocId = querySnapshot.docs[0].id;
         }
 
+        // Save or update using the resolved document ID
         await setDoc(doc(db, "guards", targetDocId), {
             email: email,
             name: name,
@@ -111,6 +114,7 @@ document.getElementById('deleteGuardBtn')?.addEventListener('click', async () =>
         await deleteDoc(doc(db, "guards", email));
         window.showModal("Guard deleted successfully.");
         
+        // Clear input fields
         document.getElementById('gEmail').value = "";
         document.getElementById('gName').value = "";
         document.getElementById('gPhone').value = "";
@@ -136,15 +140,17 @@ document.getElementById('adminSearchBtn')?.addEventListener('click', async () =>
             return;
         }
 
-        window.deleteVehicleDoc = async (docId) => {
-            try {
-                await deleteDoc(doc(db, "vehicles", docId));
-                window.showModal("Vehicle deleted from registry.");
-                document.getElementById('admin-results').innerHTML = "";
-            } catch (err) {
-                window.showModal("Failed to delete vehicle record.");
-            }
-        };
+        // --- Delete Vehicle Document Helper ---
+window.deleteVehicleDoc = async (docId) => {
+    try {
+        await deleteDoc(doc(db, "vehicles", docId));
+        window.showModal("Vehicle deleted from registry.");
+        // Clear or re-trigger search results view if desired
+        document.getElementById('admin-results').innerHTML = "";
+    } catch (err) {
+        window.showModal("Failed to delete vehicle record.");
+    }
+};
 
         resultsDiv.innerHTML = "";
         querySnapshot.forEach((docSnap) => {
@@ -174,6 +180,7 @@ document.getElementById('saveBtn')?.addEventListener('click', async () => {
     if (!vNum || !fNum) return window.showModal("Vehicle number and Flat number are required.");
 
     try {
+        // Check if this vehicle number already exists for this society
         const q = query(
             collection(db, "vehicles"), 
             where("vehicleNumber", "==", vNum), 
@@ -182,6 +189,7 @@ document.getElementById('saveBtn')?.addEventListener('click', async () => {
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
+            // If it exists, update the first matching document instead of adding a new one
             const existingDocId = querySnapshot.docs[0].id;
             await setDoc(doc(db, "vehicles", existingDocId), {
                 flatNumber: fNum,
@@ -192,6 +200,7 @@ document.getElementById('saveBtn')?.addEventListener('click', async () => {
 
             window.showModal("Vehicle details updated successfully!");
         } else {
+            // Otherwise, create a new vehicle entry
             await addDoc(collection(db, "vehicles"), {
                 vehicleNumber: vNum,
                 flatNumber: fNum,
@@ -204,6 +213,7 @@ document.getElementById('saveBtn')?.addEventListener('click', async () => {
             window.showModal("Vehicle saved to registry successfully!");
         }
 
+        // Clear input fields
         document.getElementById('vNum').value = "";
         document.getElementById('fNum').value = "";
         document.getElementById('mNum').value = "";
@@ -213,72 +223,23 @@ document.getElementById('saveBtn')?.addEventListener('click', async () => {
     }
 });
 
+// --- CSV Template Download Helper ---
 document.getElementById('downloadTemplateBtn')?.addEventListener('click', () => {
     const csvContent = "VehicleNumber,FlatNumber,MobileNumber,VehicleType\nKA01AB1234,101,9876543210,2W\n";
     window.downloadCSV(csvContent, "vehicle_template.csv");
 });
 
+
+
 function getLocalDateString() { return new Date().toLocaleDateString('en-CA'); }
-
-// --- Time Picker Generator Helper ---
-function buildTimeDropdownHTML(idPrefix) {
-    let hourOptions = '<option value="">HH</option>';
-    for (let i = 1; i <= 12; i++) {
-        let hStr = i < 10 ? '0' + i : i;
-        hourOptions += `<option value="${hStr}">${hStr}</option>`;
-    }
-
-    let minOptions = '<option value="00">00</option><option value="15">15</option><option value="30">30</option><option value="45">45</option>';
-
-    return `
-        <div style="display: flex; gap: 5px; align-items: center; display: inline-flex;">
-            <select id="${idPrefix}Hour" style="padding: 6px; border-radius: 6px; border: 1px solid #d7ccc8; background: #fff;">${hourOptions}</select>
-            <span>:</span>
-            <select id="${idPrefix}Min" style="padding: 6px; border-radius: 6px; border: 1px solid #d7ccc8; background: #fff;">${minOptions}</select>
-            <select id="${idPrefix}AmPm" style="padding: 6px; border-radius: 6px; border: 1px solid #d7ccc8; background: #fff;">
-                <option value="AM">AM</option>
-                <option value="PM">PM</option>
-            </select>
-        </div>
-    `;
-}
-
-// Helper to convert dropdown pickers into 24-hour HH:MM format for Firestore
-function getSelectedTimeString(idPrefix) {
-    const hh = document.getElementById(`${idPrefix}Hour`).value;
-    const mm = document.getElementById(`${idPrefix}Min`).value;
-    const ap = document.getElementById(`${idPrefix}AmPm`).value;
-
-    if (!hh) return null;
-
-    let hour24 = parseInt(hh, 10);
-    if (ap === "PM" && hour24 < 12) hour24 += 12;
-    if (ap === "AM" && hour24 === 12) hour24 = 0;
-
-    const formattedHour24 = hour24 < 10 ? '0' + hour24 : hour24;
-    return `${formattedHour24}:${mm}`;
-}
 
 // --- Initialization Logic ---
 document.addEventListener('DOMContentLoaded', () => {
 
-    document.getElementById('saveAllFacilityNamesBtn')?.addEventListener('click', saveAllFacilityNames);
+    // Add this inside your DOMContentLoaded block, near your other event listeners
+document.getElementById('saveAllFacilityNamesBtn')?.addEventListener('click', saveAllFacilityNames);
 
-    // Inject custom time pickers into the DOM where booking inputs exist (if container is present)
-    const timeContainer = document.getElementById('bookingTimeContainer');
-    if (timeContainer) {
-        timeContainer.innerHTML = `
-            <div style="margin-bottom: 10px;">
-                <label style="display: block; font-size: 0.9rem; margin-bottom: 3px;">Start Time:</label>
-                ${buildTimeDropdownHTML('start')}
-            </div>
-            <div>
-                <label style="display: block; font-size: 0.9rem; margin-bottom: 3px;">End Time:</label>
-                ${buildTimeDropdownHTML('end')}
-            </div>
-        `;
-    }
-
+    // 1. Auth & Session Persistence
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             const adminDoc = await getDoc(doc(db, "admins", user.email));
@@ -291,15 +252,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('search-section').style.display = 'block';
                 document.getElementById('data-section').style.display = 'block';
 
+                // Setup UI based on role
                 if (isMasterAdminUser) {
                     const bulkSection = document.getElementById('bulk-section');
                     if (bulkSection) bulkSection.style.display = 'block';
                 }
 
-                loadNoticeData();
-                loadFacilitiesDropdown();
-                await cleanupOldBookings(); 
-                loadActiveBookings();      
+              loadNoticeData();
+loadFacilitiesDropdown();
+await cleanupOldBookings(); // Automatically deletes bookings older than 7 days
+loadActiveBookings();      // Loads the refreshed active list
                 
             } else {
                 window.showModal("Unauthorized access.");
@@ -312,21 +274,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    document.getElementById('loginBtn')?.addEventListener('click', async () => {
-        const email = document.getElementById('email').value.trim();
-        const pass = document.getElementById('pass').value.trim();
-        try { 
-            await signInWithEmailAndPassword(auth, email, pass); 
-        } catch (e) { 
-            let userMsg = "Login failed. Please check your credentials.";
-            if (e.code === 'auth/invalid-email') userMsg = "The email address is invalid.";
-            if (e.code === 'auth/invalid-credential') userMsg = "Invalid email or password.";
-            window.showModal(userMsg); 
-        }
-    });
+  // 2. Login/Logout
+document.getElementById('loginBtn')?.addEventListener('click', async () => {
+    const email = document.getElementById('email').value.trim();
+    const pass = document.getElementById('pass').value.trim();
+    try { 
+        await signInWithEmailAndPassword(auth, email, pass); 
+    } catch (e) { 
+        // Improved user-friendly messaging
+        let userMsg = "Login failed. Please check your credentials.";
+        if (e.code === 'auth/invalid-email') userMsg = "The email address is invalid.";
+        if (e.code === 'auth/invalid-credential') userMsg = "Invalid email or password.";
+        
+        window.showModal(userMsg); 
+    }
+});
 
     document.getElementById('logoutBtn')?.addEventListener('click', () => signOut(auth));
 
+    // 3. Notice Board Management
     document.getElementById('postNoticeBtn')?.addEventListener('click', async () => {
         await setDoc(doc(db, "notices", assignedSociety), {
             todayMessage: document.getElementById('todayMsg').value,
@@ -344,6 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.showModal("Notice deleted.");
     });
 
+// --- 4. Facility Management (F1-F5 Mapping) ---
 window.updateFacilityName = async (fId) => {
     const newName = document.getElementById(`name_${fId}`).value.trim();
     if (!newName) return window.showModal("Please enter a name.");
@@ -367,22 +334,30 @@ async function saveAllFacilityNames() {
     loadFacilitiesDropdown(); 
 }
 
+    
+// --- Updated Dropdown Logic ---
 async function loadFacilitiesDropdown() {
     if (!assignedSociety) return;
     const fDoc = await getDoc(doc(db, "facilities", assignedSociety));
     const data = fDoc.exists() ? fDoc.data() : {};
     const select = document.getElementById('facilitySelect');
     
+    // Populate F1-F5 based on mapping
     select.innerHTML = "";
     ['F1', 'F2', 'F3', 'F4', 'F5'].forEach(fId => {
         const displayName = data[fId] || `Not Assigned (${fId})`;
         select.innerHTML += `<option value="${fId}">${fId}: ${displayName}</option>`;
         
+        // If you have inputs for F1-F5 in your HTML
         const input = document.getElementById(`name_${fId}`);
         if (input) input.value = data[fId] || "";
     });
 }
 
+// --- 5. Booking & Deletion ---
+// --- 5. Booking & Deletion ---
+
+// Function to fetch and display existing bookings
 async function loadActiveBookings() {
     if (!assignedSociety) return;
     const listContainer = document.getElementById('active-bookings-list');
@@ -391,9 +366,11 @@ async function loadActiveBookings() {
     listContainer.innerHTML = "<p style='font-size: 0.9rem;'>Loading bookings...</p>";
 
     try {
+        // Fetch facility name mappings first
         const fDoc = await getDoc(doc(db, "facilities", assignedSociety));
         const facilityNames = fDoc.exists() ? fDoc.data() : {};
 
+        // Query bookings for this society
         const q = query(collection(db, "bookings"), where("society", "==", assignedSociety));
         const querySnapshot = await getDocs(q);
 
@@ -407,6 +384,7 @@ async function loadActiveBookings() {
             const data = docSnap.data();
             const facilityName = facilityNames[data.facilityId] || data.facilityId;
             
+            // Format start and end strings nicely for display
             const startTimeFormatted = data.start ? data.start.replace('T', ' ') : '';
             const endTimeFormatted = data.end ? data.end.split('T')[1] : '';
 
@@ -426,15 +404,14 @@ async function loadActiveBookings() {
     }
 }
 
-// Updated Booking Handler using clean Dropdown Time Pickers
+// Updated Booking function (now refreshes the list upon success)
 document.getElementById('bookFacilityBtn')?.addEventListener('click', async () => {
     const fId = document.getElementById('facilitySelect').value;
     const date = document.getElementById('bookingDate').value; 
-    
-    const startT = getSelectedTimeString('start'); 
-    const endT = getSelectedTimeString('end');     
+    const startT = document.getElementById('startTime').value; 
+    const endT = document.getElementById('endTime').value;     
 
-    if (!date || !startT || !endT) return window.showModal("Please select a date and valid start/end times.");
+    if (!date || !startT || !endT) return window.showModal("Please select date and times.");
 
     try {
         await addDoc(collection(db, "bookings"), { 
@@ -443,31 +420,35 @@ document.getElementById('bookFacilityBtn')?.addEventListener('click', async () =
             start: `${date}T${startT}:00`, 
             end: `${date}T${endT}:00`       
         });
-        window.showModal("Booking created successfully!");
-        loadActiveBookings(); 
+        window.showModal("Booking created with time slot!");
+        loadActiveBookings(); // Refresh the list immediately
     } catch (err) {
         window.showModal("Failed to create booking.");
     }
 });
 
+// Function to Delete Bookings
 window.deleteBooking = async (bookingDocId) => {
     try {
         await deleteDoc(doc(db, "bookings", bookingDocId));
         window.showModal("Booking deleted.");
-        loadActiveBookings(); 
+        loadActiveBookings(); // Refresh the list immediately after deletion
     } catch (err) {
         window.showModal("Failed to delete booking.");
     }
 };
 
+// --- Auto-Delete Expired Bookings (Older than 7 days) ---
 async function cleanupOldBookings() {
     if (!assignedSociety) return;
 
     try {
+        // Calculate the date 7 days ago in YYYY-MM-DD format
         const cutoffDate = new Date();
         cutoffDate.setDate(cutoffDate.getDate() - 7);
-        const cutoffString = cutoffDate.toISOString().split('T')[0]; 
+        const cutoffString = cutoffDate.toISOString().split('T')[0]; // e.g., "2026-07-13"
 
+        // Query bookings for this society
         const q = query(collection(db, "bookings"), where("society", "==", assignedSociety));
         const querySnapshot = await getDocs(q);
 
@@ -476,8 +457,11 @@ async function cleanupOldBookings() {
 
         querySnapshot.forEach((docSnap) => {
             const data = docSnap.data();
+            // Assuming data.start is stored as "YYYY-MM-DDTHH:MM:SS"
             if (data.start) {
                 const bookingDatePart = data.start.split('T')[0];
+                
+                // If the booking date is strictly older than the 7-day cutoff window
                 if (bookingDatePart < cutoffString) {
                     batch.delete(doc(db, "bookings", docSnap.id));
                     deleteCount++;
@@ -485,15 +469,18 @@ async function cleanupOldBookings() {
             }
         });
 
+        // Commit batch deletion if any expired bookings were found
         if (deleteCount > 0) {
             await batch.commit();
-            console.log(`Cleaned up ${deleteCount} expired booking(s).`);
+            console.log(`Cleaned up ${deleteCount} expired booking(s) older than 7 days.`);
         }
     } catch (err) {
         console.error("Failed to clean up old bookings:", err);
     }
 }
+
     
+    // 5. Bulk Management
     document.getElementById('importBtn')?.addEventListener('click', () => {
         const file = document.getElementById('excelInput').files[0];
         if (!file) return window.showModal("Select CSV.");
@@ -517,6 +504,7 @@ async function cleanupOldBookings() {
         reader.readAsText(file);
     });
 
+    // 6. Ad Approval
     document.getElementById('approveAdBtn')?.addEventListener('click', async () => {
         const adKey = document.getElementById('adApprovalKey').value.trim().toUpperCase();
         await updateDoc(doc(db, "ads", adKey), { societyApproved: true });
@@ -525,12 +513,14 @@ async function cleanupOldBookings() {
     });
 });
 
+// --- Independent Helpers ---
 async function loadNoticeData() {
     if (!assignedSociety) return;
     const docSnap = await getDoc(doc(db, "notices", assignedSociety));
-    if, (docSnap.exists()) {
+    if (docSnap.exists()) {
         const data = docSnap.data();
         if (document.getElementById('todayMsg')) document.getElementById('todayMsg').value = data.todayMessage || "";
         if (document.getElementById('tomorrowMsg')) document.getElementById('tomorrowMsg').value = data.tomorrowMessage || "";
     }
 }
+
