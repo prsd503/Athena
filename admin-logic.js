@@ -45,6 +45,18 @@ document.getElementById('adminSearchBtn')?.addEventListener('click', async () =>
             return;
         }
 
+        // --- Delete Vehicle Document Helper ---
+window.deleteVehicleDoc = async (docId) => {
+    try {
+        await deleteDoc(doc(db, "vehicles", docId));
+        window.showModal("Vehicle deleted from registry.");
+        // Clear or re-trigger search results view if desired
+        document.getElementById('admin-results').innerHTML = "";
+    } catch (err) {
+        window.showModal("Failed to delete vehicle record.");
+    }
+};
+
         resultsDiv.innerHTML = "";
         querySnapshot.forEach((docSnap) => {
             const data = docSnap.data();
