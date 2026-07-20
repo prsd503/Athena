@@ -274,6 +274,29 @@ function getLocalDateString() { return new Date().toLocaleDateString('en-CA'); }
 
 // --- Initialization Logic ---
 document.addEventListener('DOMContentLoaded', () => {
+
+    // Master Admin: Change Active Society override
+document.getElementById('masterSaveSocietyBtn')?.addEventListener('click', () => {
+    const newSociety = document.getElementById('masterSocietyInput').value.trim();
+    if (!newSociety) return window.showModal("Please enter a valid society name.");
+    
+    assignedSociety = newSociety;
+    window.showModal(`Active society switched to: ${assignedSociety}`);
+    
+    // Refresh relevant data views for the new society
+    if (typeof loadNoticeData === 'function') loadNoticeData();
+    if (typeof loadFacilitiesDropdown === 'function') loadFacilitiesDropdown();
+    if (typeof loadActiveBookings === 'function') loadActiveBookings();
+});
+
+// Master Admin: Update Team Phone
+document.getElementById('masterSavePhoneBtn')?.addEventListener('click', () => {
+    const newPhone = document.getElementById('masterPhoneInput').value.trim();
+    if (!newPhone) return window.showModal("Please enter a valid phone number.");
+    
+    teamPhone = newPhone;
+    window.showModal(`Team WhatsApp phone updated to: ${teamPhone}`);
+});
     
     // --- Booking Date Boundary Setup ---
 function setupBookingDateLimits() {
