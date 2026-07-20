@@ -196,20 +196,16 @@
 </div> -->
         
       <!-- REFINED BOOKING SECTION -->
-<div id="booking-section" class="card">
-    <h3>📅 Book a Facility</h3>
-    <select id="facilitySelect" style="width: 85%; padding: 10px; margin-bottom: 10px;"></select>
-    <br>
-    <label>Date:</label>
+<div class="booking-section">
+    <h3>Book Facility</h3>
+    <select id="facilitySelect"></select>
     <input type="date" id="bookingDate">
-    <br>
-    <label>From:</label>
-    <input type="time" id="startTime">
-    <br>
-    <label>To:</label>
-    <input type="time" id="endTime">
     
-    <button id="bookFacilityBtn" style="background: #6d4c41; color: white; width: 100%;">Confirm Booking</button>
+    <!-- Time Dropdown Target Container -->
+    <div id="bookingTimeContainer" style="margin: 10px 0;"></div>
+
+    <button id="bookFacilityBtn">Confirm Booking</button>
+</div>
     <br>⚠️ Disclaimer: Automatically deletes bookings older than 7 days.
 
     <!-- Container to list existing bookings -->
