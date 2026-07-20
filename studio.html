@@ -11,6 +11,10 @@
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
 
+  <!-- Firebase SDKs (Compat / Modular scripts for dynamic contact fetching) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
   <style>
 /* Navigation Container */
 .main-nav {
@@ -285,7 +289,7 @@
         <a href="admin.html">Admin Portal</a>
         <a href="guard.html">Security Guard Portal</a>
         <a href="studio.html">Photo Studio Portal</a>
-        <a href="https://wa.me/919033406816">Contact Us</a>
+        <a id="dynamicContactLink" href="https://wa.me/919033406816" target="_blank">Contact Us</a>
     </div>
 </nav>
 
@@ -441,12 +445,49 @@
   </div>
 
   <script>
+    // --- Firebase Dynamic Contact Integration ---
+    const firebaseConfig = {
+      apiKey: "YOUR_FIREBASE_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
+    // Fetch dynamic contact target (e.g. WhatsApp URL or contact link) from Firestore
+    async function loadDynamicContact() {
+      try {
+        const docRef = await db.collection("settings").doc("contact").get();
+        if (docRef.exists) {
+          const data = docRef.data();
+          const contactLink = data.url || data.whatsapp || data.link;
+          if (contactLink) {
+            const contactAnchor = document.getElementById('dynamicContactLink');
+            if (contactAnchor) {
+              contactAnchor.href = contactLink;
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Could not load dynamic contact from Firestore, using default fallback link.", err);
+      }
+    }
+
     let canvas, uploadedImages = [], themeDecorations = [], textGroupBanner = null; 
     let selectedAudioFileBlob = null, selectedAudioDataUrl = null; 
     let isBold = false, isItalic = false, isUnderline = false;
     let animationEffect = 'none', animationFrameId = null, timelineCounter = 0, isUserInteracting = false; 
 
     window.addEventListener('load', () => {
+      // Load Firestore dynamic contact configuration on startup
+      loadDynamicContact();
+
       canvas = new fabric.Canvas('collageCanvas', {
         width: 360, height: 360, backgroundColor: '#ffffff', preserveObjectStacking: true
       });
@@ -562,7 +603,6 @@
       if (theme === 'birthday') { bannerText = "🎉 HAPPY BIRTHDAY 🎉"; bgColor = "#8B4513"; canvas.setBackgroundColor('#f3e5f5', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('🎂', 50, 50); addThemeDecorationSticker('🎈', 310, 60); }
       if (theme === 'wedding') { bannerText = "💞 JUST MARRIED 💞"; bgColor = "#8B4513"; fontType = "Caveat"; canvas.setBackgroundColor('#fce4ec', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('💍', 60, 60); }
       
-      // --- Newly requested themes ---
       if (theme === 'anniversary') { bannerText = "💖 HAPPY ANNIVERSARY 💖"; bgColor = "#c2185b"; fontType = "Dancing Script"; canvas.setBackgroundColor('#fdf2f4', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('💑', 60, 60); addThemeDecorationSticker('✨', 300, 70); }
       if (theme === 'graduation') { bannerText = "🎓 CONGRATS GRADUATE 🎓"; bgColor = "#1a237e"; fontType = "Cinzel"; canvas.setBackgroundColor('#e8eaf6', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('📜', 50, 50); addThemeDecorationSticker('⭐', 310, 60); }
       if (theme === 'game') { bannerText = "🏆 VICTORY ROYALE 🏆"; bgColor = "#e65100"; fontType = "Bangers"; canvas.setBackgroundColor('#263238', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('🎮', 60, 60); addThemeDecorationSticker('🔥', 300, 60); }
@@ -644,7 +684,6 @@
       progressContainer.style.display = 'block';
       canvas.discardActiveObject();
       
-      // Stamp official brown brand mark onto recorded frames dynamically
       const watermark = addBrandWatermark();
       timelineCounter = 0;
 
@@ -748,7 +787,6 @@
 
     function bringToFrontSelected() { const a = canvas.getActiveObject(); if(a) { canvas.bringToFront(a); canvas.renderAll(); } }
     
-    // Deletes any actively selected user-imported element, emoji, or text banner group
     function deleteSelectedObject() {
       const activeObject = canvas.getActiveObject();
       if (!activeObject) {
@@ -756,7 +794,6 @@
         return;
       }
       
-      // Filter out from the uploaded tracking arrays
       uploadedImages = uploadedImages.filter(img => img !== activeObject);
       themeDecorations = themeDecorations.filter(dec => dec !== activeObject);
       if (activeObject === textGroupBanner) {
@@ -787,9 +824,9 @@
       canvas.renderAll();
     }
 
-document.getElementById('menuToggle').addEventListener('click', function() {
-    document.getElementById('navLinks').classList.toggle('active');
-});
+    document.getElementById('menuToggle').addEventListener('click', function() {
+        document.getElementById('navLinks').classList.toggle('active');
+    });
     
   </script>
   <hr style="border: 0; border-top: 1px solid #dcdde1; margin: 20px 0;">
