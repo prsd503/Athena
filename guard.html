@@ -92,10 +92,6 @@
 
     <!-- Paste this anywhere in your HTML file (preferably just before the closing </body> tag) -->
 
-<!-- Paste this anywhere in your HTML file (preferably just before the closing </body> tag) -->
-
-<!-- Paste this anywhere in your HTML file (preferably just before the closing </body> tag) -->
-
 <div id="owl-container">
   <!-- Owl Icon Container -->
   <div id="owl-icon" onclick="activateOwlEffect()">
@@ -125,14 +121,17 @@
     transform: scale(1.15);
   }
 
-  /* Animation for Enlarging the Owl Only */
-  @keyframes enlargeOwl {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.6); }
+  /* Animation for Enlarging and Shrinking 2 Times */
+  @keyframes enlargeAndShrinkTwice {
+    0% { transform: scale(1); }
+    25% { transform: scale(1.6); }
+    50% { transform: scale(1); }
+    75% { transform: scale(1.6); }
+    100% { transform: scale(1); }
   }
 
   .active-effect {
-    animation: enlargeOwl 1.5s ease-in-out forwards;
+    animation: enlargeAndShrinkTwice 2s ease-in-out forwards;
   }
 </style>
 
@@ -150,16 +149,15 @@
       console.log("Audio playback blocked or file not found:", error);
     });
 
-    // Trigger the enlarge animation
+    // Trigger the enlarge and shrink animation (lasts 2 seconds)
     container.classList.add('active-effect');
 
-    // Reset after the animation finishes (1.5 seconds)
+    // Reset after the animation finishes
     setTimeout(() => {
       container.classList.remove('active-effect');
-    }, 1500);
+    }, 2000);
   }
 </script>        
-        
         
         
         
