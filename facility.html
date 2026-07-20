@@ -55,7 +55,6 @@
     <h1 id="societyHeader">Initializing...</h1>
     
     <div id="eventDetails">
-        <strong>Bookings Summary:</strong><br>
         <div id="dispSummaryContent"></div>
         <div id="adminContactContainer" style="margin-top: 15px;"></div>
     </div>
@@ -74,35 +73,40 @@
 
     let facilityMap = {};
     let allLoadedBookings = [];
-    let societyAdminPhone = ""; // Stored admin phone number for WhatsApp contact
+    let societyAdminPhone = ""; 
 
-    // Function to render all bookings and WhatsApp contact button for a specific day
+    // Function to render bookings or 'no bookings' state along with WhatsApp contact button
     function showSummaryForDate(dateStr, bookings) {
         const summaryContent = document.getElementById('dispSummaryContent');
         const adminContactContainer = document.getElementById('adminContactContainer');
         
-        let html = `<div style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 5px;">${dateStr}</div>`;
+        let html = `<div style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 5px;"><b>${dateStr}</b></div>`;
         
-        bookings.forEach(b => {
-            const readableName = facilityMap[b.facilityId] || b.facilityId;
-            const startTime = formatTimeString(b.start);
-            const endTime = formatTimeString(b.end);
-            html += `
-                <div style="background: #f4ece0; padding: 6px; margin-top: 5px; border-radius: 6px; font-size: 0.9rem; text-align: left;">
-                    <b>${readableName}</b><br>
-                    <span>${startTime} - ${endTime}</span>
-                </div>
-            `;
-        });
+        if (bookings.length > 0) {
+            html += `<strong>Bookings Summary:</strong><br>`;
+            bookings.forEach(b => {
+                const readableName = facilityMap[b.facilityId] || b.facilityId;
+                const startTime = formatTimeString(b.start);
+                const endTime = formatTimeString(b.end);
+                html += `
+                    <div style="background: #f4ece0; padding: 6px; margin-top: 5px; border-radius: 6px; font-size: 0.9rem; text-align: left;">
+                        <b>${readableName}</b><br>
+                        <span>${startTime} - ${endTime}</span>
+                    </div>
+                `;
+            });
+        } else {
+            html += `<p style="color: #7f8c8d; font-size: 0.95rem; margin: 5px 0;">No bookings on this day.</p>`;
+        }
 
         summaryContent.innerHTML = html;
 
-        // Render WhatsApp contact button if admin phone number is available
+        // Render WhatsApp contact button for any day clicked
         if (societyAdminPhone) {
-            const encodedMsg = encodeURIComponent(`Hi, I have an inquiry regarding facility bookings on ${dateStr}.`);
+            const encodedMsg = encodeURIComponent(`Hi, I want to book a facility on ${dateStr}. Please assist.`);
             adminContactContainer.innerHTML = `
                 <a href="https://wa.me/${societyAdminPhone}?text=${encodedMsg}" target="_blank" class="whatsapp-btn">
-                    💬 Contact Admin via WhatsApp
+                    💬 Contact Admin for Booking
                 </a>
             `;
         } else {
@@ -131,8 +135,6 @@
                 facilityMap = facDocSnap.data();
             }
 
-            // Fetching admin info from 'admins' or config collection to get contact number
-            // Adjust the query based on how admin phone is linked to the society in your project
             const adminQuery = query(collection(db, "admins"), where("society", "==", societyName));
             const adminSnap = await getDocs(adminQuery);
             if (!adminSnap.empty) {
@@ -140,9 +142,9 @@
             }
         } catch (e) { console.error("Error loading metadata:", e); }
 
-        // 2. Fetch Bookings First so they are available when rendering day cells
+        // 2. Fetch Bookings First
         try {
-            const q = query(collection(db, "bookings"), where("society", "==", societyId));
+            const q = query(collection(db, "booked"), where("society", "==", societyId));
             const snapshot = await getDocs(q);
             snapshot.forEach(docSnap => {
                 const data = docSnap.data();
@@ -176,11 +178,8 @@
 
             dateClick: (info) => {
                 const dayBookings = allLoadedBookings.filter(b => b.start && b.start.startsWith(info.dateStr));
-                if (dayBookings.length > 0) {
-                    showSummaryForDate(info.dateStr, dayBookings);
-                } else {
-                    document.getElementById('eventDetails').style.display = 'none';
-                }
+                // Now triggers for any cell clicked, showing summary or "No bookings"
+                showSummaryForDate(info.dateStr, dayBookings);
             }
         });
         calendar.render();
