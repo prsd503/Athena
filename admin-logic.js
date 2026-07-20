@@ -352,30 +352,89 @@ async function loadFacilitiesDropdown() {
 }
 
 // --- 5. Booking & Deletion ---
-// Updated Booking function
+// --- 5. Booking & Deletion ---
+
+// Function to fetch and display existing bookings
+async function loadActiveBookings() {
+    if (!assignedSociety) return;
+    const listContainer = document.getElementById('active-bookings-list');
+    if (!listContainer) return;
+
+    listContainer.innerHTML = "<p style='font-size: 0.9rem;'>Loading bookings...</p>";
+
+    try {
+        // Fetch facility name mappings first
+        const fDoc = await getDoc(doc(db, "facilities", assignedSociety));
+        const facilityNames = fDoc.exists() ? fDoc.data() : {};
+
+        // Query bookings for this society
+        const q = query(collection(db, "bookings"), where("society", "==", assignedSociety));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+            listContainer.innerHTML = "<p style='font-size: 0.9rem; color: #777;'>No active bookings found.</p>";
+            return;
+        }
+
+        listContainer.innerHTML = "<h4>Active Bookings:</h4>";
+        querySnapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            const facilityName = facilityNames[data.facilityId] || data.facilityId;
+            
+            // Format start and end strings nicely for display
+            const startTimeFormatted = data.start ? data.start.replace('T', ' ') : '';
+            const endTimeFormatted = data.end ? data.end.split('T')[1] : '';
+
+            listContainer.innerHTML += `
+                <div style="background:#f4ece0; padding:10px; margin-top:8px; border-radius:8px; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <b>${facilityName}</b><br>
+                        <span style="font-size: 0.85rem; color: #555;">${startTimeFormatted} to ${endTimeFormatted}</span>
+                    </div>
+                    <button onclick="window.deleteBooking('${docSnap.id}')" style="background:#d32f2f; font-size:0.8rem; padding:5px 10px; margin:0;">Delete</button>
+                </div>
+            `;
+        });
+    } catch (err) {
+        listContainer.innerHTML = "<p style='font-size: 0.9rem; color: red;'>Error loading bookings.</p>";
+        console.error(err);
+    }
+}
+
+// Updated Booking function (now refreshes the list upon success)
 document.getElementById('bookFacilityBtn')?.addEventListener('click', async () => {
     const fId = document.getElementById('facilitySelect').value;
-    const date = document.getElementById('bookingDate').value; // e.g., 2026-07-18
-    const startT = document.getElementById('startTime').value; // e.g., 10:00
-    const endT = document.getElementById('endTime').value;     // e.g., 14:00
+    const date = document.getElementById('bookingDate').value; 
+    const startT = document.getElementById('startTime').value; 
+    const endT = document.getElementById('endTime').value;     
 
     if (!date || !startT || !endT) return window.showModal("Please select date and times.");
 
-    await addDoc(collection(db, "bookings"), { 
-        society: assignedSociety, 
-        facilityId: fId, 
-        start: `${date}T${startT}:00`, // FullCalendar ISO start
-        end: `${date}T${endT}:00`       // FullCalendar ISO end
-    });
-    window.showModal("Booking created with time slot!");
+    try {
+        await addDoc(collection(db, "bookings"), { 
+            society: assignedSociety, 
+            facilityId: fId, 
+            start: `${date}T${startT}:00`, 
+            end: `${date}T${endT}:00`       
+        });
+        window.showModal("Booking created with time slot!");
+        loadActiveBookings(); // Refresh the list immediately
+    } catch (err) {
+        window.showModal("Failed to create booking.");
+    }
 });
 
-// New Function to Delete Bookings
+// Function to Delete Bookings
 window.deleteBooking = async (bookingDocId) => {
-    await deleteDoc(doc(db, "bookings", bookingDocId));
-    window.showModal("Booking deleted.");
-    // Add logic here to re-fetch and refresh your bookings list view
+    try {
+        await deleteDoc(doc(db, "bookings", bookingDocId));
+        window.showModal("Booking deleted.");
+        loadActiveBookings(); // Refresh the list immediately after deletion
+    } catch (err) {
+        window.showModal("Failed to delete booking.");
+    }
 };
+    
     // 5. Bulk Management
     document.getElementById('importBtn')?.addEventListener('click', () => {
         const file = document.getElementById('excelInput').files[0];
