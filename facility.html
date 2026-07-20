@@ -75,7 +75,6 @@
     let allLoadedBookings = [];
     let societyAdminPhone = ""; 
 
-    // Function to render bookings or 'no bookings' state along with WhatsApp contact button
     function showSummaryForDate(dateStr, bookings) {
         const summaryContent = document.getElementById('dispSummaryContent');
         const adminContactContainer = document.getElementById('adminContactContainer');
@@ -101,7 +100,6 @@
 
         summaryContent.innerHTML = html;
 
-        // Render WhatsApp contact button with context-specific messages
         if (societyAdminPhone) {
             const msgText = bookings.length > 0 
                 ? `Hi, I have an inquiry regarding bookings on ${dateStr}.` 
@@ -132,7 +130,7 @@
 
         header.innerText = `${societyName} Facility Calendar`;
 
-        // 1. Fetch Facility Mapping & Society Admin Contact Info
+        // 1. Fetch Facility Mapping and Admin Details First
         try {
             const facDocSnap = await getDoc(doc(db, "facilities", societyId));
             if (facDocSnap.exists()) {
@@ -146,9 +144,9 @@
             }
         } catch (e) { console.error("Error loading metadata:", e); }
 
-        // 2. Fetch Bookings First
+        // 2. Fetch Bookings BEFORE Rendering Calendar so data is ready for cell mounting
         try {
-            const q = query(collection(db, "booked"), where("society", "==", societyId));
+            const q = query(collection(db, "bookings"), where("society", "==", societyId));
             const snapshot = await getDocs(q);
             snapshot.forEach(docSnap => {
                 const data = docSnap.data();
@@ -156,7 +154,7 @@
             });
         } catch (e) { console.error("Error loading bookings:", e); }
 
-        // 3. Initialize Calendar
+        // 3. Initialize and Render Calendar AFTER Data is Loaded
         const calendarEl = document.getElementById('calendar');
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
