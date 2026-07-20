@@ -90,11 +90,15 @@
          <h2>Security Guard Login</h2>
 
 
-      <!-- Paste this anywhere in your HTML file (preferably just before the closing </body> tag) -->
+    <!-- Paste this anywhere in your HTML file (preferably just before the closing </body> tag) -->
 
 <div id="flying-owl-container">
-  <!-- Owl Icon (Using an emoji, you can replace this with an <img> or FontAwesome icon if preferred) -->
-  <div id="owl-icon" onclick="activateOwlFly()">🦉</div>
+  <!-- Owl Icon Container -->
+  <div id="owl-icon" onclick="activateOwlFly()">
+    🦉
+    <!-- Glowing/Blinking Eyes Overlay -->
+    <div class="owl-eyes"></div>
+  </div>
   <!-- Audio element playing theme.mp3 -->
   <audio id="owl-audio" src="theme.mp3" preload="auto"></audio>
 </div>
@@ -108,35 +112,62 @@
   }
 
   #owl-icon {
-    font-size: 50px;
+    position: relative;
+    font-size: 60px;
     cursor: pointer;
     user-select: none;
-    transition: transform 0.2s ease;
+    transition: transform 0.3s ease;
     filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
   }
 
   #owl-icon:hover {
-    transform: scale(1.1);
+    transform: scale(1.15);
   }
 
-  /* Flying Animation Class */
+  /* Glowing and Blinking Eyes Styling */
+  .owl-eyes {
+    position: absolute;
+    top: 22px; /* Adjust based on emoji alignment */
+    left: 17px;
+    width: 26px;
+    height: 10px;
+    background: radial-gradient(circle, #ffff00 0%, #ff8800 100%);
+    box-shadow: 0 0 10px #ffea00, 0 0 20px #ff4500;
+    border-radius: 50%;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  @keyframes eyeBlink {
+    0%, 100% { opacity: 1; transform: scaleY(1); }
+    20% { opacity: 0.2; transform: scaleY(0.1); }
+    40% { opacity: 1; transform: scaleY(1); }
+    60% { opacity: 0.2; transform: scaleY(0.1); }
+    80% { opacity: 1; transform: scaleY(1); }
+  }
+
+  /* Main Flying & Enlarging Animation */
   @keyframes flyAcross {
     0% {
-      transform: translate(0, 0) scale(1) rotate(0deg);
+      transform: translate(0, 0) scale(1.5) rotate(0deg);
       opacity: 1;
     }
     50% {
-      transform: translate(-50vw, -40vh) scale(2) rotate(-15deg);
-      opacity: 0.9;
+      transform: translate(-45vw, -40vh) scale(3) rotate(-10deg);
+      opacity: 0.95;
     }
     100% {
-      transform: translate(-100vw, -80vh) scale(0.5) rotate(-30deg);
+      transform: translate(-90vw, -80vh) scale(0.8) rotate(-25deg);
       opacity: 0;
     }
   }
 
   .fly-animation {
-    animation: flyAcross 2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    animation: flyAcross 2.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  }
+
+  .fly-animation .owl-eyes {
+    animation: eyeBlink 2.5s ease-in-out forwards;
   }
 </style>
 
@@ -144,7 +175,6 @@
   function activateOwlFly() {
     const container = document.getElementById('flying-owl-container');
     const audio = document.getElementById('owl-audio');
-    const owl = document.getElementById('owl-icon');
 
     // Prevent spam clicking while animation is active
     if (container.classList.contains('fly-animation')) return;
@@ -155,19 +185,15 @@
       console.log("Audio playback blocked or file not found:", error);
     });
 
-    // Trigger the flight animation
+    // Trigger the flight, enlargement, and eye-blinking animation
     container.classList.add('fly-animation');
 
-    // Reset position and opacity after the animation ends (2 seconds)
+    // Reset after the animation finishes (2.5 seconds)
     setTimeout(() => {
       container.classList.remove('fly-animation');
-    }, 2000);
+    }, 2500);
   }
 </script>        
-
-
-
-        
         <input type="email" id="email" placeholder="Email">
         <input type="password" id="pass" placeholder="Password">
         <br>
