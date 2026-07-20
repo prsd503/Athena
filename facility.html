@@ -14,7 +14,24 @@
         h1 { text-align: center; font-size: 20px; color: #3e2723; margin-top: 0; }
         #eventDetails { background: #ffffff; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #d7ccc8; text-align: center; display: none; color: #5d4037; }
         .fc .fc-toolbar-title { font-size: 1.2rem !important; color: #3e2723; }
-        .fc-event { border-radius: 50% !important; width: 10px !important; height: 10px !important; margin: 0 auto !important; background-color: #8d6e63 !important; border: none !important; cursor: pointer; }
+        
+        /* Hide default FullCalendar event blocks/dots completely */
+        .fc-event { display: none !important; }
+
+        /* Booking Count Badge Styling */
+        .booking-count-badge {
+            background-color: #8d6e63;
+            color: white;
+            border-radius: 6px;
+            padding: 2px 6px;
+            font-size: 0.75rem;
+            margin-top: 4px;
+            cursor: pointer;
+            display: inline-block;
+            font-weight: bold;
+        }
+
+        .back-btn { background: #8d6e63; color: white; border: none; padding: 8px 20px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; font-family: 'Caveat', cursive; text-decoration: none; display: inline-block; }
     </style>
 </head>
 <body>
@@ -24,33 +41,43 @@
     <h1 id="societyHeader">Initializing...</h1>
     
     <div id="eventDetails">
-        <strong>Facility:</strong> <span id="dispFacility"></span><br>
-        <strong>Time:</strong> <span id="dispTime"></span>
+        <strong>Bookings Summary:</strong><br>
+        <div id="dispSummaryContent"></div>
     </div>
 
     <div id='calendar'></div>
-</div>
 
-    <div class="brand-header">
-            <a href="index.html" class="back-btn">Back</a>
-        </div>
+    <div style="text-align: center; margin-top: 15px;">
+        <a href="index.html" class="back-btn">Back</a>
+    </div>
 </div>
-    
 
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
 <script type="module">
     import { db } from "./app.js"; 
     import { collection, getDocs, doc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // Global variable to hold the mapping of IDs to readable names
     let facilityMap = {};
+    let allLoadedBookings = [];
 
-    // Function to show event summary
-    function showSummary(event) {
-        // Use the map to show the readable name, fallback to ID if name not found
-        const facilityReadableName = facilityMap[event.title] || event.title;
-        document.getElementById('dispFacility').innerText = facilityReadableName;
-        document.getElementById('dispTime').innerText = `${formatTime(event.start)} - ${formatTime(event.end)}`;
+    // Function to render all bookings for a specific day inside the summary box
+    function showSummaryForDate(dateStr, bookings) {
+        const summaryContent = document.getElementById('dispSummaryContent');
+        let html = `<div style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 5px;">${dateStr}</div>`;
+        
+        bookings.forEach(b => {
+            const readableName = facilityMap[b.facilityId] || b.facilityId;
+            const startTime = formatTimeString(b.start);
+            const endTime = formatTimeString(b.end);
+            html += `
+                <div style="background: #f4ece0; padding: 6px; margin-top: 5px; border-radius: 6px; font-size: 0.9rem; text-align: left;">
+                    <b>${readableName}</b><br>
+                    <span>${startTime} - ${endTime}</span>
+                </div>
+            `;
+        });
+
+        summaryContent.innerHTML = html;
         document.getElementById('eventDetails').style.display = 'block';
     }
 
@@ -74,33 +101,62 @@
             }
         } catch (e) { console.error("Error loading facility names:", e); }
 
-        // 2. Initialize Calendar
-        const calendarEl = document.getElementById('calendar');
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            displayEventTime: false, 
-            headerToolbar: { left: 'prev,today,next', center: 'title', right: '' },
-            eventClick: (info) => showSummary(info.event),
-            dateClick: (info) => {
-                const dayBookings = calendar.getEvents().filter(e => e.startStr.split('T')[0] === info.dateStr);
-                dayBookings.length > 0 ? showSummary(dayBookings[0]) : (document.getElementById('eventDetails').style.display = 'none');
-            }
-        });
-        calendar.render();
-
-        // 3. Fetch Bookings
+        // 2. Fetch Bookings First so they are available when rendering day cells
         try {
             const q = query(collection(db, "bookings"), where("society", "==", societyId));
             const snapshot = await getDocs(q);
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                calendar.addEvent({ id: doc.id, title: data.facilityId, start: data.start, end: data.end });
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                allLoadedBookings.push({ id: docSnap.id, ...data });
             });
         } catch (e) { console.error("Error loading bookings:", e); }
+
+        // 3. Initialize Calendar
+        const calendarEl = document.getElementById('calendar');
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: { left: 'prev,today,next', center: 'title', right: '' },
+            
+            // Custom cell render to inject count numbers (1, 2, 3...) instead of dots
+            dayCellDidMount: (info) => {
+                const cellDateStr = info.date.toLocaleDateString('en-CA');
+                const dayBookings = allLoadedBookings.filter(b => b.start && b.start.startsWith(cellDateStr));
+
+                if (dayBookings.length > 0) {
+                    const badge = document.createElement('div');
+                    badge.className = 'booking-count-badge';
+                    badge.innerText = `${dayBookings.length} booking(s)`;
+                    
+                    badge.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        showSummaryForDate(cellDateStr, dayBookings);
+                    });
+
+                    info.el.querySelector('.fc-daygrid-day-frame').appendChild(badge);
+                }
+            },
+
+            dateClick: (info) => {
+                const dayBookings = allLoadedBookings.filter(b => b.start && b.start.startsWith(info.dateStr));
+                if (dayBookings.length > 0) {
+                    showSummaryForDate(info.dateStr, dayBookings);
+                } else {
+                    document.getElementById('eventDetails').style.display = 'none';
+                }
+            }
+        });
+        calendar.render();
     });
 
-    function formatTime(date) {
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase();
+    function formatTimeString(isoString) {
+        if (!isoString) return '';
+        const timePart = isoString.split('T')[1];
+        if (!timePart) return '';
+        const [hour, minute] = timePart.split(':');
+        const h = parseInt(hour, 10);
+        const ampm = h >= 12 ? 'pm' : 'am';
+        const formattedHour = h % 12 || 12;
+        return `${formattedHour}:${minute} ${ampm}`;
     }
 </script>
 </body>
