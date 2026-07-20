@@ -319,8 +319,8 @@ document.getElementById('masterSavePhoneBtn')?.addEventListener('click', async (
     if (!newPhone) return window.showModal("Please enter a valid phone number.");
     
     try {
-        // Save the phone number globally or per-society in Firestore
-        await setDoc(doc(db, "settings", "globalConfig"), {
+        // Correct path pointing to your existing 'configs' collection and 'owlwatcher' document
+        await setDoc(doc(db, "configs", "owlwatcher"), {
             teamPhone: newPhone
         }, { merge: true });
 
