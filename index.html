@@ -46,7 +46,6 @@
 /* Add padding to body so content isn't hidden behind the fixed menu */
 body { padding-top: 80px; }
         
-        /* Hide hamburger on desktop, show on mobile */
 /* Ensure the hamburger button is visible and styled */
 .hamburger { 
     display: none; 
@@ -54,8 +53,8 @@ body { padding-top: 80px; }
     border: none; 
     font-size: 28px; 
     cursor: pointer; 
-    color: #000; /* Sets lines to black */
-    z-index: 1001; /* Keeps it above other elements */
+    color: #000; 
+    z-index: 1001; 
 }
 
 @media (max-width: 768px) {
@@ -67,28 +66,25 @@ body { padding-top: 80px; }
         top: 60px;
         left: 0;
         width: 100%;
-        background: #fdf6e3; /* Match your background */
+        background: #fdf6e3; 
         flex-direction: column;
         padding: 20px;
         border-bottom: 2px solid #8d6e63;
-        z-index: 999; /* Higher than content, lower than button */
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Adds separation */
+        z-index: 999; 
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
     }
     
     .nav-links.active { display: flex; }
-}/* Shown when toggled */
-    
-    .nav-links a { margin: 10px 0; }
 }
 
-        /* Desktop View: Show full links, hide Menu button */
+/* Desktop View: Show full links, hide Menu button */
 .nav-links { display: flex; }
 .menu-btn { display: none; }
 
 /* Mobile View (e.g., screens 768px or smaller) */
 @media (max-width: 768px) {
     .nav-links { 
-        display: none; /* Hide links by default on mobile */
+        display: none; 
         flex-direction: column;
         position: absolute;
         top: 80px;
@@ -98,13 +94,10 @@ body { padding-top: 80px; }
         max-width: 85%;
         z-index: 999;
     }
-    .menu-btn { display: block; } /* Show Menu button on mobile */
-    
-    /* Make links visible when active class is added */
+    .menu-btn { display: block; } 
     .nav-links.active { display: flex; }
 }
 
-        
         body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; }
         .card { background: #fff; padding: 20px; border-radius: 20px; border: 2px solid #8d6e63; box-shadow: 5px 5px 0px #8d6e63; max-width: 100vw; margin: 0px 5px; }
         input { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; }
@@ -124,7 +117,6 @@ body { padding-top: 80px; }
         #ad-billboard, #ad-billboard-global { margin-top: 25px; padding: 15px; border: 2px dashed #8d6e63; border-radius: 15px; background: #fff8f5; text-align: center; overflow: hidden; position: relative; }
         .ad-slider-container, .global-ad-slider-container { width: 100%; height: 340px; display: flex; align-items: center; justify-content: center; position: relative; margin: 0 auto; }
         
-        /* Modified to contain the image gracefully inside the box bounds */
         .ad-slide, .global-ad-slide { width: 100%; height: 100%; object-fit: contain; display: none; border-radius: 10px; background: #fafafa; }
         .ad-slide.active, .global-ad-slide.active { display: block; }
         .ad-link { font-size: 0.9rem; color: #8d6e63; text-decoration: underline; display: inline-block; margin-top: 8px; }
@@ -138,60 +130,46 @@ body { padding-top: 80px; }
         .admin-btn { display: inline-block; background: #8d6e63; color: white; padding: 10px 25px; text-decoration: none; border-radius: 10px; font-family: 'Caveat', cursive; font-size: 1.2rem; cursor: pointer; margin-top: 15px; }
         .switch-btn { background: #d32f2f; padding: 4px 10px; font-size: 0.9rem; border-radius: 6px; margin-left: 10px; cursor: pointer; display: inline-block; color: white; vertical-align: middle; }
 
-        /* Animation Keyframes */
-@keyframes fadeInSlide {
-    from {
-        opacity: 0;
-        transform: translateY(20px) scale(0.98);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
+        @keyframes fadeInSlide {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
 
-/* Apply to the main content container */
-.card {
-    animation: subtleFocus 3s infinite ease-in-out;
-}
+        .card { animation: subtleFocus 3s infinite ease-in-out; }
 
-/* Optional: Stagger the entrance of the inputs/buttons for a 'tech' feel */
-#society-verification > * {
-    opacity: 0;
-    animation: fadeInSlide 0.6s ease-out forwards;
-    animation-delay: 0.3s;
-}
-    
+        #society-verification > * {
+            opacity: 0;
+            animation: fadeInSlide 0.6s ease-out forwards;
+            animation-delay: 0.3s;
+        }
     </style>
 </head>
-
 <body>
 
-    
     <div id="startOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#fdf6e3; z-index:10000; display:flex; justify-content:center; align-items:center; flex-direction:column;">
-    <h1 style="font-family: 'Caveat', cursive; color: #5d4037; margin-bottom: 20px;">Welcome <br>to <br>Owl Watcher🦉</h1>
-    <button id="startButton" style="font-family: 'Caveat', cursive; font-size: 1.8rem; padding: 15px 30px; cursor:pointer; background: #8d6e63; color: white; border: none; border-radius: 15px; box-shadow: 4px 4px 0px #5d4037;"> Enter</button>
-</div>
-    <div class="card">
-        
- <!-- Unified Navigation -->
-<nav class="main-nav">
-    <div class="nav-logo">Owl Watcher 🦉</div>
-    <button class="menu-btn" id="menuToggle">☰</button>
-    <div class="nav-links" id="navLinks">
-        <a href="index.html">Home</a>
-        <a href="admin.html">Admin Portal</a>
-        <a href="guard.html">Security Guard Portal</a>
-        <a href="studio.html">Photo Studio Portal</a>
-        <a href="https://wa.me/919033406816">Contact Us</a>
+        <h1 style="font-family: 'Caveat', cursive; color: #5d4037; margin-bottom: 20px;">Welcome <br>to <br>Owl Watcher🦉</h1>
+        <button id="startButton" style="font-family: 'Caveat', cursive; font-size: 1.8rem; padding: 15px 30px; cursor:pointer; background: #8d6e63; color: white; border: none; border-radius: 15px; box-shadow: 4px 4px 0px #5d4037;"> Enter</button>
     </div>
-</nav>
+
+    <div class="card">
+        <!-- Unified Navigation -->
+        <nav class="main-nav">
+            <div class="nav-logo">Owl Watcher 🦉</div>
+            <button class="menu-btn" id="menuToggle">☰</button>
+            <div class="nav-links" id="navLinks">
+                <a href="index.html">Home</a>
+                <a href="admin.html">Admin Portal</a>
+                <a href="guard.html">Security Guard Portal</a>
+                <a href="studio.html">Photo Studio Portal</a>
+                <a href="https://wa.me/919033406816">Contact Us</a>
+            </div>
+        </nav>
         
         <div id="society-verification">
             <input type="text" id="societyInput" placeholder="Enter Society Name">
             <br>
             <button id="verifyBtn">Proceed</button>
-<br>
+            <br>
             <div id="ad-billboard-global">
                 <h4 style="margin: 0 0 10px 0; font-family: 'Caveat', cursive; color: #8d6e63;">✨ Global Billboard ✨</h4>
                 <div class="global-ad-slider-container" id="globalAdSlider">
@@ -203,64 +181,48 @@ body { padding-top: 80px; }
                     <button class="ad-nav-btn" id="nextGlobalAdBtn">Next ❯</button>
                 </div>
                 <a id="globalAdLink" href="https://wa.me/919033406816?text=Hi%20I%20want%20to%20apply%20for%20global%20ad%20in%20Owl%20Watcher" target="_blank" class="ad-link">Advertise Globally Here!</a>
-            
-            </div>
-            
-   
-</div>
-
-       </div>
-        
-        <div id="vehicle-search" style="display:none;">
-            
-            <p style="display: flex; justify-content: center; align-items: center; gap: 8px;">
-                <span>Society: <span id="displaySocietyName" style="font-weight:bold;"></span></span>
-                <button id="switchSocietyBtn" class="switch-btn">Change</button>
-            </p>
-            <input type="text" id="vehicleInput" placeholder="Enter Vehicle Number">
-            <br>
-            <button id="searchBtn">Search</button>
-            <br>
-            <div id="guard-container" style="margin-top:20px;">
-                
-            </div>
-            
-            <div id="notice-board">
-                <h3 style="margin-top: 0; font-family: 'Caveat', cursive; border-bottom: 2px solid #8d6e63; padding-bottom: 5px;">📢 Notice Board</h3>
-                <div id="notice-content">Loading...</div>
-            </div>
-
-            <div id="ad-billboard">
-                <h4 style="margin: 0 0 10px 0; font-family: 'Caveat', cursive; color: #8d6e63;">Birthday/Anniversay Wishes, Offers, Ads & More</h4>
-                <div class="ad-slider-container" id="adSlider">
-                    <p id="ad-placeholder" style="color: #a1887f;">Space Available</p>
-                    <br>
-                    
-                </div>
-                
-                <div class="ad-controls" id="adControls" style="display: none;">
-                    <button class="ad-nav-btn" id="prevAdBtn">❮ Prev</button>
-                    <button class="ad-nav-btn" id="nextAdBtn">Next ❯</button>
-                </div>
-
-                <!-- Target for dynamic updates via ID assignment -->
-                <a id="localAdLink" href="#" target="_blank" class="ad-link">Contact for Posting Paid Content Here!</a>
-           
-            </div>
-            <div style="margin-top: 25px; border-top: 1px solid #dcdde1; padding-top: 15px;">
-              <!-- Updated link: href is now # -->
-<a id="factlityPage" href="#" 
-   style="background: #8d6e63; color: white; padding: 10px; text-decoration: none; border-radius: 8px; display: inline-block; margin-top: 15px;">
-   Go to Facility Booking
-</a>
-                
-                
-                <button id="studioPortalBtn" style="font-family: 'Caveat', cursive; width: 85%; margin-bottom: 10px; background: #8d6e63;">Photo Studio Portal</button>
-                <button id="backToHomeBtn" style="font-family: 'Caveat', cursive; width: 85%;">Back to Home</button>
             </div>
         </div>
+    </div>
 
-   
+    <div id="vehicle-search" style="display:none;">
+        <p style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+            <span>Society: <span id="displaySocietyName" style="font-weight:bold;"></span></span>
+            <button id="switchSocietyBtn" class="switch-btn">Change</button>
+        </p>
+        <input type="text" id="vehicleInput" placeholder="Enter Vehicle Number">
+        <br>
+        <button id="searchBtn">Search</button>
+        <br>
+        <div id="guard-container" style="margin-top:20px;"></div>
+        
+        <div id="notice-board">
+            <h3 style="margin-top: 0; font-family: 'Caveat', cursive; border-bottom: 2px solid #8d6e63; padding-bottom: 5px;">📢 Notice Board</h3>
+            <div id="notice-content">Loading...</div>
+        </div>
+
+        <div id="ad-billboard">
+            <h4 style="margin: 0 0 10px 0; font-family: 'Caveat', cursive; color: #8d6e63;">Birthday/Anniversay Wishes, Offers, Ads & More</h4>
+            <div class="ad-slider-container" id="adSlider">
+                <p id="ad-placeholder" style="color: #a1887f;">Space Available</p>
+                <br>
+            </div>
+            
+            <div class="ad-controls" id="adControls" style="display: none;">
+                <button class="ad-nav-btn" id="prevAdBtn">❮ Prev</button>
+                <button class="ad-nav-btn" id="nextAdBtn">Next ❯</button>
+            </div>
+
+            <a id="localAdLink" href="#" target="_blank" class="ad-link">Contact for Posting Paid Content Here!</a>
+        </div>
+
+        <div style="margin-top: 25px; border-top: 1px solid #dcdde1; padding-top: 15px;">
+            <a id="factlityPage" href="#" style="background: #8d6e63; color: white; padding: 10px; text-decoration: none; border-radius: 8px; display: inline-block; margin-top: 15px;">
+               Go to Facility Booking
+            </a>
+            <button id="studioPortalBtn" style="font-family: 'Caveat', cursive; width: 85%; margin-bottom: 10px; background: #8d6e63;">Photo Studio Portal</button>
+            <button id="backToHomeBtn" style="font-family: 'Caveat', cursive; width: 85%;">Back to Home</button>
+        </div>
     </div>
 
     <div id="resultModal" class="modal">
@@ -283,10 +245,7 @@ body { padding-top: 80px; }
             appId: "1:1011347100861:web:24246f9a4eb24d812cd3d4"
         };
 
-  // Add this to your variable declarations at the top of your <script type="module">
-const themeAudio = new Audio('theme.mp3'); 
-        
-
+        const themeAudio = new Audio('theme.mp3'); 
         
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -296,10 +255,8 @@ const themeAudio = new Audio('theme.mp3');
         let adInterval = null;
         let globalAdInterval = null;
         
-        // Dynamic Owl Watcher Team Contact State
-        let owlWatcherTeamPhone = "919033406816"; // Default/Fallback Number
+        let owlWatcherTeamPhone = "919033406816";
         
-        // Navigation Tracker States
         let currentIndex = 0;
         let totalSlides = 0;
         let currentGlobalIndex = 0;
@@ -308,20 +265,18 @@ const themeAudio = new Audio('theme.mp3');
         function showModal(content) { document.getElementById("result").innerHTML = content; modal.style.display = "block"; }
         window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
 
-  document.getElementById('menuToggle').addEventListener('click', function() {
-    const navLinks = document.getElementById('navLinks');
-    navLinks.classList.toggle('active');
-});
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            const navLinks = document.getElementById('navLinks');
+            navLinks.classList.toggle('active');
+        });
         
-        
-        // Fetch dynamic Owl Watcher Team contact number configured by Master Admin
         async function fetchTeamPhone() {
             try {
                 const configSnap = await getDoc(doc(db, "config", "master"));
                 if (configSnap.exists()) {
                     const data = configSnap.data();
                     if (data.teamPhone) {
-                        owlWatcherTeamPhone = data.teamPhone.replace(/\D/g, ''); // Ensure safe digits
+                        owlWatcherTeamPhone = data.teamPhone.replace(/\D/g, '');
                     }
                 }
             } catch (err) {
@@ -329,32 +284,27 @@ const themeAudio = new Audio('theme.mp3');
             }
         }
 
-        // Dynamically update link targets using the fetched Master Admin number
-function updateAdLinks(societyName = "") {
-    // Existing global ad link logic
-    const globalAdLink = document.getElementById("globalAdLink");
-    if (globalAdLink) {
-        const globalText = encodeURIComponent("Hi I want to apply for global ad in Owl Watcher");
-        globalAdLink.href = `https://wa.me/${owlWatcherTeamPhone}?text=${globalText}`;
-    }
+        function updateAdLinks(societyName = "") {
+            const globalAdLink = document.getElementById("globalAdLink");
+            if (globalAdLink) {
+                const globalText = encodeURIComponent("Hi I want to apply for global ad in Owl Watcher");
+                globalAdLink.href = `https://wa.me/${owlWatcherTeamPhone}?text=${globalText}`;
+            }
 
-    // New Registration Button logic
-    const registerBtn = document.getElementById("registerSocietyBtn");
-    if (registerBtn) {
-        const regText = encodeURIComponent("Hi, I want to register my society/organisation in Owl Watcher app");
-        registerBtn.href = `https://wa.me/${owlWatcherTeamPhone}?text=${regText}`;
-    }
+            const registerBtn = document.getElementById("registerSocietyBtn");
+            if (registerBtn) {
+                const regText = encodeURIComponent("Hi, I want to register my society/organisation in Owl Watcher app");
+                registerBtn.href = `https://wa.me/${owlWatcherTeamPhone}?text=${regText}`;
+            }
 
-    // Existing local ad link logic
-    const localAdLink = document.getElementById("localAdLink");
-    if (localAdLink && societyName) {
-        const localText = encodeURIComponent(`Hi I want to apply for local-society post in Owl Watcher for ${societyName}`);
-        localAdLink.href = `https://wa.me/${owlWatcherTeamPhone}?text=${localText}`;
-        localAdLink.innerText = `Contact for Posting Paid Content in ${societyName}!`;
-    }
-}
+            const localAdLink = document.getElementById("localAdLink");
+            if (localAdLink && societyName) {
+                const localText = encodeURIComponent(`Hi I want to apply for local-society post in Owl Watcher for ${societyName}`);
+                localAdLink.href = `https://wa.me/${owlWatcherTeamPhone}?text=${localText}`;
+                localAdLink.innerText = `Contact for Posting Paid Content in ${societyName}!`;
+            }
+        }
 
-        // 1. Auto-Switching Notice Board with Preview & Read More
         async function loadNotice(societyId) {
             const noticeDiv = document.getElementById('notice-content');
             const docRef = doc(db, "notices", societyId);
@@ -372,14 +322,12 @@ function updateAdLinks(societyName = "") {
                 }
 
                 if (displayMsg) {
-                    // Character limit approximation for a clean preview snippet
                     const characterLimit = 60; 
                     let previewText = displayMsg;
                     let readMoreLink = "";
 
                     if (displayMsg.length > characterLimit) {
                         previewText = displayMsg.substring(0, characterLimit).trim() + "...";
-                        // Passing societyId as a query parameter so notice.html knows which notice to fetch
                         readMoreLink = ` <a href="notice.html?id=${societyId}" style="color: #8d6e63; font-weight: bold; text-decoration: underline; font-family: sans-serif; font-size: 0.9rem;">Read More</a>`;
                     }
 
@@ -392,7 +340,6 @@ function updateAdLinks(societyName = "") {
             }
         }
 
-        // 2. Real-time Guard Info
         function setupGuard(societyId) {
             if (guardUnsubscribe) guardUnsubscribe();
             guardUnsubscribe = onSnapshot(doc(db, "societies", societyId), (snap) => {
@@ -409,7 +356,6 @@ function updateAdLinks(societyName = "") {
             });
         }
 
-        // Helper tracker module to switch layout frames cleanly
         function changeSlide(direction) {
             const slider = document.getElementById("adSlider");
             const slides = slider.getElementsByClassName("ad-slide");
@@ -426,7 +372,6 @@ function updateAdLinks(societyName = "") {
             slides[currentIndex].classList.add("active");
         }
 
-        // Helper tracker module to switch global layout frames cleanly
         function changeGlobalSlide(direction) {
             const slider = document.getElementById("globalAdSlider");
             const slides = slider.getElementsByClassName("global-ad-slide");
@@ -443,7 +388,6 @@ function updateAdLinks(societyName = "") {
             slides[currentGlobalIndex].classList.add("active");
         }
 
-        // Resets the timer interval loops whenever user interactions are recorded
         function startAdTimer() {
             if (adInterval) clearInterval(adInterval);
             const slider = document.getElementById("adSlider");
@@ -468,7 +412,6 @@ function updateAdLinks(societyName = "") {
             }
         }
 
-        // Pre-Login Global Ad Banner System
         async function loadGlobalAdsPreLogin() {
             const slider = document.getElementById("globalAdSlider");
             const controls = document.getElementById("globalAdControls");
@@ -511,7 +454,6 @@ function updateAdLinks(societyName = "") {
                     }
                 } else {
                     slider.innerHTML = `<p id="global-ad-placeholder" style="color: #a1887f;">Space Available for Your Content</p>`;
-
                     controls.style.display = "none";
                 }
             } catch (error) {
@@ -519,7 +461,6 @@ function updateAdLinks(societyName = "") {
             }
         }
 
-        // 3. Rolling Advertisement Billboard System (Post-login Local Society Board)
         async function loadAds(societyId) {
             const slider = document.getElementById("adSlider");
             const controls = document.getElementById("adControls");
@@ -556,7 +497,7 @@ function updateAdLinks(societyName = "") {
                     slides[currentIndex].classList.add("active");
 
                     if (totalSlides > 1) {
-                        controls.style.display = "flex"; // Reveal controls layer if multiple ads exist
+                        controls.style.display = "flex";
                         startAdTimer();
                     } else {
                         controls.style.display = "none";
@@ -570,48 +511,42 @@ function updateAdLinks(societyName = "") {
             }
         }
 
-        // Attach action events directly to the navigation elements
         document.getElementById("nextAdBtn").addEventListener("click", () => {
             changeSlide("next");
-            startAdTimer(); // Reset auto-timer tracking reference clock
+            startAdTimer();
         });
 
         document.getElementById("prevAdBtn").addEventListener("click", () => {
             changeSlide("prev");
-            startAdTimer(); // Reset auto-timer tracking reference clock
+            startAdTimer();
         });
 
         document.getElementById("nextGlobalAdBtn").addEventListener("click", () => {
             changeGlobalSlide("next");
-            startGlobalAdTimer(); // Reset auto-timer tracking reference clock
+            startGlobalAdTimer();
         });
 
         document.getElementById("prevGlobalAdBtn").addEventListener("click", () => {
             changeGlobalSlide("prev");
-            startGlobalAdTimer(); // Reset auto-timer tracking reference clock
+            startGlobalAdTimer();
         });
 
-        // Helper function to transition UI screens
         function showSearchScreen(societyName, societyId) {
             currentSociety = societyName;
             document.getElementById("society-verification").style.display = "none";
             document.getElementById("vehicle-search").style.display = "block";
             document.getElementById("displaySocietyName").innerText = currentSociety;
 
-            // Keep the link pointing to the file only, without query parameters
-document.getElementById("factlityPage").href = "facility.html";
-
+            document.getElementById("factlityPage").href = "facility.html";
             
-            // Auto-fetch dynamic phone variables & configure WhatsApp advertisement tags cleanly
             updateAdLinks(societyName);
 
-            if (globalAdInterval) clearInterval(globalAdInterval); // Clear home page global intervals
+            if (globalAdInterval) clearInterval(globalAdInterval);
             setupGuard(societyId);
             loadNotice(societyId);
             loadAds(societyId);
         }
 
-        // Helper function to clear society session and return to main search
         function clearSocietySession() {
             localStorage.removeItem("savedSocietyName");
             localStorage.removeItem("savedSocietyId");
@@ -623,11 +558,10 @@ document.getElementById("factlityPage").href = "facility.html";
             document.getElementById("societyInput").value = "";
             document.getElementById("vehicle-search").style.display = "none";
             document.getElementById("society-verification").style.display = "block";
-            updateAdLinks(); // Reload layout configurations cleanly
-            loadGlobalAdsPreLogin(); // Reload pre-login global ads on return to verification view
+            updateAdLinks();
+            loadGlobalAdsPreLogin();
         }
 
-        // Logic to Start / Handle Manual Verification
         document.getElementById("verifyBtn").addEventListener("click", async () => {
             const input = document.getElementById("societyInput").value.trim().toLowerCase();
             if (!input) return showModal("<p>⚠️ Please enter a society name.</p>");
@@ -637,20 +571,18 @@ document.getElementById("factlityPage").href = "facility.html";
             if (match) {
                 localStorage.setItem("savedSocietyName", match.data().name);
                 localStorage.setItem("savedSocietyId", match.id);
-                localStorage.setItem("societyLoginTime", Date.now().toString()); // Track login timestamp
+                localStorage.setItem("societyLoginTime", Date.now().toString());
                 showSearchScreen(match.data().name, match.id);
             } else { showModal("<p>❌ Society not found.</p>"); }
         });
 
-        // Vehicle Search Logic
         document.getElementById("searchBtn").addEventListener("click", async () => {
-    // 1. Play the audio immediately upon clicking
-    themeAudio.currentTime = 0; // Rewind to start if played previously
-    themeAudio.play().catch(e => console.error("Audio playback failed:", e));
+            themeAudio.currentTime = 0;
+            themeAudio.play().catch(e => console.error("Audio playback failed:", e));
 
-    const vNum = document.getElementById("vehicleInput").value.trim().toUpperCase();
-    if (!vNum) return showModal("<p>⚠️ Please enter a vehicle number.</p>");
-    
+            const vNum = document.getElementById("vehicleInput").value.trim().toUpperCase();
+            if (!vNum) return showModal("<p>⚠️ Please enter a vehicle number.</p>");
+            
             const snap = await getDocs(collection(db, "vehicles"));
             const matches = snap.docs.filter(d => d.data().societyName?.toLowerCase() === currentSociety.toLowerCase() && d.data().vehicleNumber?.toUpperCase() === vNum);
             if (matches.length > 0) {
@@ -664,56 +596,44 @@ document.getElementById("factlityPage").href = "facility.html";
             } else { showModal("<p>❌ Vehicle not found.</p>"); }
         });
 
-        // Change/Switch Society button implementation
         document.getElementById("switchSocietyBtn").addEventListener("click", () => {
             clearSocietySession();
         });
 
-        // Studio Portal button navigation setup
         document.getElementById("studioPortalBtn").addEventListener("click", () => {
             window.open("studio.html", "_self");
         });
 
-        // Back to home configuration
         document.getElementById("backToHomeBtn").addEventListener("click", () => {
             clearSocietySession();
         });
         
-       // --- Function to fetch and update the Contact Us WhatsApp link dynamically ---
         async function updateContactUsWhatsAppLink() {
             try {
-                // Fetch the config document from your actual Firestore path: configs -> owlwatcher
                 const configDoc = await getDoc(doc(db, "configs", "owlwatcher"));
-                
-                let phoneNumber = "919033406816"; // Default fallback number
+                let phoneNumber = "919033406816";
                 
                 if (configDoc.exists()) {
                     const data = configDoc.data();
                     if (data.teamPhone) {
-                        phoneNumber = data.teamPhone.replace(/\D/g, ''); // Ensure safe digits
+                        phoneNumber = data.teamPhone.replace(/\D/g, '');
                     }
                 }
 
-                // Find all anchor tags pointing to wa.me and update them dynamically
                 const whatsappLinks = document.querySelectorAll('a[href*="wa.me"]');
                 whatsappLinks.forEach(link => {
-                    // Retain any existing text query parameters if present, or just update the base number
                     const urlObj = new URL(link.href);
-                    // Rebuild the path segment with the dynamic phone number
                     link.href = `https://wa.me/${phoneNumber}${urlObj.search}`;
                 });
-
-                console.log(`WhatsApp contact links updated with team phone: ${phoneNumber}`);
             } catch (err) {
                 console.error("Failed to fetch team phone for WhatsApp link:", err);
             }
         }
         
-        // Lifecycle: Check for persistent session on page load/refresh
         window.addEventListener("DOMContentLoaded", async () => {
-            await fetchTeamPhone(); // Retrieve configurations before updating links
-            await updateContactUsWhatsAppLink(); // Dynamically fetch and replace fixed WhatsApp numbers
-            updateAdLinks(); // Establish initial clean addresses
+            await fetchTeamPhone();
+            await updateContactUsWhatsAppLink();
+            updateAdLinks();
 
             const savedName = localStorage.getItem("savedSocietyName");
             const savedId = localStorage.getItem("savedSocietyId");
@@ -727,94 +647,58 @@ document.getElementById("factlityPage").href = "facility.html";
                     clearSocietySession();
                 } else {
                     showSearchScreen(savedName, savedId);
-                    
-                    // Setup a precise timeout to clear the session when the remaining time is up
                     setTimeout(() => {
                         clearSocietySession();
                     }, fifteenMinutes - elapsed);
                 }
             } else {
-                loadGlobalAdsPreLogin(); // Run if landing on the screen before log-in setup
+                loadGlobalAdsPreLogin();
             }
 
-            // Auto-Refresh Logic (Runs every 5 minutes to fetch updated notices and guard details)
             setTimeout(() => {
                 window.location.reload();
             }, 5 * 60 * 1000);
         });
         
-        
-        const savedName = localStorage.getItem("savedSocietyName");
-            const savedId = localStorage.getItem("savedSocietyId");
-            const loginTime = localStorage.getItem("societyLoginTime");
-            
-            if (savedName && savedId && loginTime) {
-                const elapsed = Date.now() - parseInt(loginTime, 10);
-                const fifteenMinutes = 15 * 60 * 1000;
+        document.getElementById('startButton').addEventListener('click', function() {
+            document.getElementById('startOverlay').style.display = 'none';
 
-                if (elapsed >= fifteenMinutes) {
-                    clearSocietySession();
-                } else {
-                    showSearchScreen(savedName, savedId);
-                    
-                    // Setup a precise timeout to clear the session when the remaining time is up
-                    setTimeout(() => {
-                        clearSocietySession();
-                    }, fifteenMinutes - elapsed);
-                }
-            } else {
-                loadGlobalAdsPreLogin(); // Run if landing on the screen before log-in setup
+            const hoot = document.getElementById('hootSound');
+            hoot.volume = 0.5;
+            hoot.play();
+
+            const canvas = document.getElementById('fireCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            let particles = [];
+            for(let i = 0; i < 150; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: canvas.height + Math.random() * 100,
+                    size: Math.random() * 5 + 2,
+                    speedY: Math.random() * 5 + 2,
+                    color: '#e67e22'
+                });
             }
 
-            // Auto-Refresh Logic (Runs every 5 minutes to fetch updated notices and guard details)
-            setTimeout(() => {
-                window.location.reload();
-            }, 5 * 60 * 1000);
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(p => {
+                    p.y -= p.speedY;
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+                if(particles[0].y > -50) requestAnimationFrame(animate);
+                else canvas.style.display = 'none';
+            }
+            animate();
         });
-        
-     document.getElementById('startButton').addEventListener('click', function() {
-    // 1. Hide the overlay
-    document.getElementById('startOverlay').style.display = 'none';
-
-    // 2. Play Audio (Now allowed because of user click)
-    const hoot = document.getElementById('hootSound');
-    hoot.volume = 0.5;
-    hoot.play();
-
-    // 3. Trigger Animation
-    const canvas = document.getElementById('fireCanvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    let particles = [];
-    for(let i = 0; i < 150; i++) {
-        particles.push({
-            x: Math.random() * canvas.width,
-            y: canvas.height + Math.random() * 100,
-            size: Math.random() * 5 + 2,
-            speedY: Math.random() * 5 + 2,
-            color: '#e67e22'
-        });
-    }
-
-    function animate() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        particles.forEach(p => {
-            p.y -= p.speedY;
-            ctx.fillStyle = p.color;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-            ctx.fill();
-        });
-        if(particles[0].y > -50) requestAnimationFrame(animate);
-        else canvas.style.display = 'none';
-    }
-    animate();
-});
     </script>
     <canvas id="fireCanvas" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9999;"></canvas>
-<audio id="hootSound" src="tapenter.mp3" preload="auto"></audio>
+    <audio id="hootSound" src="tapenter.mp3" preload="auto"></audio>
 </body>
 </html>
-               
