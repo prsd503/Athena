@@ -223,6 +223,45 @@ document.getElementById('saveBtn')?.addEventListener('click', async () => {
     }
 });
 
+// --- Time Picker Generator Helper ---
+function buildTimeDropdownHTML(idPrefix) {
+    let hourOptions = '<option value="">HH</option>';
+    for (let i = 1; i <= 12; i++) {
+        let hStr = i < 10 ? '0' + i : i;
+        hourOptions += `<option value="${hStr}">${hStr}</option>`;
+    }
+
+    let minOptions = '<option value="00">00</option><option value="15">15</option><option value="30">30</option><option value="45">45</option>';
+
+    return `
+        <div style="display: flex; gap: 5px; align-items: center; display: inline-flex;">
+            <select id="${idPrefix}Hour" style="padding: 6px; border-radius: 6px; border: 1px solid #d7ccc8; background: #fff;">${hourOptions}</select>
+            <span>:</span>
+            <select id="${idPrefix}Min" style="padding: 6px; border-radius: 6px; border: 1px solid #d7ccc8; background: #fff;">${minOptions}</select>
+            <select id="${idPrefix}AmPm" style="padding: 6px; border-radius: 6px; border: 1px solid #d7ccc8; background: #fff;">
+                <option value="AM">AM</option>
+                <option value="PM">PM</option>
+            </select>
+        </div>
+    `;
+}
+
+// Helper to convert dropdown pickers into 24-hour HH:MM format for Firestore
+function getSelectedTimeString(idPrefix) {
+    const hh = document.getElementById(`${idPrefix}Hour`).value;
+    const mm = document.getElementById(`${idPrefix}Min`).value;
+    const ap = document.getElementById(`${idPrefix}AmPm`).value;
+
+    if (!hh) return null;
+
+    let hour24 = parseInt(hh, 10);
+    if (ap === "PM" && hour24 < 12) hour24 += 12;
+    if (ap === "AM" && hour24 === 12) hour24 = 0;
+
+    const formattedHour24 = hour24 < 10 ? '0' + hour24 : hour24;
+    return `${formattedHour24}:${mm}`;
+}
+
 // --- CSV Template Download Helper ---
 document.getElementById('downloadTemplateBtn')?.addEventListener('click', () => {
     const csvContent = "VehicleNumber,FlatNumber,MobileNumber,VehicleType\nKA01AB1234,101,9876543210,2W\n";
@@ -239,6 +278,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add this inside your DOMContentLoaded block, near your other event listeners
 document.getElementById('saveAllFacilityNamesBtn')?.addEventListener('click', saveAllFacilityNames);
 
+
+const timeContainer = document.getElementById('bookingTimeContainer');
+    if (timeContainer) {
+        timeContainer.innerHTML = `
+            <div style="margin-bottom: 10px;">
+                <label style="display: block; font-size: 0.9rem; margin-bottom: 3px;">Start Time:</label>
+                ${buildTimeDropdownHTML('start')}
+            </div>
+            <div>
+                <label style="display: block; font-size: 0.9rem; margin-bottom: 3px;">End Time:</label>
+                ${buildTimeDropdownHTML('end')}
+            </div>
+        `;
+    }
+
+    
     // 1. Auth & Session Persistence
     onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -404,14 +459,15 @@ async function loadActiveBookings() {
     }
 }
 
-// Updated Booking function (now refreshes the list upon success)
+// Updated Booking Handler using clean Dropdown Time Pickers
 document.getElementById('bookFacilityBtn')?.addEventListener('click', async () => {
     const fId = document.getElementById('facilitySelect').value;
     const date = document.getElementById('bookingDate').value; 
-    const startT = document.getElementById('startTime').value; 
-    const endT = document.getElementById('endTime').value;     
+    
+    const startT = getSelectedTimeString('start'); 
+    const endT = getSelectedTimeString('end');     
 
-    if (!date || !startT || !endT) return window.showModal("Please select date and times.");
+    if (!date || !startT || !endT) return window.showModal("Please select a date and valid start/end times.");
 
     try {
         await addDoc(collection(db, "bookings"), { 
@@ -420,12 +476,14 @@ document.getElementById('bookFacilityBtn')?.addEventListener('click', async () =
             start: `${date}T${startT}:00`, 
             end: `${date}T${endT}:00`       
         });
-        window.showModal("Booking created with time slot!");
-        loadActiveBookings(); // Refresh the list immediately
+        window.showModal("Booking created successfully!");
+        loadActiveBookings(); 
     } catch (err) {
         window.showModal("Failed to create booking.");
     }
 });
+
+    
 
 // Function to Delete Bookings
 window.deleteBooking = async (bookingDocId) => {
