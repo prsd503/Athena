@@ -327,6 +327,20 @@ const timeContainer = document.getElementById('bookingTimeContainer');
                 document.getElementById('search-section').style.display = 'block';
                 document.getElementById('data-section').style.display = 'block';
 
+              if (isMasterAdminUser) {
+    const bulkSection = document.getElementById('bulk-section');
+    if (bulkSection) bulkSection.style.display = 'block';
+
+    // Show Master Admin Panel and pre-fill existing values
+    const masterPanel = document.getElementById('master-admin-panel');
+    if (masterPanel) {
+        masterPanel.style.display = 'block';
+        document.getElementById('masterSocietyInput').value = assignedSociety;
+        document.getElementById('masterPhoneInput').value = teamPhone;
+    }
+}
+                
+                
                 // Setup UI based on role
                 if (isMasterAdminUser) {
                     const bulkSection = document.getElementById('bulk-section');
