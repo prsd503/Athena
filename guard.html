@@ -90,250 +90,82 @@
          <h2>Security Guard Login</h2>
 
 
-       <div style="text-align: center; background: #eef2f7; padding: 20px; border-radius: 12px; display: inline-block;">
-  <canvas id="realOwlCanvas" width="400" height="400" style="cursor: pointer; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" onclick="triggerRealEagleOwlFlight()" title="Click to launch soaring flight with wing flapping animation!"></canvas>
+      <!-- Paste this anywhere in your HTML file (preferably just before the closing </body> tag) -->
+
+<div id="flying-owl-container">
+  <!-- Owl Icon (Using an emoji, you can replace this with an <img> or FontAwesome icon if preferred) -->
+  <div id="owl-icon" onclick="activateOwlFly()">🦉</div>
+  <!-- Audio element playing theme.mp3 -->
+  <audio id="owl-audio" src="theme.mp3" preload="auto"></audio>
 </div>
 
-<audio id="owlAudioTheme" src="theme.mp3" preload="auto"></audio>
+<style>
+  #flying-owl-container {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 9999;
+  }
+
+  #owl-icon {
+    font-size: 50px;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.2s ease;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+  }
+
+  #owl-icon:hover {
+    transform: scale(1.1);
+  }
+
+  /* Flying Animation Class */
+  @keyframes flyAcross {
+    0% {
+      transform: translate(0, 0) scale(1) rotate(0deg);
+      opacity: 1;
+    }
+    50% {
+      transform: translate(-50vw, -40vh) scale(2) rotate(-15deg);
+      opacity: 0.9;
+    }
+    100% {
+      transform: translate(-100vw, -80vh) scale(0.5) rotate(-30deg);
+      opacity: 0;
+    }
+  }
+
+  .fly-animation {
+    animation: flyAcross 2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  }
+</style>
 
 <script>
-  const canvas = document.getElementById('realOwlCanvas');
-  const ctx = canvas.getContext('2d');
+  function activateOwlFly() {
+    const container = document.getElementById('flying-owl-container');
+    const audio = document.getElementById('owl-audio');
+    const owl = document.getElementById('owl-icon');
 
-  let isFlying = false;
-  let flightProgress = 0;
+    // Prevent spam clicking while animation is active
+    if (container.classList.contains('fly-animation')) return;
 
-  // Render the detailed snowy/spotted eagle owl matching the reference posture
-  function drawRealOwl(x, y, scale = 1, wingSpreadAngle = 0, opacity = 1) {
-    ctx.save();
-    ctx.globalAlpha = opacity;
-    ctx.translate(x, y);
-    ctx.scale(scale, scale);
+    // Play the theme audio
+    audio.currentTime = 0;
+    audio.play().catch(error => {
+      console.log("Audio playback blocked or file not found:", error);
+    });
 
-    // --- Tail Feathers (Spread out at the bottom) ---
-    ctx.fillStyle = '#D1D5DB';
-    for (let i = -3; i <= 3; i++) {
-      ctx.save();
-      ctx.translate(i * 7, 65);
-      ctx.rotate(i * 0.12);
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(-4, 30);
-      ctx.lineTo(4, 30);
-      ctx.closePath();
-      ctx.fill();
-      // Feather brown markings/bars
-      ctx.strokeStyle = '#4B5563';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-      ctx.restore();
-    }
+    // Trigger the flight animation
+    container.classList.add('fly-animation');
 
-    // --- Powerful Talons & Legs ---
-    ctx.fillStyle = '#E5E7EB';
-    // Left leg
-    ctx.beginPath();
-    ctx.roundRect(-12, 40, 10, 30, 5);
-    ctx.fill();
-    // Right leg
-    ctx.beginPath();
-    ctx.roundRect(2, 40, 10, 30, 5);
-    ctx.fill();
-
-    // Sharp Talons (Claws out like a hunting dive)
-    ctx.fillStyle = '#1F2937';
-    // Left talons
-    ctx.beginPath(); ctx.arc(-7, 72, 4, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(-14, 70, 3, 0, Math.PI * 2); ctx.fill();
-    // Right talons
-    ctx.beginPath(); ctx.arc(7, 72, 4, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(14, 70, 3, 0, Math.PI * 2); ctx.fill();
-
-    // --- Main Body / Torso ---
-    let bodyGrad = ctx.createLinearGradient(0, -10, 0, 50);
-    bodyGrad.addColorStop(0, '#FFFFFF');
-    bodyGrad.addColorStop(0.5, '#F3F4F6');
-    bodyGrad.addColorStop(1, '#9CA3AF');
-    ctx.fillStyle = bodyGrad;
-    ctx.beginPath();
-    ctx.ellipse(0, 25, 24, 35, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Speckled brown markings on chest feathers
-    ctx.fillStyle = '#4B5563';
-    for (let r = 5; r < 30; r += 8) {
-      for (let c = -15; c <= 15; c += 10) {
-        ctx.fillRect(c + (r % 4), r + 10, 3, 4);
-      }
-    }
-
-    // --- Elaborate Spread Wings (Left & Right) with detailed feather tip layers ---
-    // Function to draw a massive detailed wing matching the reference image spread
-    function drawDetailedWing(isLeftSide, flapOffset) {
-      ctx.save();
-      const sideMultiplier = isLeftSide ? -1 : 1;
-      ctx.translate(sideMultiplier * 22, 5);
-      // Dynamic rotation simulating powerful wing flapping / soaring movement
-      ctx.rotate(sideMultiplier * (0.35 + flapOffset));
-
-      // Main structural wing canvas path
-      let wingGrad = ctx.createLinearGradient(0, 0, sideMultiplier * 140, 0);
-      wingGrad.addColorStop(0, '#E5E7EB');
-      wingGrad.addColorStop(0.6, '#9CA3AF');
-      wingGrad.addColorStop(1, '#4B5563');
-      ctx.fillStyle = wingGrad;
-
-      ctx.beginPath();
-      ctx.moveTo(0, -10);
-      ctx.bezierCurveTo(sideMultiplier * 40, -40, sideMultiplier * 100, -50, sideMultiplier * 150, -20);
-      ctx.bezierCurveTo(sideMultiplier * 130, 20, sideMultiplier * 60, 40, 0, 25);
-      ctx.closePath();
-      ctx.fill();
-
-      // Individual Wing Feather Tips (Creating the iconic feathered silhouette)
-      ctx.fillStyle = '#FFFFFF';
-      ctx.strokeStyle = '#374151';
-      ctx.lineWidth = 1;
-      for (let i = 0; i < 9; i++) {
-        ctx.save();
-        let fDist = 35 + (i * 13);
-        let fAngle = -0.2 + (i * 0.08);
-        ctx.translate(sideMultiplier * fDist, -25 + (i * 2));
-        ctx.rotate(sideMultiplier * fAngle);
-        
-        ctx.beginPath();
-        ctx.ellipse(0, 0, 7, 18, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-
-        // Dark feather tips
-        ctx.fillStyle = '#1F2937';
-        ctx.beginPath();
-        ctx.ellipse(0, 10, 5, 5, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#FFFFFF';
-        ctx.restore();
-      }
-
-      ctx.restore();
-    }
-
-    // Draw Left and Right Wings with flapping offset
-    drawDetailedWing(true, wingSpreadAngle);
-    drawDetailedWing(false, wingSpreadAngle);
-
-    // --- Head & Facial Disc ---
-    let headGrad = ctx.createRadialGradient(0, -25, 2, 0, -25, 30);
-    headGrad.addColorStop(0, '#FFFFFF');
-    headGrad.addColorStop(0.7, '#E5E7EB');
-    headGrad.addColorStop(1, '#9CA3AF');
-    ctx.fillStyle = headGrad;
-    ctx.beginPath();
-    ctx.arc(0, -25, 27, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Facial disc ring outlines (Snowy owl markings)
-    ctx.strokeStyle = '#D1D5DB';
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(-12, -26, 12, 0, Math.PI * 2); ctx.stroke();
-    ctx.beginPath(); ctx.arc(12, -26, 12, 0, Math.PI * 2); ctx.stroke();
-
-    // Prominent Horn-like Ear Tufts
-    ctx.fillStyle = '#1F2937';
-    ctx.beginPath();
-    ctx.moveTo(-16, -46); ctx.lineTo(-24, -58); ctx.lineTo(-8, -48); ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(16, -46); ctx.lineTo(24, -58); ctx.lineTo(8, -48); ctx.fill();
-
-    // Piercing Owl Eyes (Bright orange/amber iris matching reference)
-    ctx.fillStyle = '#B45309'; // Dark orange outer rim
-    ctx.beginPath(); ctx.arc(-12, -26, 8, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(12, -26, 8, 0, Math.PI * 2); ctx.fill();
-
-    ctx.fillStyle = '#F59E0B'; // Bright golden core
-    ctx.beginPath(); ctx.arc(-12, -26, 6, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(12, -26, 6, 0, Math.PI * 2); ctx.fill();
-
-    // Deep Black Pupils
-    ctx.fillStyle = '#000000';
-    ctx.beginPath(); ctx.arc(-12, -26, 3, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(12, -26, 3, 0, Math.PI * 2); ctx.fill();
-
-    // Realistic eye reflection highlights
-    ctx.fillStyle = '#FFFFFF';
-    ctx.beginPath(); ctx.arc(-14, -28, 1.2, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(10, -28, 1.2, 0, Math.PI * 2); ctx.fill();
-
-    // Sharp Hooked Beak
-    let beakGrad = ctx.createLinearGradient(0, -32, 0, -16);
-    beakGrad.addColorStop(0, '#1F2937');
-    beakGrad.addColorStop(1, '#4B5563');
-    ctx.fillStyle = beakGrad;
-    ctx.beginPath();
-    ctx.moveTo(0, -34);
-    ctx.lineTo(-4, -22);
-    ctx.lineTo(0, -16);
-    ctx.lineTo(4, -22);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.restore();
+    // Reset position and opacity after the animation ends (2 seconds)
+    setTimeout(() => {
+      container.classList.remove('fly-animation');
+    }, 2000);
   }
+</script>        
 
-  // Initial draw render
-  function renderStaticOwl() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawRealOwl(200, 180, 1, 0, 1);
-  }
-  renderStaticOwl();
 
-  // Trigger flight sequence with audio theme and wing flapping animation
-  function triggerRealEagleOwlFlight() {
-    if (isFlying) return;
-    isFlying = true;
-    flightProgress = 0;
-
-    const audio = document.getElementById('owlAudioTheme');
-    if (audio) {
-      audio.currentTime = 0;
-      audio.play().catch(e => console.log("Audio play error:", e));
-    }
-
-    const startTime = performance.now();
-    const duration = 2200; // 2.2 seconds flight duration
-
-    function animateFlight(currentTime) {
-      const elapsed = currentTime - startTime;
-      flightProgress = Math.min(elapsed / duration, 1);
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Trajectory: Soars forward and up with 3D depth scaling down
-      let startX = 200, startY = 180;
-      let targetX = 200, targetY = -80;
-      
-      let currentX = startX + (targetX - startX) * flightProgress;
-      let currentY = startY + (targetY - startY) * flightProgress;
-      let currentScale = 1 - (flightProgress * 0.7);
-      let currentOpacity = 1 - flightProgress;
-
-      // Realistic flapping wing cycle oscillation using sine wave
-      let flapSpeed = 30; // frequency
-      let wingFlapAngle = Math.sin(flightProgress * flapSpeed) * 0.35; 
-
-      drawRealOwl(currentX, currentY, Math.max(currentScale, 0.3), wingFlapAngle, Math.max(currentOpacity, 0));
-
-      if (flightProgress < 1) {
-        requestAnimationFrame(animateFlight);
-      } else {
-        isFlying = false;
-        setTimeout(renderStaticOwl, 300); // Reset back to initial resting view
-      }
-    }
-
-    requestAnimationFrame(animateFlight);
-  }
-</script>      
 
         
         <input type="email" id="email" placeholder="Email">
