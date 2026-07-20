@@ -88,71 +88,87 @@
     <!-- Login Section -->
     <div class="card" id="login-section">
          <h2>Security Guard Login</h2>
-      
-        
+
+
         <style>
-  .real-owl-container {
+  .owl-flight-wrapper {
     position: relative;
     display: inline-block;
-    perspective: 1200px;
-  }
-
-  .flying-owl-btn {
-    background: none;
-    border: none;
-    font-size: 3rem;
     cursor: pointer;
-    padding: 10px;
-    outline: none;
-    display: inline-block;
-    transform-style: preserve-3d;
-    transition: transform 0.1s ease;
-  }
-  
-  .flying-owl-btn:active {
-    transform: scale(0.9);
   }
 
-  /* Complex 3D keyframe path mimicking true bird banking, wing flapping flutter, and soaring flight */
-  @keyframes realOwlFlight {
+  /* Custom SVG Owl Container designed for wing flapping animation */
+  .owl-svg-container {
+    width: 80px;
+    height: 80px;
+    display: inline-block;
+    transform-origin: center center;
+  }
+
+  @keyframes wingFlap {
+    0%, 100% { transform: scaleX(1) translateY(0); }
+    50% { transform: scaleX(0.7) translateY(-3px); }
+  }
+
+  @keyframes realFlightPath {
     0% {
-      transform: translate3d(0, 0, 0) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+      transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
       opacity: 1;
     }
-    15% {
-      transform: translate3d(-40px, -60px, 120px) scale3d(1.15, 0.85, 1.1) rotateX(15deg) rotateY(-25deg) rotateZ(-12deg);
+    20% {
+      transform: translate3d(-30px, -50px, 50px) scale(1.1) rotate(-8deg);
     }
-    35% {
-      transform: translate3d(60px, -180px, 250px) scale3d(0.9, 1.1, 0.9) rotateX(-10deg) rotateY(35deg) rotateZ(15deg);
+    50% {
+      transform: translate3d(80px, -180px, 150px) scale(0.9) rotate(12deg);
     }
-    60% {
-      transform: translate3d(-30px, -320px, 450px) scale3d(0.6, 0.6, 0.6) rotateX(20deg) rotateY(-40deg) rotateZ(-20deg);
-    }
-    85% {
-      transform: translate3d(120px, -450px, 650px) scale3d(0.3, 0.3, 0.3) rotateX(-15deg) rotateY(60deg) rotateZ(30deg);
+    80% {
+      transform: translate3d(-40px, -350px, 300px) scale(0.5) rotate(-15deg);
     }
     100% {
-      transform: translate3d(250px, -600px, 900px) scale3d(0.05, 0.05, 0.05) rotateX(-30deg) rotateY(90deg) rotateZ(-45deg);
+      transform: translate3d(150px, -550px, 500px) scale(0.15) rotate(-30deg);
       opacity: 0;
     }
   }
 
-  .flying-owl-btn.flying {
-    animation: realOwlFlight 2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  .owl-svg-container.flapping {
+    animation: wingFlap 0.25s infinite ease-in-out, realFlightPath 2.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
   }
 </style>
 
-<div class="real-owl-container">
-  <button class="flying-owl-btn" id="flyingOwlBtn" onclick="triggerRealOwlFlight()" title="Click to launch real owl flight!">
-    🦉
-  </button>
+<div class="owl-flight-wrapper" onclick="triggerRealisticOwlFlight()" title="Click to launch real owl flying!">
+  <div class="owl-svg-container" id="owlContainer">
+    <!-- Detailed SVG Owl Graphic with distinct body and wings for realistic motion scaling -->
+    <svg viewBox="0 0 100 100" width="100%" height="100%">
+      <!-- Body & Head -->
+      <ellipse cx="50" cy="55" rx="22" ry="26" fill="#8B4513" />
+      <circle cx="50" cy="35" r="18" fill="#A0522D" />
+      
+      <!-- Big Owl Eyes -->
+      <circle cx="42" cy="33" r="7" fill="#FFF" />
+      <circle cx="58" cy="33" r="7" fill="#FFF" />
+      <circle cx="43" cy="33" r="3" fill="#000" />
+      <circle cx="57" cy="33" r="3" fill="#000" />
+      
+      <!-- Beak -->
+      <polygon points="50,37 46,43 54,43" fill="#FFA500" />
+
+      <!-- Left Wing -->
+      <path id="leftWing" d="M28 45 Q 15 55 25 75 Q 35 65 32 50 Z" fill="#654321" />
+      
+      <!-- Right Wing -->
+      <path id="rightWing" d="M72 45 Q 85 55 75 75 Q 65 65 68 50 Z" fill="#654321" />
+
+      <!-- Tail feathers -->
+      <path d="M42 75 L50 88 L58 75 Z" fill="#654321" />
+    </svg>
+  </div>
 </div>
 
 <audio id="owlAudioTheme" src="theme.mp3" preload="auto"></audio>
 
 <script>
-  function triggerRealOwlFlight() {
-    const btn = document.getElementById('flyingOwlBtn');
+  function triggerRealisticOwlFlight() {
+    const container = document.getElementById('owlContainer');
     const audio = document.getElementById('owlAudioTheme');
 
     // Play theme.mp3 audio
@@ -161,17 +177,20 @@
       audio.play().catch(e => console.log("Audio play blocked or missing file:", e));
     }
 
-    // Trigger realistic 3D flight animation if not already active
-    if (!btn.classList.contains('flying')) {
-      btn.classList.add('flying');
+    // Trigger vector wing-flap and 3D soaring flight animation
+    if (!container.classList.contains('flapping')) {
+      container.classList.add('flapping');
 
-      // Reset button position and opacity after the animation completes (2s)
+      // Reset after animation finishes (2.2 seconds)
       setTimeout(() => {
-        btn.classList.remove('flying');
-      }, 2000);
+        container.classList.remove('flapping');
+      }, 2200);
     }
   }
 </script>
+        
+      
+
         
         <input type="email" id="email" placeholder="Email">
         <input type="password" id="pass" placeholder="Password">
