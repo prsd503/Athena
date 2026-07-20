@@ -62,7 +62,8 @@ document.getElementById('searchGuardBtn')?.addEventListener('click', async () =>
     }
 });
 
-// 2. Save / Add Guard
+
+// 2. Save / Add or Update Guard
 document.getElementById('addGuardBtn')?.addEventListener('click', async () => {
     const email = document.getElementById('gEmail').value.trim().toLowerCase();
     const name = document.getElementById('gName').value.trim();
@@ -71,13 +72,30 @@ document.getElementById('addGuardBtn')?.addEventListener('click', async () => {
     if (!email || !name) return window.showModal("Guard Email and Name are required.");
 
     try {
-        // Using email as the document ID for easy reference
-        await setDoc(doc(db, "guards", email), {
+        const nameLower = name.toLowerCase();
+        
+        // Check if a guard with this name already exists in the same society
+        const q = query(
+            collection(db, "guards"),
+            where("society", "==", assignedSociety),
+            where("name_lower", "==", nameLower)
+        );
+        const querySnapshot = await getDocs(q);
+
+        let targetDocId = email; // Default to email as ID if not found
+
+        if (!querySnapshot.empty) {
+            // If found, grab the existing document's ID so we update it instead of creating a new one
+            targetDocId = querySnapshot.docs[0].id;
+        }
+
+        // Save or update using the resolved document ID
+        await setDoc(doc(db, "guards", targetDocId), {
             email: email,
             name: name,
-            name_lower: name.toLowerCase(), // Added so lowercase search matches correctly
+            name_lower: nameLower,
             phone: phone,
-            society: assignedSociety,       // Fixed from societyName to match database field
+            society: assignedSociety,
             updatedAt: serverTimestamp()
         }, { merge: true });
 
