@@ -92,11 +92,13 @@
 
     <!-- Paste this anywhere in your HTML file (preferably just before the closing </body> tag) -->
 
-<div id="flying-owl-container">
+<!-- Paste this anywhere in your HTML file (preferably just before the closing </body> tag) -->
+
+<div id="owl-container">
   <!-- Owl Icon Container -->
-  <div id="owl-icon" onclick="activateOwlFly()">
+  <div id="owl-icon" onclick="activateOwlEffect()">
     🦉
-    <!-- Glowing/Blinking Eyes Overlay -->
+    <!-- Glowing/Shining Eyes Overlay -->
     <div class="owl-eyes"></div>
   </div>
   <!-- Audio element playing theme.mp3 -->
@@ -104,7 +106,7 @@
 </div>
 
 <style>
-  #flying-owl-container {
+  #owl-container {
     position: fixed;
     bottom: 30px;
     right: 30px;
@@ -124,10 +126,10 @@
     transform: scale(1.15);
   }
 
-  /* Glowing and Blinking Eyes Styling */
+  /* Glowing and Shining Eyes Styling */
   .owl-eyes {
     position: absolute;
-    top: 22px; /* Adjust based on emoji alignment */
+    top: 22px;
     left: 17px;
     width: 26px;
     height: 10px;
@@ -138,46 +140,35 @@
     pointer-events: none;
   }
 
-  @keyframes eyeBlink {
-    0%, 100% { opacity: 1; transform: scaleY(1); }
-    20% { opacity: 0.2; transform: scaleY(0.1); }
-    40% { opacity: 1; transform: scaleY(1); }
-    60% { opacity: 0.2; transform: scaleY(0.1); }
-    80% { opacity: 1; transform: scaleY(1); }
+  /* Animation for Enlarging the Owl */
+  @keyframes enlargeOwl {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.6); }
   }
 
-  /* Main Flying & Enlarging Animation */
-  @keyframes flyAcross {
-    0% {
-      transform: translate(0, 0) scale(1.5) rotate(0deg);
-      opacity: 1;
-    }
-    50% {
-      transform: translate(-45vw, -40vh) scale(3) rotate(-10deg);
-      opacity: 0.95;
-    }
-    100% {
-      transform: translate(-90vw, -80vh) scale(0.8) rotate(-25deg);
-      opacity: 0;
-    }
+  /* Animation for Shining/Blinking Eyes */
+  @keyframes eyeShine {
+    0%, 100% { opacity: 0; transform: scaleY(0.5); }
+    20%, 80% { opacity: 1; transform: scaleY(1.2); box-shadow: 0 0 15px #ffff00, 0 0 30px #ffea00; }
+    50% { opacity: 0.5; transform: scaleY(0.8); }
   }
 
-  .fly-animation {
-    animation: flyAcross 2.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  .active-effect {
+    animation: enlargeOwl 1.5s ease-in-out forwards;
   }
 
-  .fly-animation .owl-eyes {
-    animation: eyeBlink 2.5s ease-in-out forwards;
+  .active-effect .owl-eyes {
+    animation: eyeShine 1.5s ease-in-out forwards;
   }
 </style>
 
 <script>
-  function activateOwlFly() {
-    const container = document.getElementById('flying-owl-container');
+  function activateOwlEffect() {
+    const container = document.getElementById('owl-container');
     const audio = document.getElementById('owl-audio');
 
     // Prevent spam clicking while animation is active
-    if (container.classList.contains('fly-animation')) return;
+    if (container.classList.contains('active-effect')) return;
 
     // Play the theme audio
     audio.currentTime = 0;
@@ -185,15 +176,20 @@
       console.log("Audio playback blocked or file not found:", error);
     });
 
-    // Trigger the flight, enlargement, and eye-blinking animation
-    container.classList.add('fly-animation');
+    // Trigger the enlarge and eye shine animation
+    container.classList.add('active-effect');
 
-    // Reset after the animation finishes (2.5 seconds)
+    // Reset after the animation finishes (1.5 seconds)
     setTimeout(() => {
-      container.classList.remove('fly-animation');
-    }, 2500);
+      container.classList.remove('active-effect');
+    }, 1500);
   }
-</script>        
+</script>    
+        
+        
+        
+        
+        
         <input type="email" id="email" placeholder="Email">
         <input type="password" id="pass" placeholder="Password">
         <br>
