@@ -180,7 +180,8 @@ body { padding-top: 80px; }
                     <button class="ad-nav-btn" id="prevGlobalAdBtn">❮ Prev</button>
                     <button class="ad-nav-btn" id="nextGlobalAdBtn">Next ❯</button>
                 </div>
-                <a id="globalAdLink" href== `https://wa.me/919033406816?text=Hi%20I%20want%20to%20apply%20for%20global%20ad%20in%20Owl%20Watcher" target="_blank" class="ad-link">Advertise Globally Here!</a>
+                <!-- Fixed syntax error (href==) to a standard href -->
+                <a id="globalAdLink" href="https://wa.me/919033406816?text=Hi%20I%20want%20to%20apply%20for%20global%20ad%20in%20Owl%20Watcher" target="_blank" class="ad-link">Advertise Globally Here!</a>
             </div>
         </div>
     </div>
@@ -272,9 +273,10 @@ body { padding-top: 80px; }
         
         async function fetchTeamPhone() {
             try {
-                const configSnap = await getDoc(doc(db, "config", "master"));
-                if (configSnap.exists()) {
-                    const data = configSnap.data();
+                // Corrected path to match configs/owlwatcher in Firestore
+                const configDoc = await getDoc(doc(db, "configs", "owlwatcher"));
+                if (configDoc.exists()) {
+                    const data = configDoc.data();
                     if (data.teamPhone) {
                         owlWatcherTeamPhone = data.teamPhone.replace(/\D/g, '');
                     }
@@ -288,7 +290,7 @@ body { padding-top: 80px; }
             const globalAdLink = document.getElementById("globalAdLink");
             if (globalAdLink) {
                 const globalText = encodeURIComponent("Hi I want to apply for global ad in Owl Watcher");
-                globalAdLink.href = `https://wa.me/919033406816?text=${globalText}`;
+                globalAdLink.href = `https://wa.me/${owlWatcherTeamPhone}?text=${globalText}`;
             }
 
             const registerBtn = document.getElementById("registerSocietyBtn");
@@ -608,28 +610,19 @@ body { padding-top: 80px; }
             clearSocietySession();
         });
         
-async function updateContactUsWhatsAppLink() {
-    try {
-        // Corrected collection path from "configs" to match your Firestore structure
-        const configDoc = await getDoc(doc(db, "configs", "owlwatcher"));
-        let phoneNumber = "919033406816";
-        
-        if (configDoc.exists()) {
-            const data = configDoc.data();
-            if (data.teamPhone) {
-                phoneNumber = data.teamPhone.replace(/\D/g, '');
+        async function updateContactUsWhatsAppLink() {
+            try {
+                await fetchTeamPhone();
+
+                const whatsappLinks = document.querySelectorAll('a[href*="wa.me"]');
+                whatsappLinks.forEach(link => {
+                    const urlObj = new URL(link.href);
+                    link.href = `https://wa.me/${owlWatcherTeamPhone}${urlObj.search}`;
+                });
+            } catch (err) {
+                console.error("Failed to fetch team phone for WhatsApp link:", err);
             }
         }
-
-        const whatsappLinks = document.querySelectorAll('a[href*="wa.me"]');
-        whatsappLinks.forEach(link => {
-            const urlObj = new URL(link.href);
-            link.href = `https://wa.me/${phoneNumber}${urlObj.search}`;
-        });
-    } catch (err) {
-        console.error("Failed to fetch team phone for WhatsApp link:", err);
-    }
-}
         
         window.addEventListener("DOMContentLoaded", async () => {
             await fetchTeamPhone();
