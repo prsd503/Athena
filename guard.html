@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
     <title>Security Guard Portal | Owl Watcher</title>
+
+    <!-- Firebase SDKs (Compat scripts for dynamic contact fetching) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
     <style>
         /* Base Theme */
         body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; margin: 0; }
@@ -76,7 +81,7 @@
             <a href="admin.html">Admin Portal</a>
             <a href="guard.html">Security Guard Portal</a>
             <a href="studio.html">Photo Studio Portal</a>
-            <a href="https://wa.me/919033406816">Contact Us</a>
+            <a id="dynamicContactLink" href="https://wa.me/919033406816" target="_blank">Contact Us</a>
         </div>
     </nav>
 
@@ -88,7 +93,7 @@
         <br>
         <button id="loginBtn">Login</button>
         <br>
-        </div>
+    </div>
         
     <!-- Portal Section -->
     <div id="portalSection">
@@ -97,16 +102,14 @@
             <select id="guardSelect"><option>Loading...</option></select>
             <button id="activateBtn">Set Me Active</button>
         </div>
-<!-- You must have this in your guard.html for showModal() to work -->
-<div id="customModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
-    <div style="background:#fff; padding:20px; border-radius:15px; text-align:center; border:2px solid #8d6e63;">
-        <p id="modalMessage"></p>
-       <!-- Update your Modal button to this -->
-<button id="closeModalBtn">OK</button>
-
-    </div>
-</div>
         
+        <!-- Custom Modal Window -->
+        <div id="customModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+            <div style="background:#fff; padding:20px; border-radius:15px; text-align:center; border:2px solid #8d6e63;">
+                <p id="modalMessage"></p>
+                <button id="closeModalBtn">OK</button>
+            </div>
+        </div>
         
         <div class="card">
             <h2>Vehicle Lookup</h2>
@@ -119,6 +122,44 @@
 
     <!-- Script Handling -->
     <script>
+        // --- Firebase Dynamic Contact Integration ---
+        const firebaseConfig = {
+          apiKey: "YOUR_FIREBASE_API_KEY",
+          authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+          projectId: "YOUR_PROJECT_ID",
+          storageBucket: "YOUR_PROJECT_ID.appspot.com",
+          messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+          appId: "YOUR_APP_ID"
+        };
+
+        if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
+        // Fetch dynamic contact target from Firestore
+        async function loadDynamicContact() {
+          try {
+            const docRef = await db.collection("settings").doc("contact").get();
+            if (docRef.exists) {
+              const data = docRef.data();
+              const contactLink = data.url || data.whatsapp || data.link;
+              if (contactLink) {
+                const contactAnchor = document.getElementById('dynamicContactLink');
+                if (contactAnchor) {
+                  contactAnchor.href = contactLink;
+                }
+              }
+            }
+          } catch (err) {
+            console.warn("Could not load dynamic contact from Firestore, using default fallback link.", err);
+          }
+        }
+
+        window.addEventListener('load', () => {
+            loadDynamicContact();
+        });
+
         document.getElementById('menuToggle').addEventListener('click', function() {
             document.getElementById('navLinks').classList.toggle('active');
         });
