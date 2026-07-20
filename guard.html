@@ -88,6 +88,69 @@
     <!-- Login Section -->
     <div class="card" id="login-section">
          <h2>Security Guard Login</h2>
+        <style>
+  .flying-owl-btn {
+    background: none;
+    border: none;
+    font-size: 2.5rem;
+    cursor: pointer;
+    padding: 10px;
+    outline: none;
+    display: inline-block;
+    transition: transform 0.3s ease;
+  }
+  
+  .flying-owl-btn:active {
+    transform: scale(0.9);
+  }
+
+  @keyframes flyAway {
+    0% {
+      transform: translate(0, 0) scale(1) rotate(0deg);
+      opacity: 1;
+    }
+    30% {
+      transform: translate(-30px, -40px) scale(1.1) rotate(-10deg);
+    }
+    100% {
+      transform: translate(350px, -500px) scale(0.2) rotate(-25deg);
+      opacity: 0;
+    }
+  }
+
+  .flying-owl-btn.flying {
+    animation: flyAway 1.2s ease-in-out forwards;
+  }
+</style>
+
+<button class="flying-owl-btn" id="flyingOwlBtn" onclick="triggerOwlFlight()" title="Click to watch the owl fly!">
+  🦉
+</button>
+
+<audio id="owlAudioTheme" src="theme.mp3" preload="auto"></audio>
+
+<script>
+  function triggerOwlFlight() {
+    const btn = document.getElementById('flyingOwlBtn');
+    const audio = document.getElementById('owlAudioTheme');
+
+    // Play theme.mp3 audio
+    if (audio) {
+      audio.currentTime = 0;
+      audio.play().catch(e => console.log("Audio play blocked or missing file:", e));
+    }
+
+    // Trigger flying animation if not already flying
+    if (!btn.classList.contains('flying')) {
+      btn.classList.add('flying');
+
+      // Reset button position and opacity after the animation completes (1.2s)
+      setTimeout(() => {
+        btn.classList.remove('flying');
+      }, 1200);
+    }
+  }
+</script>
         <input type="email" id="email" placeholder="Email">
         <input type="password" id="pass" placeholder="Password">
         <br>
