@@ -258,8 +258,11 @@ document.getElementById('saveAllFacilityNamesBtn')?.addEventListener('click', sa
                     if (bulkSection) bulkSection.style.display = 'block';
                 }
 
-                loadNoticeData();
-                loadFacilitiesDropdown();
+              loadNoticeData();
+loadFacilitiesDropdown();
+await cleanupOldBookings(); // Automatically deletes bookings older than 7 days
+loadActiveBookings();      // Loads the refreshed active list
+                
             } else {
                 window.showModal("Unauthorized access.");
                 signOut(auth);
@@ -434,6 +437,48 @@ window.deleteBooking = async (bookingDocId) => {
         window.showModal("Failed to delete booking.");
     }
 };
+
+// --- Auto-Delete Expired Bookings (Older than 7 days) ---
+async function cleanupOldBookings() {
+    if (!assignedSociety) return;
+
+    try {
+        // Calculate the date 7 days ago in YYYY-MM-DD format
+        const cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate() - 7);
+        const cutoffString = cutoffDate.toISOString().split('T')[0]; // e.g., "2026-07-13"
+
+        // Query bookings for this society
+        const q = query(collection(db, "bookings"), where("society", "==", assignedSociety));
+        const querySnapshot = await getDocs(q);
+
+        const batch = writeBatch(db);
+        let deleteCount = 0;
+
+        querySnapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            // Assuming data.start is stored as "YYYY-MM-DDTHH:MM:SS"
+            if (data.start) {
+                const bookingDatePart = data.start.split('T')[0];
+                
+                // If the booking date is strictly older than the 7-day cutoff window
+                if (bookingDatePart < cutoffString) {
+                    batch.delete(doc(db, "bookings", docSnap.id));
+                    deleteCount++;
+                }
+            }
+        });
+
+        // Commit batch deletion if any expired bookings were found
+        if (deleteCount > 0) {
+            await batch.commit();
+            console.log(`Cleaned up ${deleteCount} expired booking(s) older than 7 days.`);
+        }
+    } catch (err) {
+        console.error("Failed to clean up old bookings:", err);
+    }
+}
+
     
     // 5. Bulk Management
     document.getElementById('importBtn')?.addEventListener('click', () => {
