@@ -146,7 +146,7 @@
 
         // 2. Fetch Bookings BEFORE Rendering Calendar so data is ready for cell mounting
         try {
-            const q = query(collection(db, "bookings"), where("society", "==", societyId));
+            const q = query(collection(db, "booked"), where("society", "==", societyId));
             const snapshot = await getDocs(q);
             snapshot.forEach(docSnap => {
                 const data = docSnap.data();
