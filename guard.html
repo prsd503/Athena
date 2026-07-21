@@ -113,10 +113,10 @@
         <button id="logoutBtn" style="background:#d32f2f;">Logout</button>
     </div>
 
-    <!-- Custom Modal Window -->
-    <div id="customModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+    <!-- Centered Custom Modal Window -->
+    <div id="customModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:99999; justify-content:center; align-items:center;">
         <div style="background:#fff; padding:25px; border-radius:15px; text-align:center; border:2px solid #8d6e63; max-width:320px; width:80%; box-shadow:5px 5px 0px #8d6e63;">
-            <p id="modalMessage" style="font-size: 1.3rem; margin-bottom: 20px;"></p>
+            <p id="modalMessage" style="font-size: 1.3rem; margin-bottom: 20px; color: #5d4037;"></p>
             <button id="closeModalBtn" style="background: #8d6e63; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer;">OK</button>
         </div>
     </div>
@@ -175,18 +175,22 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // Modal Display Functions
+        // Modal Display Functions (Forces Centered Flex display)
         function showModal(message) {
+            document.getElementById('modalMessageinnerText').innerText = message;
             document.getElementById('modalMessage').innerText = message;
-            document.getElementById('customModal').style.display = 'flex';
+            const modal = document.getElementById('customModal');
+            modal.style.display = 'flex';
         }
 
         document.getElementById('closeModalBtn').addEventListener('click', () => {
             document.getElementById('customModal').style.display = 'none';
         });
 
-        // Direct Login Trigger Handler
-        document.getElementById('loginBtn').addEventListener('click', async () => {
+        // Direct Login Trigger Handler with event propagation stop to prevent script conflicts
+        document.getElementById('loginBtn').addEventListener('click', async (e) => {
+            e.stopImmediatePropagation();
+            
             const emailInput = document.getElementById('email').value.trim();
             const passInput = document.getElementById('pass').value.trim();
 
@@ -197,7 +201,6 @@
 
             try {
                 await auth.signInWithEmailAndPassword(emailInput, passInput);
-                // Hide login and show portal section on success
                 document.getElementById('login-section').style.display = 'none';
                 document.getElementById('portalSection').style.display = 'block';
             } catch (error) {
