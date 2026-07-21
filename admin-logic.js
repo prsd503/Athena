@@ -215,6 +215,7 @@ window.deleteVehicleDoc = async (docId) => {
                     <b>Vehicle:</b> ${data.vehicleNumber}<br>
                     <b>Vehicle Type:</b> ${data.vehicleType}<br>
                     <b>Flat:</b> ${data.flatNumber}<br>
+                    <b>Mobile Number:</b> ${data.mobileNumber}<br>
                     <button onclick="window.deleteVehicleDoc('${docSnap.id}')" style="background:#d32f2f; font-size:0.9rem; padding:5px 10px;">Delete</button>
                 </div>
             `;
