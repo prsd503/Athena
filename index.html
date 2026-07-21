@@ -180,7 +180,6 @@ body { padding-top: 80px; }
                     <button class="ad-nav-btn" id="prevGlobalAdBtn">❮ Prev</button>
                     <button class="ad-nav-btn" id="nextGlobalAdBtn">Next ❯</button>
                 </div>
-                <!-- Fixed syntax error (href==) to a standard href -->
                 <a id="globalAdLink" href="https://wa.me/919033406816?text=Hi%20I%20want%20to%20apply%20for%20global%20ad%20in%20Owl%20Watcher" target="_blank" class="ad-link">Advertise Globally Here!</a>
             </div>
         </div>
@@ -201,7 +200,6 @@ body { padding-top: 80px; }
         <div id="notice-board">
             <h3 style="margin-top: 0; font-family: 'Caveat', cursive; border-bottom: 2px solid #8d6e63; padding-bottom: 5px;">📢 Notice Board</h3>
             <div id="notice-content">Loading...</div>
-       
          </div>
 
         <div id="ad-billboard">
@@ -223,7 +221,8 @@ body { padding-top: 80px; }
             <a id="factlityPage" href="#" style="background: #8d6e63; color: white; padding: 10px; text-decoration: none; border-radius: 8px; display: inline-block; margin-top: 15px;">
                Go to Facility Booking
             </a>
-       <br>     <button id="backToHomeBtn" style="font-family: 'Caveat', cursive; width: 30%;">Society Search</button>
+            <br>
+            <button id="backToHomeBtn" style="font-family: 'Caveat', cursive; width: 30%;">Society Search</button>
         </div>
     </div>
 
@@ -312,7 +311,6 @@ body { padding-top: 80px; }
             const docRef = doc(db, "notices", societyId);
             const snap = await getDoc(docRef);
             
-            // Enforce IST date calculation (YYYY-MM-DD)
             const options = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' };
             const formatter = new Intl.DateTimeFormat('en-CA', options);
             const currentIstDateStr = formatter.format(new Date());
@@ -323,7 +321,6 @@ body { padding-top: 80px; }
                 let tomorrowMsg = data.tomorrowMessage || "";
                 let storedDate = data.date || currentIstDateStr;
 
-                // Check if stored date is behind current IST date (Midnight Rollover)
                 if (storedDate < currentIstDateStr) {
                     todayMsg = tomorrowMsg;
                     tomorrowMsg = "";
@@ -358,7 +355,6 @@ body { padding-top: 80px; }
                 noticeDiv.innerText = "No notices for today."; 
             }
         }
-
 
         function setupGuard(societyId) {
             if (guardUnsubscribe) guardUnsubscribe();
@@ -603,17 +599,20 @@ body { padding-top: 80px; }
             const vNum = document.getElementById("vehicleInput").value.trim().toUpperCase();
             if (!vNum) return showModal("<p>⚠️ Please enter a vehicle number.</p>");
             
-        const snap = await getDocs(collection(db, "vehicles"));
-    const matches = snap.docs.filter(d => d.data().societyName?.toLowerCase() === currentSociety.toLowerCase() && d.data().vehicleNumber?.toUpperCase() === vNum);
-    if (matches.length > 0) {
-        let htmlContent = "";
-        matches.forEach(found => {
-            const data = found.data();
-            const msg = encodeURIComponent(`(Using: Owl-Watcher) Hello, vehicle ${data.vehicleNumber} of ${data.flatNumber}`);
-            htmlContent += `<div style="margin-bottom:15px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">✅ Vehicle: <b>${data.vehicleNumber}</b><br>Flat: <b>${data.flatNumber}</b><br><div hidden><a href="https://wa.me/${data.mobileNumber?.replace(/\D/g, '')}?text=${msg}" target="_blank" class="btn-msg">💬 Message Admin</a></div></div>`;
+            const snap = await getDocs(collection(db, "vehicles"));
+            const matches = snap.docs.filter(d => d.data().societyName?.toLowerCase() === currentSociety.toLowerCase() && d.data().vehicleNumber?.toUpperCase() === vNum);
+            if (matches.length > 0) {
+                let htmlContent = "";
+                matches.forEach(found => {
+                    const data = found.data();
+                    const msg = encodeURIComponent(`(Using: Owl-Watcher) Hello, vehicle ${data.vehicleNumber} of ${data.flatNumber}`);
+                    htmlContent += `<div style="margin-bottom:15px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">✅ Vehicle: <b>${data.vehicleNumber}</b><br>Flat: <b>${data.flatNumber}</b><br><div hidden><a href="https://wa.me/${data.mobileNumber?.replace(/\D/g, '')}?text=${msg}" target="_blank" class="btn-msg">💬 Message Admin</a></div></div>`;
+                });
+                showModal(htmlContent);
+            } else { 
+                showModal("<p>❌ Vehicle not found.</p>"); 
+            }
         });
-        showModal(htmlContent);
-    } else { showModal("<p>❌ Vehicle not found.</p>"); }
 
         document.getElementById("switchSocietyBtn").addEventListener("click", () => {
             clearSocietySession();
@@ -679,7 +678,7 @@ body { padding-top: 80px; }
 
             const hoot = document.getElementById('hootSound');
             hoot.volume = 0.5;
-            hoot.play();
+            hoot.play().catch(e => console.log("Hoot play failed:", e));
 
             const canvas = document.getElementById('fireCanvas');
             const ctx = canvas.getContext('2d');
@@ -714,14 +713,9 @@ body { padding-top: 80px; }
     </script>
     <canvas id="fireCanvas" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9999;"></canvas>
     <audio id="hootSound" src="tapenter.mp3" preload="auto"></audio>
-    <!-- Paste this anywhere in your HTML file (preferably just before the closing </body> tag) -->
 
 <div id="owl-container">
-  <!-- Owl Icon Container -->
-  <div id="owl-icon" onclick="activateOwlEffect()">
-    🦉
-  </div>
-  <!-- Audio element playing theme.mp3 -->
+  <div id="owl-icon" onclick="activateOwlEffect()">🦉</div>
   <audio id="owl-audio" src="theme.mp3" preload="auto"></audio>
 </div>
 
@@ -745,7 +739,6 @@ body { padding-top: 80px; }
     transform: scale(1.15);
   }
 
-  /* Animation for Enlarging and Shrinking 2 Times */
   @keyframes enlargeAndShrinkTwice {
     0% { transform: scale(1); }
     25% { transform: scale(1.6); }
@@ -764,19 +757,15 @@ body { padding-top: 80px; }
     const container = document.getElementById('owl-container');
     const audio = document.getElementById('owl-audio');
 
-    // Prevent spam clicking while animation is active
     if (container.classList.contains('active-effect')) return;
 
-    // Play the theme audio
     audio.currentTime = 0;
     audio.play().catch(error => {
       console.log("Audio playback blocked or file not found:", error);
     });
 
-    // Trigger the enlarge and shrink animation (lasts 2 seconds)
     container.classList.add('active-effect');
 
-    // Reset after the animation finishes
     setTimeout(() => {
       container.classList.remove('active-effect');
     }, 2000);
