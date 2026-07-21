@@ -113,7 +113,7 @@
         <button id="logoutBtn" style="background:#d32f2f;">Logout</button>
     </div>
 
-    <!-- Centered Custom Modal Window -->
+    <!-- Perfectly Centered Custom Modal Window -->
     <div id="customModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:99999; justify-content:center; align-items:center;">
         <div style="background:#fff; padding:25px; border-radius:15px; text-align:center; border:2px solid #8d6e63; max-width:320px; width:80%; box-shadow:5px 5px 0px #8d6e63;">
             <p id="modalMessage" style="font-size: 1.3rem; margin-bottom: 20px; color: #5d4037;"></p>
@@ -159,14 +159,14 @@
 
     <!-- Script Handling -->
     <script>
-        // --- Firebase Initialization & Login Logic ---
+        // --- ⚠️ REPLACE THESE WITH YOUR ACTUAL FIREBASE CONFIG FROM CONSOLE ---
         const firebaseConfig = {
-          apiKey: "YOUR_FIREBASE_API_KEY",
-          authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-          projectId: "YOUR_PROJECT_ID",
-          storageBucket: "YOUR_PROJECT_ID.appspot.com",
-          messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-          appId: "YOUR_APP_ID"
+          apiKey: "AIzaSy...", 
+          authDomain: "your-app.firebaseapp.com",
+          projectId: "your-app",
+          storageBucket: "your-app.appspot.com",
+          messagingSenderId: "123456789",
+          appId: "1:123456:web:abcd"
         };
 
         if (!firebase.apps.length) {
@@ -175,19 +175,17 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // Modal Display Functions (Forces Centered Flex display)
+        // Modal Display Function (Centered via Flex)
         function showModal(message) {
-            document.getElementById('modalMessageinnerText').innerText = message;
             document.getElementById('modalMessage').innerText = message;
-            const modal = document.getElementById('customModal');
-            modal.style.display = 'flex';
+            document.getElementById('customModal').style.display = 'flex';
         }
 
         document.getElementById('closeModalBtn').addEventListener('click', () => {
             document.getElementById('customModal').style.display = 'none';
         });
 
-        // Direct Login Trigger Handler with event propagation stop to prevent script conflicts
+        // Direct Login Handler
         document.getElementById('loginBtn').addEventListener('click', async (e) => {
             e.stopImmediatePropagation();
             
