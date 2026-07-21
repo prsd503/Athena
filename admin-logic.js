@@ -369,6 +369,49 @@ document.getElementById('masterSaveSocietyBtn')?.addEventListener('click', async
     }
 });
 
+// --- Updated Notice Board Data Loader with IST Midnight Rollover Check ---
+async function loadNoticeData() {
+    if (!assignedSociety) return;
+    const noticeDocRef = doc(db, "notices", assignedSociety);
+    const docSnap = await getDoc(noticeDocRef);
+    
+    // Get current date string in IST (YYYY-MM-DD)
+    const options = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' };
+    const formatter = new Intl.DateTimeFormat('en-CA', options);
+    const currentIstDateStr = formatter.format(new Date());
+
+    if (docSnap.exists()) {
+        const data = docSnap.data();
+        let todayMsg = data.todayMessage || "";
+        let tomorrowMsg = data.tomorrowMessage || "";
+        let noticeDate = data.date || "";
+
+        // Check if the stored notice date is behind the current IST date (i.e., a new day has started)
+        if (noticeDate && noticeDate < currentIstDateStr) {
+            // Rollover logic: Tomorrow's message becomes Today's message, Tomorrow becomes blank
+            todayMsg = tomorrowMsg;
+            tomorrowMsg = "";
+            noticeDate = currentIstDateStr;
+
+            // Update Firestore with the rolled-over content and current IST date
+            try {
+                await setDoc(noticeDocRef, {
+                    todayMessage: todayMsg,
+                    tomorrowMessage: tomorrowMsg,
+                    date: noticeDate,
+                    updatedAt: serverTimestamp()
+                }, { merge: true });
+            } catch (err) {
+                console.error("Failed to perform automatic daily notice rollover:", err);
+            }
+        }
+
+        if (document.getElementById('todayMsg')) document.getElementById('todayMsg').value = todayMsg;
+        if (document.getElementById('tomorrowMsg')) document.getElementById('tomorrowMsg').value = tomorrowMsg;
+    }
+}
+
+
 document.getElementById('masterSavePhoneBtn')?.addEventListener('click', async () => {
     const newPhone = document.getElementById('masterPhoneInput').value.trim();
     if (!newPhone) return window.showModal("Please enter a valid phone number.");
