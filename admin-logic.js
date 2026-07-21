@@ -208,7 +208,7 @@ window.deleteVehicleDoc = async (docId) => {
 };
 
         resultsDiv.innerHTML = "";
-        QuerySnapshot.forEach((docSnap) => {
+        querySnapshot.forEach((docSnap) => {
             const data = docSnap.data();
             resultsDiv.innerHTML += `
                 <div style="background:#f4ece0; padding:10px; margin-top:5px; border-radius:8px; font-family: sans-serif; font-size: 0.95rem;">
