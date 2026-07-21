@@ -6,7 +6,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
     <title>Security Guard Portal | Owl Watcher</title>
 
-    <!-- Firebase SDKs (Compat scripts for dynamic contact fetching & Auth) -->
+    <!-- Firebase SDKs (Compat scripts including Auth & Firestore) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
@@ -113,37 +113,24 @@
         <button id="logoutBtn" style="background:#d32f2f;">Logout</button>
     </div>
 
-    <!-- Custom Modal Window for Alerts & Errors -->
+    <!-- Custom Modal Window -->
     <div id="customModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
-        <div style="background:#fff; padding:25px; border-radius:15px; text-align:center; border:2px solid #8d6e63; max-width: 320px; width: 80%; box-shadow: 5px 5px 0px #8d6e63;">
+        <div style="background:#fff; padding:25px; border-radius:15px; text-align:center; border:2px solid #8d6e63; max-width:320px; width:80%; box-shadow:5px 5px 0px #8d6e63;">
             <p id="modalMessage" style="font-size: 1.3rem; margin-bottom: 20px;"></p>
             <button id="closeModalBtn" style="background: #8d6e63; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer;">OK</button>
         </div>
     </div>
 
-    <!-- Owl Widget -->
+    <!-- Owl Interactive Effect Widget -->
     <div id="owl-container">
       <div id="owl-icon" onclick="activateOwlEffect()">🦉</div>
       <audio id="owl-audio" src="theme.mp3" preload="auto"></audio>
     </div>
 
 <style>
-  #owl-container {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    z-index: 9999;
-  }
-  #owl-icon {
-    font-size: 60px;
-    cursor: pointer;
-    user-select: none;
-    transition: transform 0.3s ease;
-    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
-  }
-  #owl-icon:hover {
-    transform: scale(1.15);
-  }
+  #owl-container { position: fixed; bottom: 30px; right: 30px; z-index: 9999; }
+  #owl-icon { font-size: 60px; cursor: pointer; user-select: none; transition: transform 0.3s ease; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2)); }
+  #owl-icon:hover { transform: scale(1.15); }
   @keyframes enlargeAndShrinkTwice {
     0% { transform: scale(1); }
     25% { transform: scale(1.6); }
@@ -151,9 +138,7 @@
     75% { transform: scale(1.6); }
     100% { transform: scale(1); }
   }
-  .active-effect {
-    animation: enlargeAndShrinkTwice 2s ease-in-out forwards;
-  }
+  .active-effect { animation: enlargeAndShrinkTwice 2s ease-in-out forwards; }
 </style>
 
 <script>
@@ -174,7 +159,7 @@
 
     <!-- Script Handling -->
     <script>
-        // --- Firebase Config & Dynamic Contact Integration ---
+        // --- Firebase Initialization & Login Logic ---
         const firebaseConfig = {
           apiKey: "YOUR_FIREBASE_API_KEY",
           authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -188,8 +173,9 @@
           firebase.initializeApp(firebaseConfig);
         }
         const db = firebase.firestore();
+        const auth = firebase.auth();
 
-        // Modal Controls
+        // Modal Display Functions
         function showModal(message) {
             document.getElementById('modalMessage').innerText = message;
             document.getElementById('customModal').style.display = 'flex';
@@ -199,27 +185,31 @@
             document.getElementById('customModal').style.display = 'none';
         });
 
-        // Built-in Login Interceptor to catch missing credentials or authentication errors
+        // Direct Login Trigger Handler
         document.getElementById('loginBtn').addEventListener('click', async () => {
-            const email = document.getElementById('email').value.trim();
-            const pass = document.getElementById('pass').value.trim();
+            const emailInput = document.getElementById('email').value.trim();
+            const passInput = document.getElementById('pass').value.trim();
 
-            if (!email || !pass) {
+            if (!emailInput || !passInput) {
                 showModal("Please enter both email and password.");
                 return;
             }
 
             try {
-                await firebase.auth().signInWithEmailAndPassword(email, pass);
-                // If successful, guard-logic.js or auth state observer handles screen shift
+                await auth.signInWithEmailAndPassword(emailInput, passInput);
+                // Hide login and show portal section on success
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('portalSection').style.display = 'block';
             } catch (error) {
+                console.error("Login error code:", error.code, error.message);
                 let errorMsg = "Invalid credentials. Please try again.";
+                
                 if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
                     errorMsg = "Invalid email or password.";
                 } else if (error.code === 'auth/invalid-email') {
                     errorMsg = "Please enter a valid email address.";
                 } else if (error.code === 'auth/network-request-failed') {
-                    errorMsg = "Network error. Please check your connection.";
+                    errorMsg = "Network error. Please check your internet connection.";
                 }
                 showModal(errorMsg);
             }
