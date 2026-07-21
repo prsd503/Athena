@@ -208,15 +208,15 @@ window.deleteVehicleDoc = async (docId) => {
 };
 
         resultsDiv.innerHTML = "";
-        querySnapshot.forEach((docSnap) => {
+        QuerySnapshot.forEach((docSnap) => {
             const data = docSnap.data();
             resultsDiv.innerHTML += `
-                <div style="background:#f4ece0; padding:10px; margin-top:5px; border-radius:8px;">
+                <div style="background:#f4ece0; padding:10px; margin-top:5px; border-radius:8px; font-family: sans-serif; font-size: 0.95rem;">
                     <b>Vehicle:</b> ${data.vehicleNumber}<br>
                     <b>Vehicle Type:</b> ${data.vehicleType}<br>
                     <b>Flat:</b> ${data.flatNumber}<br>
-                    <b>Mobile Number:</b> ${data.mobileNumber}<br>
-                    <button onclick="window.deleteVehicleDoc('${docSnap.id}')" style="background:#d32f2f; font-size:0.9rem; padding:5px 10px;">Delete</button>
+                    Mobile Number: <a href="tel:${data.mobileNumber}" style="color: #0066cc; text-decoration: none;">${data.mobileNumber}</a><br><br>
+                    <button onclick="window.deleteVehicleDoc('${docSnap.id}')" style="background:#d32f2f; color: white; border: none; border-radius: 4px; font-size:0.9rem; padding:5px 10px; cursor: pointer;">Delete</button>
                 </div>
             `;
         });
