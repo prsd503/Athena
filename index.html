@@ -603,18 +603,17 @@ body { padding-top: 80px; }
             const vNum = document.getElementById("vehicleInput").value.trim().toUpperCase();
             if (!vNum) return showModal("<p>⚠️ Please enter a vehicle number.</p>");
             
-            const snap = await getDocs(collection(db, "vehicles"));
-            const matches = snap.docs.filter(d => d.data().societyName?.toLowerCase() === currentSociety.toLowerCase() && d.data().vehicleNumber?.toUpperCase() === vNum);
-            if (matches.length > 0) {
-                let htmlContent = "";
-                matches.forEach(found => {
-                    const data = found.data();
-                    const msg = encodeURIComponent(`(Using: Owl-Watcher) Hello, vehicle ${data.vehicleNumber} of ${data.flatNumber}`);
-                  htmlContent += `<div style="margin-bottom:15px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">✅ Vehicle: <b>${data.vehicleNumber}</b><br>Flat: <b>${data.flatNumber}</b>`<br> <div hidden> <a href="https://wa.me/${data.mobileNumber?.replace(/\D/g, '')}?text=${msg}" target="_blank" class="btn-msg">💬 Message Admin</a></div></div>`;
-                });
-                showModal(htmlContent);
-            } else { showModal("<p>❌ Vehicle not found.</p>"); }
+        const snap = await getDocs(collection(db, "vehicles"));
+    const matches = snap.docs.filter(d => d.data().societyName?.toLowerCase() === currentSociety.toLowerCase() && d.data().vehicleNumber?.toUpperCase() === vNum);
+    if (matches.length > 0) {
+        let htmlContent = "";
+        matches.forEach(found => {
+            const data = found.data();
+            const msg = encodeURIComponent(`(Using: Owl-Watcher) Hello, vehicle ${data.vehicleNumber} of ${data.flatNumber}`);
+            htmlContent += `<div style="margin-bottom:15px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">✅ Vehicle: <b>${data.vehicleNumber}</b><br>Flat: <b>${data.flatNumber}</b><br><div hidden><a href="https://wa.me/${data.mobileNumber?.replace(/\D/g, '')}?text=${msg}" target="_blank" class="btn-msg">💬 Message Admin</a></div></div>`;
         });
+        showModal(htmlContent);
+    } else { showModal("<p>❌ Vehicle not found.</p>"); }
 
         document.getElementById("switchSocietyBtn").addEventListener("click", () => {
             clearSocietySession();
