@@ -141,7 +141,7 @@ document.getElementById('searchBtn')?.addEventListener('click', async () => {
         
         if (!snap.empty) {
             const d = snap.docs[0].data();
-            ResultDiv.innerHTML = `<div style="font-family: sans-serif;">Flat: <b>${d.flatNumber}</b><br><a href="tel:${d.mobileNumber}">📞 Call: ${d.mobileNumber}</a></div>`;
+            resultDiv.innerHTML = `<div style="font-family: sans-serif;">Flat: <b>${d.flatNumber}</b><br><a href="tel:${d.mobileNumber}">📞 Call: ${d.mobileNumber}</a></div>`;
 
         } else {
             window.showModal("No vehicle found for this society.");
