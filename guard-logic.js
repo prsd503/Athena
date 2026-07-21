@@ -89,18 +89,20 @@ document.getElementById('loginBtn')?.addEventListener('click', async () => {
     
     if (!email || !pass) return window.showModal("Please enter email and password.");
     
-    try {
-        await signInWithEmailAndPassword(auth, email, pass);
-    } catch (e) {
-        if (e.code === 'auth/invalid-email' || 
-            e.code === 'auth/invalid-credential' || 
-            e.code === 'auth/user-not-found' || 
-            e.code === 'auth/wrong-password') {
-            window.showModal("Invalid Credentials");
-        } else {
-            window.showModal("Login failed: " + e.message);
-        }
+// Inside your login handler block in guard-logic.js:
+try {
+    await signInWithEmailAndPassword(auth, email, pass);
+    window.showModal("Login successful!"); // <-- Added success modal prompt
+} catch (e) {
+    if (e.code === 'auth/invalid-email' || 
+        e.code === 'auth/invalid-credential' || 
+        e.code === 'auth/user-not-found' || 
+        e.code === 'auth/wrong-password') {
+        window.showModal("Invalid Credentials");
+    } else {
+        window.showModal("Login failed: " + e.message);
     }
+}
 });
 
 // Activate Duty Action
