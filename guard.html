@@ -6,9 +6,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
     <title>Security Guard Portal | Owl Watcher</title>
 
-    <!-- Firebase SDKs (Compat scripts for Auth, Firestore & App) -->
+    <!-- Firebase SDKs (Compat scripts for dynamic contact fetching) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
     <style>
@@ -89,11 +88,84 @@
     <!-- Login Section -->
     <div class="card" id="login-section">
          <h2>Security Guard Login</h2>
-         <input type="email" id="email" placeholder="Email">
-         <input type="password" id="pass" placeholder="Password">
-         <br>
-         <button id="loginBtn">Login</button>
-         <br>
+
+
+    <!-- Paste this anywhere in your HTML file (preferably just before the closing </body> tag) -->
+
+<div id="owl-container">
+  <!-- Owl Icon Container -->
+  <div id="owl-icon" onclick="activateOwlEffect()">
+    🦉
+  </div>
+  <!-- Audio element playing theme.mp3 -->
+  <audio id="owl-audio" src="theme.mp3" preload="auto"></audio>
+</div>
+
+<style>
+  #owl-container {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 9999;
+  }
+
+  #owl-icon {
+    font-size: 60px;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.3s ease;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+  }
+
+  #owl-icon:hover {
+    transform: scale(1.15);
+  }
+
+  /* Animation for Enlarging and Shrinking 2 Times */
+  @keyframes enlargeAndShrinkTwice {
+    0% { transform: scale(1); }
+    25% { transform: scale(1.6); }
+    50% { transform: scale(1); }
+    75% { transform: scale(1.6); }
+    100% { transform: scale(1); }
+  }
+
+  .active-effect {
+    animation: enlargeAndShrinkTwice 2s ease-in-out forwards;
+  }
+</style>
+
+<script>
+  function activateOwlEffect() {
+    const container = document.getElementById('owl-container');
+    const audio = document.getElementById('owl-audio');
+
+    // Prevent spam clicking while animation is active
+    if (container.classList.contains('active-effect')) return;
+
+    // Play the theme audio
+    audio.currentTime = 0;
+    audio.play().catch(error => {
+      console.log("Audio playback blocked or file not found:", error);
+    });
+
+    // Trigger the enlarge and shrink animation (lasts 2 seconds)
+    container.classList.add('active-effect');
+
+    // Reset after the animation finishes
+    setTimeout(() => {
+      container.classList.remove('active-effect');
+    }, 2000);
+  }
+</script>        
+        
+        
+        
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="pass" placeholder="Password">
+        <br>
+        <button id="loginBtn">Login</button>
+        <br>
     </div>
         
     <!-- Portal Section -->
@@ -102,6 +174,14 @@
             <h2>Start Your Shift</h2>
             <select id="guardSelect"><option>Loading...</option></select>
             <button id="activateBtn">Set Me Active</button>
+        </div>
+        
+        <!-- Custom Modal Window -->
+        <div id="customModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+            <div style="background:#fff; padding:20px; border-radius:15px; text-align:center; border:2px solid #8d6e63;">
+                <p id="modalMessage"></p>
+                <button id="closeModalBtn">OK</button>
+            </div>
         </div>
         
         <div class="card">
@@ -113,53 +193,9 @@
         <button id="logoutBtn" style="background:#d32f2f;">Logout</button>
     </div>
 
-    <!-- Custom Modal Window (Placed globally so it works on login too) -->
-    <div id="customModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:99999; justify-content:center; align-items:center;">
-        <div style="background:#fff; padding:25px; border-radius:15px; text-align:center; border:2px solid #8d6e63; max-width:320px; width:80%; box-shadow:5px 5px 0px #8d6e63;">
-            <p id="modalMessage" style="font-size: 1.3rem; margin-bottom: 20px; color: #5d4037;"></p>
-            <button id="closeModalBtn" style="background: #8d6e63; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer;">OK</button>
-        </div>
-    </div>
-
-    <!-- Owl Interactive Effect Widget -->
-    <div id="owl-container">
-      <div id="owl-icon" onclick="activateOwlEffect()">🦉</div>
-      <audio id="owl-audio" src="theme.mp3" preload="auto"></audio>
-    </div>
-
-<style>
-  #owl-container { position: fixed; bottom: 30px; right: 30px; z-index: 9999; }
-  #owl-icon { font-size: 60px; cursor: pointer; user-select: none; transition: transform 0.3s ease; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2)); }
-  #owl-icon:hover { transform: scale(1.15); }
-  @keyframes enlargeAndShrinkTwice {
-    0% { transform: scale(1); }
-    25% { transform: scale(1.6); }
-    50% { transform: scale(1); }
-    75% { transform: scale(1.6); }
-    100% { transform: scale(1); }
-  }
-  .active-effect { animation: enlargeAndShrinkTwice 2s ease-in-out forwards; }
-</style>
-
-<script>
-  function activateOwlEffect() {
-    const container = document.getElementById('owl-container');
-    const audio = document.getElementById('owl-audio');
-    if (container.classList.contains('active-effect')) return;
-    audio.currentTime = 0;
-    audio.play().catch(error => {
-      console.log("Audio playback blocked or file not found:", error);
-    });
-    container.classList.add('active-effect');
-    setTimeout(() => {
-      container.classList.remove('active-effect');
-    }, 2000);
-  }
-</script>        
-
     <!-- Script Handling -->
     <script>
-        // --- Firebase Configuration & Initialization ---
+        // --- Firebase Dynamic Contact Integration ---
         const firebaseConfig = {
           apiKey: "YOUR_FIREBASE_API_KEY",
           authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -173,48 +209,6 @@
           firebase.initializeApp(firebaseConfig);
         }
         const db = firebase.firestore();
-        const auth = firebase.auth();
-
-        // Modal Display Function
-        function showModal(message) {
-            document.getElementById('modalMessage').innerText = message;
-            document.getElementById('customModal').style.display = 'flex';
-        }
-
-        document.getElementById('closeModalBtn').addEventListener('click', () => {
-            document.getElementById('customModal').style.display = 'none';
-        });
-
-        // Login Handler with Modal Feedback
-        document.getElementById('loginBtn').addEventListener('click', async (e) => {
-            e.stopImmediatePropagation();
-            
-            const emailInput = document.getElementById('email').value.trim();
-            const passInput = document.getElementById('pass').value.trim();
-
-            if (!emailInput || !passInput) {
-                showModal("Please enter both email and password.");
-                return;
-            }
-
-            try {
-                await auth.signInWithEmailAndPassword(emailInput, passInput);
-                document.getElementById('login-section').style.display = 'none';
-                document.getElementById('portalSection').style.display = 'block';
-            } catch (error) {
-                console.error("Login error code:", error.code, error.message);
-                let errorMsg = "Invalid credentials. Please try again.";
-                
-                if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-                    errorMsg = "Invalid email or password.";
-                } else if (error.code === 'auth/invalid-email') {
-                    errorMsg = "Please enter a valid email address.";
-                } else if (error.code === 'auth/network-request-failed') {
-                    errorMsg = "Network error. Please check your internet connection.";
-                }
-                showModal(errorMsg);
-            }
-        });
 
         // Fetch dynamic contact target from Firestore
         async function loadDynamicContact() {
