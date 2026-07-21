@@ -15,7 +15,7 @@ window.showModal = (msg) => {
     const modal = document.getElementById('customModal');
     if (msgEl && modal) {
         msgEl.innerText = msg;
-        modal.style.display = 'block';
+        modal.style.display = 'flex'; // Must be 'flex' to keep it centered
     }
 };
 
