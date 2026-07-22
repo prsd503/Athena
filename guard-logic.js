@@ -10,6 +10,17 @@ window.closeModal = () => {
     if (modal) modal.style.display = 'none'; 
 };
 
+document.addEventListener('DOMContentLoaded', () => {
+    const menuToggle = document.getElementById('menuToggle');
+    const navLinks = document.getElementById('navLinks');
+
+    if (menuToggle && navLinks) {
+        menuToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+        });
+    }
+});
+
 window.showModal = (msg) => {
     const msgEl = document.getElementById('modalMessage');
     const modal = document.getElementById('customModal');
