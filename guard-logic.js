@@ -157,7 +157,7 @@ document.getElementById('searchBtn')?.addEventListener('click', async () => {
 
 document.getElementById('forgotPasswordBtn')?.addEventListener('click', async () => {
     const emailInput = document.getElementById('email');
-    const email = emailInput ? emailInput.value.trim() : "";
+    const email = emailInput ? emailInput.value.trim().toLowerCase() : "";
 
     if (!email) {
         window.showModal("Please enter your email address first.");
@@ -165,22 +165,29 @@ document.getElementById('forgotPasswordBtn')?.addEventListener('click', async ()
     }
 
     try {
+        const q = query(collection(db, "guards"), where("email", "==", email));
+        const snap = await getDocs(q);
+
+        if (snap.empty) {
+            window.showModal("Invalid credentials");
+            return;
+        }
+
         await sendPasswordResetEmail(auth, email);
         window.showModal("Password reset link sent to your email!");
     } catch (error) {
         console.error("Error sending password reset email:", error);
         
-        if (error.code === 'auth/invalid-email') {
-            window.showModal("Invalid email");
-        } else if (error.code === 'auth/user-not-found') {
-            window.showModal("Email not registered");
+        if (error.code === 'auth/invalid-email' || error.code === 'auth/user-not-found') {
+            window.showModal("Invalid credentials");
         } else if (error.code === 'auth/too-many-requests') {
             window.showModal("Too many requests. Please try again later.");
         } else {
-            window.showModal("Error: " + error.message);
+            window.showModal("Invalid credentials");
         }
     }
 });
+
 
 document.getElementById('logoutBtn')?.addEventListener('click', async () => { 
     try {
