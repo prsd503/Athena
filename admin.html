@@ -22,7 +22,7 @@
         }
         .nav-logo { font-family: 'Caveat', cursive; color: #5d4037; font-size: 1.5rem; font-weight: bold; margin-right: 20px; }
         .nav-links { display: flex; gap: 15px; }
-        .nav-links a { text-decoration: none; color: #5d4037; font-weight: bold; }
+        .nav-links a { text-decoration: none; color: #5d4037; font-weight: bold; font-family: 'Caveat', cursive; font-size: 1.3rem; }
         
         /* Mobile Menu Button */
         .menu-btn { display: none; background: #8d6e63; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-family: 'Caveat', cursive; font-size: 1.1rem; }
@@ -75,7 +75,7 @@
         <button class="menu-btn" id="menuToggle">☰</button>
         <div class="nav-links" id="navLinks">
             <a href="index.html">Home</a>
-            <a href="admin.html"style="background-color: yellow;">Admin Portal</a>
+            <a href="admin.html" style="background-color: yellow;">Admin Portal</a>
             <a href="guard.html">Security Guard Portal</a>
             <a href="studio.html">Photo Studio Portal</a>
             <a href="https://wa.me/919033406816">Contact Us</a>
@@ -89,6 +89,8 @@
         <input type="password" id="pass" placeholder="Password">
         <br>
         <button id="loginBtn">Login</button>
+        <br>
+        <button id="forgotPasswordBtn" style="background: transparent; color: #5d4037; border: none; text-decoration: underline; font-size: 1rem; cursor: pointer; margin-top: 5px;">Forgot Password?</button>
     </div>
 
     <!-- Master Admin Controls Panel -->
@@ -247,15 +249,6 @@
         }
 
         window.addEventListener("DOMContentLoaded", () => {
-            // Intercept manual login click to save persistence key
-            document.getElementById("loginBtn").addEventListener("click", () => {
-                setTimeout(() => {
-                    if (document.getElementById("login-section").style.display === "none") {
-                        localStorage.setItem("adminLoggedIn", "true");
-                    }
-                }, 1000);
-            });
-
             // Intercept logout button to clear validation state
             document.getElementById("logoutBtn").addEventListener("click", () => {
                 localStorage.removeItem("adminLoggedIn");
@@ -272,7 +265,6 @@
     </script>
 
     <script type="module" src="admin-logic.js"></script>
-    <!-- Paste this anywhere in your HTML file (preferably just before the closing </body> tag) -->
 
 <div id="owl-container">
   <!-- Owl Icon Container -->
