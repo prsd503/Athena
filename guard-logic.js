@@ -169,7 +169,11 @@ document.getElementById('forgotPasswordBtn')?.addEventListener('click', async ()
         window.showModal("Password reset link sent to your email!");
     } catch (error) {
         console.error("Error sending password reset email:", error);
-        if (error.code === 'auth/user-not-found') {
+        
+        // Handle specific Firebase error codes cleanly
+        if (error.code === 'auth/invalid-email') {
+            window.showModal("Invalid email");
+        } else if (error.code === 'auth/user-not-found') {
             window.showModal("Email not registered");
         } else {
             window.showModal("Error: " + error.message);
