@@ -1,6 +1,6 @@
 import { auth, db } from "./app.js"; 
-import { signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js";
-import { doc, getDoc, updateDoc, collection, where } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js";
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, getDoc, updateDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let assignedSociety = "";
 
@@ -32,8 +32,8 @@ window.showModal = (msg) => {
 
 async function initializeGuardPortal(email) {
     try {
-        // Compat query syntax using .get()
-        const snap = await collection(db, "guards").where("email", "==", email).get();
+        const q = query(collection(db, "guards"), where("email", "==", email));
+        const snap = await getDocs(q);
         
         if (snap.empty) {
             await signOut(auth);
@@ -44,7 +44,8 @@ async function initializeGuardPortal(email) {
         const guardData = snap.docs[0].data();
         assignedSociety = guardData.society; 
         
-        const guards = await collection(db, "guards").where("society", "==", assignedSociety).get();
+        const qGuards = query(collection(db, "guards"), where("society", "==", assignedSociety));
+        const guards = await getDocs(qGuards);
         const select = document.getElementById('guardSelect');
         
         if (select) {
@@ -132,12 +133,14 @@ document.getElementById('searchBtn')?.addEventListener('click', async () => {
     if (!vNum) return window.showModal("Enter a valid vehicle number.");
 
     try {
-        const snap = await collection(db, "vehicles")
-            .where("vehicleNumber", "==", vNum)
-            .where("societyName", "==", assignedSociety)
-            .get();
-            
+        const q = query(
+            collection(db, "vehicles"), 
+            where("vehicleNumber", "==", vNum), 
+            where("societyName", "==", assignedSociety)
+        );
+        const snap = await getDocs(q);
         const resultDiv = document.getElementById('result');
+        
         if (!resultDiv) return;
         
         if (!snap.empty) {
