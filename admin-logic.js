@@ -481,7 +481,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Forgot Password Logic for Admin ---
- document.getElementById('forgotPasswordBtn')?.addEventListener('click', async () => {
+
+    document.getElementById('forgotPasswordBtn')?.addEventListener('click', async () => {
     const emailInput = document.getElementById('email');
     const email = emailInput ? emailInput.value.trim().toLowerCase() : "";
 
