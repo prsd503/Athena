@@ -174,46 +174,7 @@
 
 
     
-   <!-- Script Handling (Dynamic Contact & UI helper setups) -->
-    <!-- Script Handling (Dynamic Contact & UI helper setups) -->
-    <script>
-        const firebaseConfig = {
-          apiKey: "AIzaSyBEYKHQpy_VjmgjYiWQOPjXth1bghYsf9M",
-          authDomain: "finder-owl.firebaseapp.com",
-          projectId: "finder-owl",
-          storageBucket: "finder-owl.firebasestorage.app",
-          messagingSenderId: "1011347100861",
-          appId: "1:1011347100861:web:24246f9a4eb24d812cd3d4"
-        };
-
-        // Initialize Firebase Compat SDK properly
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        
-        const db = firebase.firestore();
-        const auth = firebase.auth();
-
-        // Modal Helpers available globally for guard-logic.js too
-        window.closeModal = () => { 
-            const modal = document.getElementById('customModal');
-            if (modal) modal.style.display = 'none'; 
-        };
-
-        window.showModal = (msg) => {
-            const msgEl = document.getElementById('modalMessage');
-            const modal = document.getElementById('customModal');
-            if (msgEl && modal) {
-                msgEl.innerText = msg;
-                modal.style.display = 'flex';
-            }
-        };
-
-
-<span class="forgot-link" id="forgotPasswordBtn">Forgot Password?</span>    
-    
-    </script> 
-
+  <span class="forgot-link" id="forgotPasswordBtn">Forgot Password?</span>
     
     <!-- Core Application & Guard Logic Modules -->
     <script type="module" src="app.js"></script>
