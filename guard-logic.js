@@ -1,6 +1,6 @@
 import { auth, db } from "./app.js"; 
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js";
-import { doc, getDoc, updateDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js";
+import { doc, getDoc, updateDoc, collection, getDocs, where } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js";
 
 let assignedSociety = "";
 
@@ -33,8 +33,7 @@ window.showModal = (msg) => {
 async function initializeGuardPortal(email) {
     try {
         // Query the guards collection to verify membership and fetch their society
-        const q = query(collection(db, "guards"), where("email", "==", email));
-        const snap = await getDocs(q);
+        const snap = await getDocs(collection(db, "guards").where("email", "==", email));
         
         if (snap.empty) {
             // Sign out immediately if not found in guards list
@@ -47,8 +46,7 @@ async function initializeGuardPortal(email) {
         assignedSociety = guardData.society; 
         
         // Populate select list with other guards from the same society
-        const qGuards = query(collection(db, "guards"), where("society", "==", assignedSociety));
-        const guards = await getDocs(qGuards);
+        const guards = await getDocs(collection(db, "guards").where("society", "==", assignedSociety));
         const select = document.getElementById('guardSelect');
         
         if (select) {
@@ -100,10 +98,9 @@ document.getElementById('loginBtn')?.addEventListener('click', async () => {
     
     if (!email || !pass) return window.showModal("Please enter email and password.");
     
-// Inside your login handler block in guard-logic.js:
 try {
     await signInWithEmailAndPassword(auth, email, pass);
-    window.showModal("Login successful!"); // <-- Added success modal prompt
+    window.showModal("Login successful!");
 } catch (e) {
     if (e.code === 'auth/invalid-email' || 
         e.code === 'auth/invalid-credential' || 
@@ -142,12 +139,11 @@ document.getElementById('searchBtn')?.addEventListener('click', async () => {
     if (!vNum) return window.showModal("Enter a valid vehicle number.");
 
     try {
-        const q = query(
-            collection(db, "vehicles"), 
-            where("vehicleNumber", "==", vNum), 
-            where("societyName", "==", assignedSociety)
+        const snap = await getDocs(
+            collection(db, "vehicles")
+                .where("vehicleNumber", "==", vNum)
+                .where("societyName", "==", assignedSociety)
         );
-        const snap = await getDocs(q);
         const resultDiv = document.getElementById('result');
         
         if (!resultDiv) return;
@@ -165,7 +161,7 @@ document.getElementById('searchBtn')?.addEventListener('click', async () => {
     }
 });
 
-// Forgot Password Implementation (Modular SDK)
+// Forgot Password Implementation
 document.getElementById('forgotPasswordBtn')?.addEventListener('click', async () => {
     const emailInput = document.getElementById('email');
     const email = emailInput ? emailInput.value.trim() : "";
@@ -178,10 +174,9 @@ document.getElementById('forgotPasswordBtn')?.addEventListener('click', async ()
     try {
         await sendPasswordResetEmail(auth, email);
         window.showModal("Password reset link sent to your email!");
-} catch (error) {
+    } catch (error) {
         console.error("Error sending password reset email:", error);
         
-        // Handle specific Firebase error codes cleanly
         if (error.code === 'auth/invalid-email') {
             window.showModal("Invalid email");
         } else if (error.code === 'auth/user-not-found') {
