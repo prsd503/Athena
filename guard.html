@@ -6,11 +6,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
     <title>Security Guard Portal | Owl Watcher</title>
 
-    <!-- Firebase SDKs (Compat scripts for dynamic contact fetching & Auth) -->
+<!-- Firebase SDKs (Make sure both Auth and Firestore compat scripts are present) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
+    
     <style>
         /* Base Theme */
         body { font-family: 'Caveat', cursive; background: #fdf6e3; color: #5d4037; text-align: center; padding: 20px; margin: 0; }
@@ -171,8 +172,9 @@
   }
 </script>        
 
-    <!-- Script Handling (Dynamic Contact & UI helper setups) -->
-    <!-- Script Handling (Dynamic Contact & UI helper setups) -->
+
+    
+   <!-- Script Handling (Dynamic Contact & UI helper setups) -->
     <script>
         const firebaseConfig = {
           apiKey: "AIzaSyBEYKHQpy_VjmgjYiWQOPjXth1bghYsf9M",
@@ -217,7 +219,7 @@
             try {
                 let guardExists = false;
 
-                // 1. Try fetching directly if document ID is the email
+                // 1. Check if document ID is the email
                 const docRef = await db.collection("guards").doc(email).get();
                 if (docRef.exists) {
                     guardExists = true;
@@ -269,7 +271,8 @@
         document.getElementById('menuToggle').addEventListener('click', function() {
             document.getElementById('navLinks').classList.toggle('active');
         });
-    </script>
+    </script> 
+
     
     <!-- Core Application & Guard Logic Modules -->
     <script type="module" src="app.js"></script>
