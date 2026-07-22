@@ -68,8 +68,20 @@
 
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
 <script type="module">
-    import { db } from "./app.js"; 
-    import { collection, getDocs, doc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBEYKHQpy_VjmgjYiWQOPjXth1bghYsf9M",
+        authDomain: "finder-owl.firebaseapp.com",
+        projectId: "finder-owl",
+        storageBucket: "finder-owl.firebasestorage.app",
+        messagingSenderId: "1011347100861",
+        appId: "1:1011347100861:web:24246f9a4eb24d812cd3d4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
     let facilityMap = {};
     let allLoadedBookings = [];
@@ -101,18 +113,19 @@
         summaryContent.innerHTML = html;
 
         if (societyAdminPhone) {
+            const formattedPhone = societyAdminPhone.replace(/\D/g, '');
             const msgText = bookings.length > 0 
                 ? `Hi, I have an inquiry regarding bookings on ${dateStr}.` 
                 : `Hi, I want to book a facility on ${dateStr}. Please assist.`;
             
             const encodedMsg = encodeURIComponent(msgText);
             adminContactContainer.innerHTML = `
-                <a href="https://wa.me/${societyAdminPhone}?text=${encodedMsg}" target="_blank" class="whatsapp-btn">
+                <a href="https://wa.me/${formattedPhone}?text=${encodedMsg}" target="_blank" class="whatsapp-btn">
                     💬 Contact Admin via WhatsApp
                 </a>
             `;
         } else {
-            adminContactContainer.innerHTML = "";
+            adminContactContainer.innerHTML = `<p style="color: #c0392b; font-size: 0.85rem;">Admin contact not available.</p>`;
         }
 
         document.getElementById('eventDetails').style.display = 'block';
@@ -198,19 +211,14 @@
     }
 </script>
 
-    <div style="text-align: center; width: 100%; margin-top: 15px;">
+<div style="text-align: center; width: 100%; margin-top: 15px; font-size: 0.85rem; color: #7f8c8d;">
     ⚠️ Disclaimer: Automatically deletes bookings older than 7 days and bookings allowed to show till next 6 months only.
 </div>
 
-    
-    <!-- Paste this anywhere in your HTML file (preferably just before the closing </body> tag) -->
-
 <div id="owl-container">
-  <!-- Owl Icon Container -->
   <div id="owl-icon" onclick="activateOwlEffect()">
     🦉
   </div>
-  <!-- Audio element playing theme.mp3 -->
   <audio id="owl-audio" src="theme.mp3" preload="auto"></audio>
 </div>
 
@@ -234,7 +242,6 @@
     transform: scale(1.15);
   }
 
-  /* Animation for Enlarging and Shrinking 2 Times */
   @keyframes enlargeAndShrinkTwice {
     0% { transform: scale(1); }
     25% { transform: scale(1.6); }
@@ -253,24 +260,20 @@
     const container = document.getElementById('owl-container');
     const audio = document.getElementById('owl-audio');
 
-    // Prevent spam clicking while animation is active
     if (container.classList.contains('active-effect')) return;
 
-    // Play the theme audio
     audio.currentTime = 0;
     audio.play().catch(error => {
       console.log("Audio playback blocked or file not found:", error);
     });
 
-    // Trigger the enlarge and shrink animation (lasts 2 seconds)
     container.classList.add('active-effect');
 
-    // Reset after the animation finishes
     setTimeout(() => {
       container.classList.remove('active-effect');
     }, 2000);
   }
 </script>
-    
+
 </body>
 </html>
