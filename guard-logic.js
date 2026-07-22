@@ -1,6 +1,6 @@
 import { auth, db } from "./app.js"; 
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js";
-import { doc, getDoc, updateDoc, collection, getDocs, where } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js";
+import { doc, getDoc, updateDoc, collection, where } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js";
 
 let assignedSociety = "";
 
@@ -26,17 +26,16 @@ window.showModal = (msg) => {
     const modal = document.getElementById('customModal');
     if (msgEl && modal) {
         msgEl.innerText = msg;
-        modal.style.display = 'flex'; // Must be 'flex' to keep it centered
+        modal.style.display = 'flex'; 
     }
 };
 
 async function initializeGuardPortal(email) {
     try {
-        // Query the guards collection to verify membership and fetch their society
-        const snap = await getDocs(collection(db, "guards").where("email", "==", email));
+        // Compat query syntax using .get()
+        const snap = await collection(db, "guards").where("email", "==", email).get();
         
         if (snap.empty) {
-            // Sign out immediately if not found in guards list
             await signOut(auth);
             window.showModal("Not Registered as Security Guard");
             return;
@@ -45,8 +44,7 @@ async function initializeGuardPortal(email) {
         const guardData = snap.docs[0].data();
         assignedSociety = guardData.society; 
         
-        // Populate select list with other guards from the same society
-        const guards = await getDocs(collection(db, "guards").where("society", "==", assignedSociety));
+        const guards = await collection(db, "guards").where("society", "==", assignedSociety).get();
         const select = document.getElementById('guardSelect');
         
         if (select) {
@@ -57,7 +55,6 @@ async function initializeGuardPortal(email) {
             });
         }
         
-        // Transition Views
         const loginSec = document.getElementById('login-section');
         const portalSec = document.getElementById('portalSection');
         const logoutBtn = document.getElementById('logoutBtn');
@@ -65,11 +62,10 @@ async function initializeGuardPortal(email) {
         if (loginSec) loginSec.style.display = 'none';
         if (portalSec) portalSec.style.display = 'block';
         
-        // Centering the logout button dynamically
         if (logoutBtn) {
             logoutBtn.style.display = 'block';
-            logoutBtn.style.margin = '20px auto'; // Centers the button horizontally with top/bottom margin
-            logoutBtn.style.width = 'fit-content'; // Ensures it doesn't stretch to full width
+            logoutBtn.style.margin = '20px auto';
+            logoutBtn.style.width = 'fit-content';
         }
         
     } catch (e) { 
@@ -86,7 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Login Handlers
 document.getElementById('loginBtn')?.addEventListener('click', async () => {
     const emailEl = document.getElementById('email');
     const passEl = document.getElementById('pass');
@@ -98,22 +93,21 @@ document.getElementById('loginBtn')?.addEventListener('click', async () => {
     
     if (!email || !pass) return window.showModal("Please enter email and password.");
     
-try {
-    await signInWithEmailAndPassword(auth, email, pass);
-    window.showModal("Login successful!");
-} catch (e) {
-    if (e.code === 'auth/invalid-email' || 
-        e.code === 'auth/invalid-credential' || 
-        e.code === 'auth/user-not-found' || 
-        e.code === 'auth/wrong-password') {
-        window.showModal("Invalid Credentials");
-    } else {
-        window.showModal("Login failed: " + e.message);
+    try {
+        await signInWithEmailAndPassword(auth, email, pass);
+        window.showModal("Login successful!");
+    } catch (e) {
+        if (e.code === 'auth/invalid-email' || 
+            e.code === 'auth/invalid-credential' || 
+            e.code === 'auth/user-not-found' || 
+            e.code === 'auth/wrong-password') {
+            window.showModal("Invalid Credentials");
+        } else {
+            window.showModal("Login failed: " + e.message);
+        }
     }
-}
 });
 
-// Activate Duty Action
 document.getElementById('activateBtn')?.addEventListener('click', async () => {
     const select = document.getElementById('guardSelect');
     if (!select || !assignedSociety) return;
@@ -130,7 +124,6 @@ document.getElementById('activateBtn')?.addEventListener('click', async () => {
     }
 });
 
-// Search Action
 document.getElementById('searchBtn')?.addEventListener('click', async () => {
     const vSearchEl = document.getElementById('vSearch');
     if (!vSearchEl) return;
@@ -139,19 +132,17 @@ document.getElementById('searchBtn')?.addEventListener('click', async () => {
     if (!vNum) return window.showModal("Enter a valid vehicle number.");
 
     try {
-        const snap = await getDocs(
-            collection(db, "vehicles")
-                .where("vehicleNumber", "==", vNum)
-                .where("societyName", "==", assignedSociety)
-        );
+        const snap = await collection(db, "vehicles")
+            .where("vehicleNumber", "==", vNum)
+            .where("societyName", "==", assignedSociety)
+            .get();
+            
         const resultDiv = document.getElementById('result');
-        
         if (!resultDiv) return;
         
         if (!snap.empty) {
             const d = snap.docs[0].data();
             resultDiv.innerHTML = `<div style="font-family: sans-serif;">Flat: <b>${d.flatNumber}</b><br><a href="tel:${d.mobileNumber}">📞 Call: ${d.mobileNumber}</a></div>`;
-
         } else {
             window.showModal("No vehicle found for this society.");
             resultDiv.innerHTML = "";
@@ -161,7 +152,6 @@ document.getElementById('searchBtn')?.addEventListener('click', async () => {
     }
 });
 
-// Forgot Password Implementation
 document.getElementById('forgotPasswordBtn')?.addEventListener('click', async () => {
     const emailInput = document.getElementById('email');
     const email = emailInput ? emailInput.value.trim() : "";
