@@ -167,7 +167,7 @@ document.getElementById('forgotPasswordBtn')?.addEventListener('click', async ()
     try {
         await sendPasswordResetEmail(auth, email);
         window.showModal("Password reset link sent to your email!");
-    } catch (error) {
+} catch (error) {
         console.error("Error sending password reset email:", error);
         
         // Handle specific Firebase error codes cleanly
@@ -175,6 +175,8 @@ document.getElementById('forgotPasswordBtn')?.addEventListener('click', async ()
             window.showModal("Invalid email");
         } else if (error.code === 'auth/user-not-found') {
             window.showModal("Email not registered");
+        } else if (error.code === 'auth/too-many-requests') {
+            window.showModal("Too many requests. Please try again later.");
         } else {
             window.showModal("Error: " + error.message);
         }
