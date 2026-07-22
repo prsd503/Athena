@@ -481,39 +481,39 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Forgot Password Logic for Admin ---
-    document.getElementById('forgotPasswordBtn')?.addEventListener('click', async () => {
-        const emailInput = document.getElementById('email');
-        const email = emailInput ? emailInput.value.trim().toLowerCase() : "";
+ document.getElementById('forgotPasswordBtn')?.addEventListener('click', async () => {
+    const emailInput = document.getElementById('email');
+    const email = emailInput ? emailInput.value.trim().toLowerCase() : "";
 
-        if (!email) {
-            window.showModal("Pls enter email id");
+    if (!email) {
+        window.showModal("Pls enter email id");
+        return;
+    }
+
+    try {
+        // Check if email exists in the 'guards' collection first
+        const guardDocRef = doc(db, "guards", email);
+        const guardDocSnap = await getDoc(guardDocRef);
+
+        if (!guardDocSnap.exists()) {
+            window.showModal("Invalid credentials");
             return;
         }
 
-        try {
-            const adminDocRef = doc(db, "admins", email);
-            const adminDocSnap = await getDoc(adminDocRef);
-
-            if (!adminDocSnap.exists()) {
-                window.showModal("Invalid credentials");
-                return;
-            }
-
-            await sendPasswordResetEmail(auth, email);
-            window.showModal("Password reset link sent to your email!");
-        } catch (error) {
-            console.error("Error sending password reset email:", error);
-            if (error.code === 'auth/invalid-email') {
-                window.showModal("Invalid credentials");
-            } else if (error.code === 'auth/user-not-found') {
-                window.showModal("Invalid credentials");
-            } else if (error.code === 'auth/too-many-requests') {
-                window.showModal("Too many attempts try again later");
-            } else {
-                window.showModal("Error: " + error.message);
-            }
+        // If it exists, proceed with sending the reset email
+        await sendPasswordResetEmail(auth, email);
+        window.showModal("Password reset link sent to your email!");
+    } catch (error) {
+        console.error("Error sending password reset email:", error);
+        if (error.code === 'auth/invalid-email' || error.code === 'auth/user-not-found') {
+            window.showModal("Invalid credentials");
+        } else if (error.code === 'auth/too-many-requests') {
+            window.showModal("Too many attempts try again later");
+        } else {
+            window.showModal("Invalid credentials");
         }
-    });
+    }
+});
 
     document.getElementById('logoutBtn')?.addEventListener('click', () => signOut(auth));
 
