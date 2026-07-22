@@ -209,7 +209,8 @@
             }
         };
 
-        // Forgot Password Implementation
+
+// Forgot Password Implementation (Streamlined & Native)
         document.getElementById('forgotPasswordBtn').addEventListener('click', async () => {
             const emailInput = document.getElementById('email');
             const email = emailInput ? emailInput.value.trim() : "";
@@ -220,31 +221,19 @@
             }
 
             try {
-                let guardExists = false;
-
-                // 1. Check if document ID is the email
-                const docRef = await db.collection("guards").doc(email).get();
-                if (docRef.exists) {
-                    guardExists = true;
-                } else {
-                    // 2. Fallback: Query where 'email' field matches
-                    const querySnap = await db.collection("guards").where("email", "==", email).get();
-                    if (!querySnap.empty) {
-                        guardExists = true;
-                    }
-                }
-                
-                if (!guardExists) {
-                    showModal("Email not registered");
-                    return;
-                }
-
-                // Trigger Firebase password reset email if guard exists
+                // Directly call Firebase Auth reset. Firebase will safely handle 
+                // checking if the email exists without needing manual unauthenticated Firestore queries.
                 await auth.sendPasswordResetEmail(email);
                 showModal("Password reset link sent to your email!");
             } catch (error) {
                 console.error("Error sending password reset email:", error);
-                showModal("Error: " + error.message);
+                
+                // Friendly error handling for unregistered or invalid emails
+                if (error.code === 'auth/user-not-found') {
+                    showModal("Email not registered");
+                } else {
+                    showModal("Error: " + error.message);
+                }
             }
         });
 
