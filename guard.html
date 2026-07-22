@@ -210,60 +210,7 @@
         };
 
 
-// Forgot Password Implementation (Streamlined & Native)
-        document.getElementById('forgotPasswordBtn').addEventListener('click', async () => {
-            const emailInput = document.getElementById('email');
-            const email = emailInput ? emailInput.value.trim() : "";
-
-            if (!email) {
-                showModal("Please enter your email address first.");
-                return;
-            }
-
-            try {
-                // Directly call Firebase Auth reset. Firebase will safely handle 
-                // checking if the email exists without needing manual unauthenticated Firestore queries.
-                await auth.sendPasswordResetEmail(email);
-                showModal("Password reset link sent to your email!");
-            } catch (error) {
-                console.error("Error sending password reset email:", error);
-                
-                // Friendly error handling for unregistered or invalid emails
-                if (error.code === 'auth/user-not-found') {
-                    showModal("Email not registered");
-                } else {
-                    showModal("Error: " + error.message);
-                }
-            }
-        });
-
-        // Fetch dynamic contact target from Firestore
-        async function loadDynamicContact() {
-          try {
-            const docRef = await db.collection("settings").doc("contact").get();
-            if (docRef.exists) {
-              const data = docRef.data();
-              const contactLink = data.url || data.whatsapp || data.link;
-              if (contactLink) {
-                const contactAnchor = document.getElementById('dynamicContactLink');
-                if (contactAnchor) {
-                  contactAnchor.href = contactLink;
-                }
-              }
-            }
-          } catch (err) {
-            console.warn("Could not load dynamic contact from Firestore, using default fallback link.", err);
-          }
-        }
-
-        window.addEventListener('load', () => {
-            loadDynamicContact();
-        });
-
-        document.getElementById('menuToggle').addEventListener('click', function() {
-            document.getElementById('navLinks').classList.toggle('active');
-        });
-    </script> 
+<span class="forgot-link" id="forgotPasswordBtn">Forgot Password?</span>    </script> 
 
     
     <!-- Core Application & Guard Logic Modules -->
