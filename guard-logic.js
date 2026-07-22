@@ -1,5 +1,5 @@
 import { auth, db } from "./app.js"; 
-import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { doc, getDoc, updateDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let assignedSociety = "";
@@ -151,6 +151,29 @@ document.getElementById('searchBtn')?.addEventListener('click', async () => {
         }
     } catch (e) {
         window.showModal("Search error: " + e.message);
+    }
+});
+
+// Forgot Password Implementation (Modular SDK)
+document.getElementById('forgotPasswordBtn')?.addEventListener('click', async () => {
+    const emailInput = document.getElementById('email');
+    const email = emailInput ? emailInput.value.trim() : "";
+
+    if (!email) {
+        window.showModal("Please enter your email address first.");
+        return;
+    }
+
+    try {
+        await sendPasswordResetEmail(auth, email);
+        window.showModal("Password reset link sent to your email!");
+    } catch (error) {
+        console.error("Error sending password reset email:", error);
+        if (error.code === 'auth/user-not-found') {
+            window.showModal("Email not registered");
+        } else {
+            window.showModal("Error: " + error.message);
+        }
     }
 });
 
