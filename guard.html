@@ -6,8 +6,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
     <title>Security Guard Portal | Owl Watcher</title>
 
-    <!-- Firebase SDKs (Compat scripts for dynamic contact fetching) -->
+    <!-- Firebase SDKs (Compat scripts for dynamic contact fetching & Auth) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
     <style>
@@ -68,6 +69,19 @@
         input, select { width: 85%; padding: 10px; border: 2px solid #8d6e63; border-radius: 10px; font-size: 1.2rem; margin-bottom: 10px; box-sizing: border-box; }
         button { background: #8d6e63; color: white; border: none; padding: 10px 25px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; }
         #portalSection { display: none; }
+        
+        /* Forgot Password Link Styling */
+        .forgot-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: #8d6e63;
+            font-size: 1.1rem;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        .forgot-link:hover {
+            color: #5d4037;
+        }
     </style>
 </head>
 <body>
@@ -93,6 +107,7 @@
          <br>
          <button id="loginBtn">Login</button>
          <br>
+         <span class="forgot-link" id="forgotPasswordBtn">Forgot Password?</span>
     </div>
         
     <!-- Portal Section -->
@@ -171,6 +186,7 @@
           firebase.initializeApp(firebaseConfig);
         }
         const db = firebase.firestore();
+        const auth = firebase.auth();
 
         // Modal Helpers available globally for guard-logic.js too
         window.closeModal = () => { 
@@ -186,6 +202,34 @@
                 modal.style.display = 'flex';
             }
         };
+
+        // Forgot Password Implementation
+        document.getElementById('forgotPasswordBtn').addEventListener('click', async () => {
+            const emailInput = document.getElementById('email');
+            const email = emailInput ? emailInput.value.trim() : "";
+
+            if (!email) {
+                showModal("Please enter your email address first.");
+                return;
+            }
+
+            try {
+                // Check if the email exists in the 'guards' collection
+                const guardDoc = await db.collection("guards").doc(email).get();
+                
+                if (!guardDoc.exists) {
+                    showModal("Email not registered");
+                    return;
+                }
+
+                // Trigger Firebase password reset email if guard exists
+                await auth.sendPasswordResetEmail(email);
+                showModal("Password reset link sent to your email!");
+            } catch (error) {
+                console.error("Error sending password reset email:", error);
+                showModal("Error: " + error.message);
+            }
+        });
 
         // Fetch dynamic contact target from Firestore
         async function loadDynamicContact() {
