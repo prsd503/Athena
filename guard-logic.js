@@ -103,11 +103,14 @@ document.getElementById('loginBtn')?.addEventListener('click', async () => {
             e.code === 'auth/user-not-found' || 
             e.code === 'auth/wrong-password') {
             window.showModal("Invalid Credentials");
+        } else if (e.code === 'auth/too-many-requests') {
+            window.showModal("Too many attempts try again later");
         } else {
-            window.showModal("Login failed: " + e.message);
+            window.showModal("Invalid Credentials");
         }
     }
 });
+
 
 document.getElementById('activateBtn')?.addEventListener('click', async () => {
     const select = document.getElementById('guardSelect');
