@@ -156,7 +156,7 @@ body { padding-top: 80px; }
 <body>
 
     <div id="startOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#fdf6e3; z-index:10000; display:flex; justify-content:center; align-items:center; flex-direction:column;">
-        <h1 style="font-family: 'Caveat', cursive; color: #5d4037; margin-bottom: 20px;">Welcome <br>to <br>Owl Watcher🦉</h1>
+        <h1 id="overlayWelcomeText" style="font-family: 'Caveat', cursive; color: #5d4037; margin-bottom: 20px; white-space: pre-line;">Welcome <br>to <br>Owl Watcher🦉</h1>
         <button id="startButton" style="font-family: 'Caveat', cursive; font-size: 1.8rem; padding: 15px 30px; cursor:pointer; background: #8d6e63; color: white; border: none; border-radius: 15px; box-shadow: 4px 4px 0px #5d4037;"> Enter</button>
     </div>
 
@@ -289,6 +289,12 @@ body { padding-top: 80px; }
                     const data = configDoc.data();
                     if (data.teamPhone) {
                         owlWatcherTeamPhone = data.teamPhone.replace(/\D/g, '');
+                    }
+                    if (data.welcomeMessage) {
+                        const welcomeEl = document.getElementById('overlayWelcomeText');
+                        if (welcomeEl) {
+                            welcomeEl.innerHTML = data.welcomeMessage.replace(/\n/g, '<br>');
+                        }
                     }
                 }
             } catch (err) {
@@ -690,39 +696,9 @@ body { padding-top: 80px; }
             const hoot = document.getElementById('hootSound');
             hoot.volume = 0.5;
             hoot.play().catch(e => console.log("Hoot play failed:", e));
-
-            const canvas = document.getElementById('fireCanvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-
-            let particles = [];
-            for(let i = 0; i < 150; i++) {
-                particles.push({
-                    x: Math.random() * canvas.width,
-                    y: canvas.height + Math.random() * 100,
-                    size: Math.random() * 5 + 2,
-                    speedY: Math.random() * 5 + 2,
-                    color: '#e67e22'
-                });
-            }
-
-            function animate() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                particles.forEach(p => {
-                    p.y -= p.speedY;
-                    ctx.fillStyle = p.color;
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    ctx.fill();
-                });
-                if(particles[0].y > -50) requestAnimationFrame(animate);
-                else canvas.style.display = 'none';
-            }
-            animate();
         });
     </script>
-    <canvas id="fireCanvas" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9999;"></canvas>
+    <canvas id="fireCanvas" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9999; display:none;"></canvas>
     <audio id="hootSound" src="tapenter.mp3" preload="auto"></audio>
 
 <div id="owl-container">
@@ -780,6 +756,42 @@ body { padding-top: 80px; }
     setTimeout(() => {
       container.classList.remove('active-effect');
     }, 2000);
+
+    // Trigger the flame particles animation when the owl is clicked
+    const canvas = document.getElementById('fireCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.style.display = 'block';
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let particles = [];
+    for(let i = 0; i < 150; i++) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: canvas.height + Math.random() * 100,
+            size: Math.random() * 5 + 2,
+            speedY: Math.random() * 5 + 2,
+            color: '#e67e22'
+        });
+    }
+
+    function animateFlames() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+            p.y -= p.speedY;
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+        });
+        if(particles[0] && particles[0].y > -50) {
+            requestAnimationFrame(animateFlames);
+        } else {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            canvas.style.display = 'none';
+        }
+    }
+    animateFlames();
   }
 </script>
 </body>
