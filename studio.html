@@ -682,7 +682,7 @@
     }
 
 // --- Updated Save Image to Public Gallery ---
-    window.downloadCollageImage = async function() {
+window.downloadCollageImage = async function() {
       canvas.discardActiveObject(); 
       const watermark = addBrandWatermark(); 
       canvas.renderAll();
@@ -692,19 +692,20 @@
       const fileName = `OwlWatcher-${Date.now()}.jpg`;
 
       try {
-        // 1. Save temporarily to cache to get a URI file path for the Media plugin
+        // 1. Save temporarily to cache to get a URI file path
         const tempFile = await Filesystem.writeFile({
           path: fileName,
           data: base64Data,
           directory: Directory.Cache
         });
 
-        // 2. Save into public Gallery under "Owl Watcher" album
-        await Media.savePhoto({ path: tempFile.uri, album: 'Owl Watcher' });
+        // 2. Save to public Gallery using path only (bypasses the album identifier requirement crash)
+        await Media.savePhoto({ path: tempFile.uri });
 
-        document.getElementById('statusLog').innerText = `💾 Saved to Gallery under 'Owl Watcher'!`;
-        
-        // 3. Optional: Automatically pop up share sheet so you can open/view it immediately
+        document.getElementById('statusLog').innerText = `💾 Saved to your mobile Gallery!`;
+        console.log('Saved photo path:', tempFile.uri);
+
+        // 3. Prompt share/view sheet so you can open it instantly
         await Share.share({
           title: 'Your Owl Watcher Image',
           url: tempFile.uri,
@@ -771,20 +772,35 @@ window.exportCanvasToVideoAnimation = async function() {
             const fileName = `OwlWatcher-${Date.now()}.webm`;
 
             try {
-              // 1. Save temporarily to cache to generate a valid URI for the Media plugin
+              // 1. Save temporarily to cache to get a valid URI
               const tempFile = await Filesystem.writeFile({
                 path: fileName,
                 data: base64VideoData,
                 directory: Directory.Cache
               });
 
-              // 2. Save directly into the phone's public gallery under "Owl Watcher" album
-              await Media.saveVideo({ path: tempFile.uri, album: 'Owl Watcher' });
+              // 2. Find or create the "Owl Watcher" album dynamically to prevent identifier errors
+              let targetAlbumName = 'Owl Watcher';
+              try {
+                const albumsResponse = await Media.getAlbums();
+                const existingAlbum = albumsResponse.albums.find(a => a.name === targetAlbumName);
+                if (!existingAlbum) {
+                  await Media.createAlbum({ name: targetAlbumName });
+                }
+              } catch (albumErr) {
+                console.warn('Could not pre-check albums, attempting direct save:', albumErr);
+              }
+
+              // 3. Save video to gallery album
+              await Media.saveVideo({ 
+                path: tempFile.uri, 
+                album: targetAlbumName 
+              });
 
               document.getElementById('statusLog').innerText = `🎥 Video saved to 'Owl Watcher' album!`;
               console.log('Saved video path:', tempFile.uri);
 
-              // 3. Prompt share/view sheet so you can open it instantly
+              // 4. Prompt share/view sheet so you can open it instantly
               await Share.share({
                 title: 'Your Owl Watcher Video',
                 url: tempFile.uri,
@@ -813,7 +829,7 @@ window.exportCanvasToVideoAnimation = async function() {
       };
       requestAnimationFrame(updateProgress);
     };
-
+    
     function handleImageFiles(files) {
       if(!files.length) return;
       for (let i = 0; i < files.length; i++) {
