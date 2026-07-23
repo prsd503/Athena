@@ -453,8 +453,11 @@
 
   <!-- Capacitor Filesystem ES Module Build Script -->
   <script type="module">
-    import { Filesystem, Directory, Encoding } from 'https://cdn.jsdelivr.net/npm/@capacitor/filesystem@latest/+esm';
+   import { Filesystem, Directory } from 'https://cdn.jsdelivr.net/npm/@capacitor/filesystem@latest/+esm';
+    import { Media } from 'https://cdn.jsdelivr.net/npm/@capacitor-community/media@latest/+esm';
+    import { Share } from 'https://cdn.jsdelivr.net/npm/@capacitor/share@latest/+esm';
 
+    
     // --- Firebase Dynamic Contact Integration ---
     const firebaseConfig = {
       apiKey: "YOUR_FIREBASE_API_KEY",
@@ -678,7 +681,7 @@
       animationFrameId = requestAnimationFrame(processTick);
     }
 
-    // --- Capacitor Filesystem Export Integration ---
+// --- Updated Save Image to Public Gallery ---
     window.downloadCollageImage = async function() {
       canvas.discardActiveObject(); 
       const watermark = addBrandWatermark(); 
@@ -686,26 +689,39 @@
       
       const dataURL = canvas.toDataURL({ format: 'jpeg', quality: 1.0, multiplier: 2 });
       const base64Data = dataURL.split(',')[1];
-      const fileName = `OwlWatcher-Studio-${Date.now()}.jpg`;
+      const fileName = `OwlWatcher-${Date.now()}.jpg`;
 
       try {
-        const savedFile = await Filesystem.writeFile({
+        // 1. Save temporarily to cache to get a URI file path for the Media plugin
+        const tempFile = await Filesystem.writeFile({
           path: fileName,
           data: base64Data,
-          directory: Directory.Data
+          directory: Directory.Cache
         });
-        document.getElementById('statusLog').innerText = `💾 Image saved to app storage!`;
-        console.log('Saved image path:', savedFile.uri);
+
+        // 2. Save into public Gallery under "Owl Watcher" album
+        await Media.savePhoto({ path: tempFile.uri, album: 'Owl Watcher' });
+
+        document.getElementById('statusLog').innerText = `💾 Saved to Gallery under 'Owl Watcher'!`;
+        
+        // 3. Optional: Automatically pop up share sheet so you can open/view it immediately
+        await Share.share({
+          title: 'Your Owl Watcher Image',
+          url: tempFile.uri,
+          dialogTitle: 'View your saved creation'
+        });
+
       } catch (error) {
-        console.error('Error saving image:', error);
-        document.getElementById('statusLog').innerText = `⚠️ Failed to save image.`;
+        console.error('Error saving image to gallery:', error);
+        document.getElementById('statusLog').innerText = `⚠️ Failed to save to gallery.`;
       }
       
       canvas.remove(watermark); 
       canvas.renderAll();
-    }
+    };
 
-    window.exportCanvasToVideoAnimation = async function() {
+
+window.exportCanvasToVideoAnimation = async function() {
       const totalMaxDuration = parseFloat(document.getElementById('videoTimelineDuration').value);
       const progressContainer = document.getElementById('videoProgressContainer');
       const progressBar = document.getElementById('renderProgressBarFill');
@@ -752,19 +768,31 @@
           reader.readAsDataURL(blob);
           reader.onloadend = async function () {
             const base64VideoData = reader.result.split(',')[1];
-            const fileName = `OwlWatcher-Composition-${Date.now()}.webm`;
+            const fileName = `OwlWatcher-${Date.now()}.webm`;
 
             try {
-              const savedFile = await Filesystem.writeFile({
+              // 1. Save temporarily to cache to generate a valid URI for the Media plugin
+              const tempFile = await Filesystem.writeFile({
                 path: fileName,
                 data: base64VideoData,
-                directory: Directory.Data
+                directory: Directory.Cache
               });
-              document.getElementById('statusLog').innerText = `🎥 Video saved to app storage!`;
-              console.log('Saved video path:', savedFile.uri);
+
+              // 2. Save directly into the phone's public gallery under "Owl Watcher" album
+              await Media.saveVideo({ path: tempFile.uri, album: 'Owl Watcher' });
+
+              document.getElementById('statusLog').innerText = `🎥 Video saved to 'Owl Watcher' album!`;
+              console.log('Saved video path:', tempFile.uri);
+
+              // 3. Prompt share/view sheet so you can open it instantly
+              await Share.share({
+                title: 'Your Owl Watcher Video',
+                url: tempFile.uri,
+              });
+
             } catch (error) {
               console.error('Error saving video file:', error);
-              document.getElementById('statusLog').innerText = `⚠️ Failed to save video.`;
+              document.getElementById('statusLog').innerText = `⚠️ Failed to save video to gallery.`;
             }
             progressContainer.style.display = 'none'; 
             resetPositionsToBase();
@@ -784,7 +812,7 @@
         if (elapsed < durationMs) { requestAnimationFrame(updateProgress); } else { if(mediaRecorder.state !== 'inactive') mediaRecorder.stop(); }
       };
       requestAnimationFrame(updateProgress);
-    }
+    };
 
     function handleImageFiles(files) {
       if(!files.length) return;
