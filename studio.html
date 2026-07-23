@@ -444,6 +444,63 @@
   </div>
 
   <script>
+
+import { Camera } from '@capacitor/camera';
+
+const captureMediaWithPermissions = async () => {
+  try {
+    // 1. Check current permission status
+    let status = await Camera.checkPermissions();
+
+    // 2. If not granted, request permission
+    if (status.camera !== 'granted' || status.photos !== 'granted') {
+      status = await Camera.requestPermissions();
+    }
+
+    // 3. Proceed if granted
+    if (status.camera === 'granted') {
+      const image = await Camera.getPhoto({
+        quality: 90,
+        allowEditing: false,
+        resultType: 'uri'
+      });
+      console.log('Image captured:', image.webPath);
+    } else {
+      console.error('Camera permission was denied by the user.');
+    }
+  } catch (error) {
+    console.error('Error requesting camera permissions:', error);
+  }
+};
+
+    import { Filesystem, Directory } from '@capacitor/filesystem';
+
+const saveFileWithPermissions = async () => {
+  try {
+    // Check permissions for external storage/documents directories
+    let permStatus = await Filesystem.checkPermissions();
+
+    if (permStatus.publicStorage !== 'granted') {
+      permStatus = await Filesystem.requestPermissions();
+    }
+
+    if (permStatus.publicStorage === 'granted') {
+      await Filesystem.writeFile({
+        path: 'text.txt',
+        data: 'Hello World!',
+        directory: Directory.Documents,
+        encoding: 'utf8',
+      });
+      console.log('File saved successfully!');
+    } else {
+      console.error('Storage permission denied.');
+    }
+  } catch (e) {
+    console.error('Error handling filesystem permissions:', e);
+  }
+};
+
+    
     // --- Firebase Dynamic Contact Integration ---
     const firebaseConfig = {
       apiKey: "YOUR_FIREBASE_API_KEY",
