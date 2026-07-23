@@ -675,62 +675,163 @@
       animationFrameId = requestAnimationFrame(processTick);
     }
 
-    async function exportCanvasToVideoAnimation() {
-      const totalMaxDuration = parseFloat(document.getElementById('videoTimelineDuration').value);
-      const progressContainer = document.getElementById('videoProgressContainer');
-      const progressBar = document.getElementById('renderProgressBarFill');
-      const progressText = document.getElementById('renderPercentText');
+  // --- Updated Capacitor-Compatible Native Storage Save Routine ---
 
-      progressContainer.style.display = 'block';
-      canvas.discardActiveObject();
-      
-      const watermark = addBrandWatermark();
-      timelineCounter = 0;
+async function checkAndRequestStoragePermission() {
+  // Check if running inside native Capacitor environment
+  if (typeof Capacitor === 'undefined' || !Capacitor.isNativePlatform()) {
+    return true; // Web browser fallback
+  }
 
-      const videoStream = document.getElementById('collageCanvas').captureStream(30);
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const originalAudioEl = document.getElementById('localAudioPlayback');
-      const tempAudioEl = new Audio(originalAudioEl.src);
-      tempAudioEl.loop = true;
-
-      let combinedStream = new MediaStream();
-      videoStream.getVideoTracks().forEach(t => combinedStream.addTrack(t));
-
-      if (selectedAudioFileBlob && tempAudioEl.src) {
-        try {
-          if (audioCtx.state === 'suspended') await audioCtx.resume();
-          let sourceNode = audioCtx.createMediaElementSource(tempAudioEl);
-          let destStreamNode = audioCtx.createMediaStreamDestination();
-          sourceNode.connect(destStreamNode);
-          tempAudioEl.play();
-          destStreamNode.stream.getAudioTracks().forEach(t => combinedStream.addTrack(t));
-        } catch(e) { console.error(e); }
+  try {
+    let permissions = await Filesystem.checkPermissions();
+    if (permissions.publicStorage !== 'granted') {
+      permissions = await Filesystem.requestPermissions();
+      if (permissions.publicStorage !== 'granted') {
+        document.getElementById('statusLog').innerText = "⚠️ Storage permission denied. Cannot save file.";
+        return false;
       }
-
-      let dataChunks = [], mediaRecorder = new MediaRecorder(combinedStream, { mimeType: 'video/webm' });
-      mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) dataChunks.push(e.data); };
-      mediaRecorder.onstop = () => {
-        tempAudioEl.pause(); combinedStream.getTracks().forEach(t => t.stop());
-        canvas.remove(watermark); canvas.renderAll();
-        if (dataChunks.length > 0) {
-          const blob = new Blob(dataChunks, { type: 'video/webm' });
-          const a = document.createElement('a'); a.download = 'OwlWatcher-Composition.webm';
-          a.href = URL.createObjectURL(blob); a.click();
-        }
-        progressContainer.style.display = 'none'; resetPositionsToBase();
-      };
-
-      mediaRecorder.start();
-      const startTime = performance.now(), durationMs = totalMaxDuration * 1000;
-      const updateProgress = () => {
-        const elapsed = performance.now() - startTime;
-        const percent = Math.min((elapsed / durationMs) * 100, 100);
-        progressBar.style.width = percent + '%'; progressText.innerText = Math.round(percent) + '%';
-        if (elapsed < durationMs) { requestAnimationFrame(updateProgress); } else { if(mediaRecorder.state !== 'inactive') mediaRecorder.stop(); }
-      };
-      requestAnimationFrame(updateProgress);
     }
+    return true;
+  } catch (e) {
+    console.warn("Permission check skipped or not supported:", e);
+    return true; // Proceed if API isn't strictly blocking
+  }
+}
 
+async function downloadCollageImage() {
+  canvas.discardActiveObject(); 
+  const watermark = addBrandWatermark(); 
+  canvas.renderAll();
+  
+  // Generate Base64 Data URL from canvas
+  const dataURL = canvas.toDataURL({ format: 'jpeg', quality: 1.0, multiplier: 2 });
+  const fileName = `OwlWatcher-Studio_${Date.now()}.jpg`;
+
+  // Check permissions for Android Native vs Web
+  const hasPermission = await checkAndRequestStoragePermission();
+  if (!hasPermission) {
+    canvas.remove(watermark); 
+    canvas.renderAll();
+    return;
+  }
+
+  if (typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform()) {
+    try {
+      // Save natively using Capacitor Filesystem to shared Documents directory
+      const savedFile = await Filesystem.writeFile({
+        path: fileName,
+        data: dataURL,
+        directory: Directory.Documents,
+        recursive: true
+      });
+      document.getElementById('statusLog').innerText = `✅ Saved to Documents folder!`;
+      console.log('Saved natively:', savedFile.uri);
+    } catch (error) {
+      console.error('Filesystem write error:', error);
+      document.getElementById('statusLog').innerText = `❌ Error saving image on Android.`;
+    }
+  } else {
+    // Standard Web Browser Fallback
+    const link = document.createElement('a'); 
+    link.download = fileName; 
+    link.href = dataURL; 
+    link.click();
+    document.getElementById('statusLog').innerText = `💾 Image downloaded successfully.`;
+  }
+  
+  canvas.remove(watermark); 
+  canvas.renderAll();
+}
+
+async function exportCanvasToVideoAnimation() {
+  const hasPermission = await checkAndRequestStoragePermission();
+  if (!hasPermission) return;
+
+  const totalMaxDuration = parseFloat(document.getElementById('videoTimelineDuration').value);
+  const progressContainer = document.getElementById('videoProgressContainer');
+  const progressBar = document.getElementById('renderProgressBarFill');
+  const progressText = document.getElementById('renderPercentText');
+
+  progressContainer.style.display = 'block';
+  canvas.discardActiveObject();
+  
+  const watermark = addBrandWatermark();
+  timelineCounter = 0;
+
+  const videoStream = document.getElementById('collageCanvas').captureStream(30);
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const originalAudioEl = document.getElementById('localAudioPlayback');
+  const tempAudioEl = new Audio(originalAudioEl.src);
+  tempAudioEl.loop = true;
+
+  let combinedStream = new MediaStream();
+  videoStream.getVideoTracks().forEach(t => combinedStream.addTrack(t));
+
+  if (selectedAudioFileBlob && tempAudioEl.src) {
+    try {
+      if (audioCtx.state === 'suspended') await audioCtx.resume();
+      let sourceNode = audioCtx.createMediaElementSource(tempAudioEl);
+      let destStreamNode = audioCtx.createMediaStreamDestination();
+      sourceNode.connect(destStreamNode);
+      tempAudioEl.play();
+      destStreamNode.stream.getAudioTracks().forEach(t => combinedStream.addTrack(t));
+    } catch(e) { console.error(e); }
+  }
+
+  let dataChunks = [], mediaRecorder = new MediaRecorder(combinedStream, { mimeType: 'video/webm' });
+  mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) dataChunks.push(e.data); };
+  
+  mediaRecorder.onstop = async () => {
+    tempAudioEl.pause(); combinedStream.getTracks().forEach(t => t.stop());
+    canvas.remove(watermark); canvas.renderAll();
+    
+    if (dataChunks.length > 0) {
+      const blob = new Blob(dataChunks, { type: 'video/webm' });
+      const fileName = `OwlWatcher-Composition_${Date.now()}.webm`;
+
+      if (typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform()) {
+        // Convert Blob to Base64 for Capacitor Filesystem bridge
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = async function () {
+          try {
+            await Filesystem.writeFile({
+              path: fileName,
+              data: reader.result,
+              directory: Directory.Documents,
+              recursive: true
+            });
+            document.getElementById('statusLog').innerText = `✅ Video saved to Documents folder!`;
+          } catch (err) {
+            console.error('Error writing video file natively:', err);
+            document.getElementById('statusLog').innerText = `❌ Error saving video on Android.`;
+          }
+        };
+      } else {
+        // Web Browser Fallback
+        const a = document.createElement('a'); 
+        a.download = fileName;
+        a.href = URL.createObjectURL(blob); 
+        a.click();
+        document.getElementById('statusLog').innerText = `🎥 Video exported successfully.`;
+      }
+    }
+    progressContainer.style.display = 'none'; 
+    resetPositionsToBase();
+  };
+
+  mediaRecorder.start();
+  const startTime = performance.now(), durationMs = totalMaxDuration * 1000;
+  const updateProgress = () => {
+    const elapsed = performance.now() - startTime;
+    const percent = Math.min((elapsed / durationMs) * 100, 100);
+    progressBar.style.width = percent + '%'; progressText.innerText = Math.round(percent) + '%';
+    if (elapsed < durationMs) { requestAnimationFrame(updateProgress); } else { if(mediaRecorder.state !== 'inactive') mediaRecorder.stop(); }
+  };
+  requestAnimationFrame(updateProgress);
+}
+    
     function handleImageFiles(files) {
       if(!files.length) return;
       for (let i = 0; i < files.length; i++) {
@@ -812,17 +913,7 @@
       canvas.setBackgroundColor('#ffffff', canvas.renderAll.bind(canvas));
     }
 
-    function downloadCollageImage() {
-      canvas.discardActiveObject(); 
-      const watermark = addBrandWatermark(); 
-      canvas.renderAll();
-      
-      const dataURL = canvas.toDataURL({ format: 'jpeg', quality: 1.0, multiplier: 2 });
-      const link = document.createElement('a'); link.download = 'OwlWatcher-Studio.jpg'; link.href = dataURL; link.click();
-      
-      canvas.remove(watermark); 
-      canvas.renderAll();
-    }
+
 
     document.getElementById('menuToggle').addEventListener('click', function() {
         document.getElementById('navLinks').classList.toggle('active');
