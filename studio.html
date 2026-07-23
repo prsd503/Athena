@@ -451,7 +451,10 @@
     <audio id="owl-audio" src="theme.mp3" preload="auto"></audio>
   </div>
 
-  <script>
+  <!-- Capacitor Filesystem ES Module Build Script -->
+  <script type="module">
+    import { Filesystem, Directory, Encoding } from 'https://cdn.jsdelivr.net/npm/@capacitor/filesystem@latest/+esm';
+
     // --- Firebase Dynamic Contact Integration ---
     const firebaseConfig = {
       apiKey: "YOUR_FIREBASE_API_KEY",
@@ -521,9 +524,9 @@
       kickoffAnimationRenderLoop();
     });
 
-    function updateDurationLabel(val) { document.getElementById('durationDisplayLabel').innerText = val + 's'; }
+    window.updateDurationLabel = function(val) { document.getElementById('durationDisplayLabel').innerText = val + 's'; }
 
-    function loadAudioTrackFile(inputElement) {
+    window.loadAudioTrackFile = function(inputElement) {
       const file = inputElement.files[0];
       if (file) {
         selectedAudioFileBlob = file;
@@ -547,14 +550,14 @@
       return brandText; 
     }
 
-    function toggleStyleDecoration(type) {
+    window.toggleStyleDecoration = function(type) {
       if (type === 'bold') { isBold = !isBold; document.getElementById('btnBold').classList.toggle('active', isBold); }
       if (type === 'italic') { isItalic = !isItalic; document.getElementById('btnItalic').classList.toggle('active', isItalic); }
       if (type === 'underline') { isUnderline = !isUnderline; document.getElementById('btnUnderline').classList.toggle('active', isUnderline); }
       updateCustomText();
     }
 
-    function updateCustomText() {
+    window.updateCustomText = function() {
       const val = document.getElementById('customText').value;
       if (!val) {
         if (textGroupBanner) { canvas.remove(textGroupBanner); textGroupBanner = null; }
@@ -582,20 +585,20 @@
       canvas.renderAll();
     }
 
-    function changeBannerBgColor() {
+    window.changeBannerBgColor = function() {
       if (textGroupBanner && textGroupBanner.item(0)) {
         textGroupBanner.item(0).set('fill', document.getElementById('textBgColor').value);
         canvas.renderAll();
       } else { updateCustomText(); }
     }
 
-    function alignAndSnapTextBackground() {
+    window.alignAndSnapTextBackground = function() {
       if (!textGroupBanner) return;
       textGroupBanner.set({ left: 180, top: 315 });
       textGroupBanner.setCoords(); canvas.bringToFront(textGroupBanner); canvas.renderAll();
     }
 
-    function applyPresetTheme(theme) {
+    window.applyPresetTheme = function(theme) {
       themeDecorations.forEach(obj => canvas.remove(obj)); themeDecorations = [];
       if (theme === 'clear') { document.getElementById('customText').value = ""; updateCustomText(); canvas.setBackgroundColor('#ffffff', canvas.renderAll.bind(canvas)); return; }
       
@@ -622,12 +625,12 @@
       canvas.add(sticker); themeDecorations.push(sticker); canvas.renderAll();
     }
 
-    function addStickerToCanvas(emoji) {
+    window.addStickerToCanvas = function(emoji) {
       const sticker = new fabric.Text(emoji, { fontSize: 35, left: 180, top: 180, originX: 'center', originY: 'center', cornerColor: '#8B4513', transparentCorners: false, cornerSize: 10 });
       canvas.add(sticker); uploadedImages.push(sticker); canvas.setActiveObject(sticker); canvas.renderAll();
     }
 
-    function setAnimationEffect(effect) {
+    window.setAnimationEffect = function(effect) {
       animationEffect = effect;
       ['motionNone', 'motionFadeStep', 'motionRollStep', 'motionPopStep'].forEach(id => document.getElementById(id).classList.remove('active'));
       document.getElementById('motion' + effect.charAt(0).toUpperCase() + effect.slice(1)).classList.add('active');
@@ -675,163 +678,114 @@
       animationFrameId = requestAnimationFrame(processTick);
     }
 
-  // --- Updated Capacitor-Compatible Native Storage Save Routine ---
+    // --- Capacitor Filesystem Export Integration ---
+    window.downloadCollageImage = async function() {
+      canvas.discardActiveObject(); 
+      const watermark = addBrandWatermark(); 
+      canvas.renderAll();
+      
+      const dataURL = canvas.toDataURL({ format: 'jpeg', quality: 1.0, multiplier: 2 });
+      const base64Data = dataURL.split(',')[1];
+      const fileName = `OwlWatcher-Studio-${Date.now()}.jpg`;
 
-async function checkAndRequestStoragePermission() {
-  // Check if running inside native Capacitor environment
-  if (typeof Capacitor === 'undefined' || !Capacitor.isNativePlatform()) {
-    return true; // Web browser fallback
-  }
-
-  try {
-    let permissions = await Filesystem.checkPermissions();
-    if (permissions.publicStorage !== 'granted') {
-      permissions = await Filesystem.requestPermissions();
-      if (permissions.publicStorage !== 'granted') {
-        document.getElementById('statusLog').innerText = "⚠️ Storage permission denied. Cannot save file.";
-        return false;
+      try {
+        const savedFile = await Filesystem.writeFile({
+          path: fileName,
+          data: base64Data,
+          directory: Directory.Data
+        });
+        document.getElementById('statusLog').innerText = `💾 Image saved to app storage!`;
+        console.log('Saved image path:', savedFile.uri);
+      } catch (error) {
+        console.error('Error saving image:', error);
+        document.getElementById('statusLog').innerText = `⚠️ Failed to save image.`;
       }
+      
+      canvas.remove(watermark); 
+      canvas.renderAll();
     }
-    return true;
-  } catch (e) {
-    console.warn("Permission check skipped or not supported:", e);
-    return true; // Proceed if API isn't strictly blocking
-  }
-}
 
-async function downloadCollageImage() {
-  canvas.discardActiveObject(); 
-  const watermark = addBrandWatermark(); 
-  canvas.renderAll();
-  
-  // Generate Base64 Data URL from canvas
-  const dataURL = canvas.toDataURL({ format: 'jpeg', quality: 1.0, multiplier: 2 });
-  const fileName = `OwlWatcher-Studio_${Date.now()}.jpg`;
+    window.exportCanvasToVideoAnimation = async function() {
+      const totalMaxDuration = parseFloat(document.getElementById('videoTimelineDuration').value);
+      const progressContainer = document.getElementById('videoProgressContainer');
+      const progressBar = document.getElementById('renderProgressBarFill');
+      const progressText = document.getElementById('renderPercentText');
 
-  // Check permissions for Android Native vs Web
-  const hasPermission = await checkAndRequestStoragePermission();
-  if (!hasPermission) {
-    canvas.remove(watermark); 
-    canvas.renderAll();
-    return;
-  }
+      progressContainer.style.display = 'block';
+      canvas.discardActiveObject();
+      
+      const watermark = addBrandWatermark();
+      timelineCounter = 0;
 
-  if (typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform()) {
-    try {
-      // Save natively using Capacitor Filesystem to shared Documents directory
-      const savedFile = await Filesystem.writeFile({
-        path: fileName,
-        data: dataURL,
-        directory: Directory.Documents,
-        recursive: true
-      });
-      document.getElementById('statusLog').innerText = `✅ Saved to Documents folder!`;
-      console.log('Saved natively:', savedFile.uri);
-    } catch (error) {
-      console.error('Filesystem write error:', error);
-      document.getElementById('statusLog').innerText = `❌ Error saving image on Android.`;
-    }
-  } else {
-    // Standard Web Browser Fallback
-    const link = document.createElement('a'); 
-    link.download = fileName; 
-    link.href = dataURL; 
-    link.click();
-    document.getElementById('statusLog').innerText = `💾 Image downloaded successfully.`;
-  }
-  
-  canvas.remove(watermark); 
-  canvas.renderAll();
-}
+      const videoStream = document.getElementById('collageCanvas').captureStream(30);
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const originalAudioEl = document.getElementById('localAudioPlayback');
+      const tempAudioEl = new Audio(originalAudioEl.src);
+      tempAudioEl.loop = true;
 
-async function exportCanvasToVideoAnimation() {
-  const hasPermission = await checkAndRequestStoragePermission();
-  if (!hasPermission) return;
+      let combinedStream = new MediaStream();
+      videoStream.getVideoTracks().forEach(t => combinedStream.addTrack(t));
 
-  const totalMaxDuration = parseFloat(document.getElementById('videoTimelineDuration').value);
-  const progressContainer = document.getElementById('videoProgressContainer');
-  const progressBar = document.getElementById('renderProgressBarFill');
-  const progressText = document.getElementById('renderPercentText');
-
-  progressContainer.style.display = 'block';
-  canvas.discardActiveObject();
-  
-  const watermark = addBrandWatermark();
-  timelineCounter = 0;
-
-  const videoStream = document.getElementById('collageCanvas').captureStream(30);
-  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  const originalAudioEl = document.getElementById('localAudioPlayback');
-  const tempAudioEl = new Audio(originalAudioEl.src);
-  tempAudioEl.loop = true;
-
-  let combinedStream = new MediaStream();
-  videoStream.getVideoTracks().forEach(t => combinedStream.addTrack(t));
-
-  if (selectedAudioFileBlob && tempAudioEl.src) {
-    try {
-      if (audioCtx.state === 'suspended') await audioCtx.resume();
-      let sourceNode = audioCtx.createMediaElementSource(tempAudioEl);
-      let destStreamNode = audioCtx.createMediaStreamDestination();
-      sourceNode.connect(destStreamNode);
-      tempAudioEl.play();
-      destStreamNode.stream.getAudioTracks().forEach(t => combinedStream.addTrack(t));
-    } catch(e) { console.error(e); }
-  }
-
-  let dataChunks = [], mediaRecorder = new MediaRecorder(combinedStream, { mimeType: 'video/webm' });
-  mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) dataChunks.push(e.data); };
-  
-  mediaRecorder.onstop = async () => {
-    tempAudioEl.pause(); combinedStream.getTracks().forEach(t => t.stop());
-    canvas.remove(watermark); canvas.renderAll();
-    
-    if (dataChunks.length > 0) {
-      const blob = new Blob(dataChunks, { type: 'video/webm' });
-      const fileName = `OwlWatcher-Composition_${Date.now()}.webm`;
-
-      if (typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform()) {
-        // Convert Blob to Base64 for Capacitor Filesystem bridge
-        const reader = new FileReader();
-        reader.readAsDataURL(blob);
-        reader.onloadend = async function () {
-          try {
-            await Filesystem.writeFile({
-              path: fileName,
-              data: reader.result,
-              directory: Directory.Documents,
-              recursive: true
-            });
-            document.getElementById('statusLog').innerText = `✅ Video saved to Documents folder!`;
-          } catch (err) {
-            console.error('Error writing video file natively:', err);
-            document.getElementById('statusLog').innerText = `❌ Error saving video on Android.`;
-          }
-        };
-      } else {
-        // Web Browser Fallback
-        const a = document.createElement('a'); 
-        a.download = fileName;
-        a.href = URL.createObjectURL(blob); 
-        a.click();
-        document.getElementById('statusLog').innerText = `🎥 Video exported successfully.`;
+      if (selectedAudioFileBlob && tempAudioEl.src) {
+        try {
+          if (audioCtx.state === 'suspended') await audioCtx.resume();
+          let sourceNode = audioCtx.createMediaElementSource(tempAudioEl);
+          let destStreamNode = audioCtx.createMediaStreamDestination();
+          sourceNode.connect(destStreamNode);
+          tempAudioEl.play();
+          destStreamNode.stream.getAudioTracks().forEach(t => combinedStream.addTrack(t));
+        } catch(e) { console.error(e); }
       }
-    }
-    progressContainer.style.display = 'none'; 
-    resetPositionsToBase();
-  };
 
-  mediaRecorder.start();
-  const startTime = performance.now(), durationMs = totalMaxDuration * 1000;
-  const updateProgress = () => {
-    const elapsed = performance.now() - startTime;
-    const percent = Math.min((elapsed / durationMs) * 100, 100);
-    progressBar.style.width = percent + '%'; progressText.innerText = Math.round(percent) + '%';
-    if (elapsed < durationMs) { requestAnimationFrame(updateProgress); } else { if(mediaRecorder.state !== 'inactive') mediaRecorder.stop(); }
-  };
-  requestAnimationFrame(updateProgress);
-}
-    
+      let dataChunks = [], mediaRecorder = new MediaRecorder(combinedStream, { mimeType: 'video/webm' });
+      mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) dataChunks.push(e.data); };
+      
+      mediaRecorder.onstop = async () => {
+        tempAudioEl.pause(); 
+        combinedStream.getTracks().forEach(t => t.stop());
+        canvas.remove(watermark); 
+        canvas.renderAll();
+        
+        if (dataChunks.length > 0) {
+          const blob = new Blob(dataChunks, { type: 'video/webm' });
+          const reader = new FileReader();
+          reader.readAsDataURL(blob);
+          reader.onloadend = async function () {
+            const base64VideoData = reader.result.split(',')[1];
+            const fileName = `OwlWatcher-Composition-${Date.now()}.webm`;
+
+            try {
+              const savedFile = await Filesystem.writeFile({
+                path: fileName,
+                data: base64VideoData,
+                directory: Directory.Data
+              });
+              document.getElementById('statusLog').innerText = `🎥 Video saved to app storage!`;
+              console.log('Saved video path:', savedFile.uri);
+            } catch (error) {
+              console.error('Error saving video file:', error);
+              document.getElementById('statusLog').innerText = `⚠️ Failed to save video.`;
+            }
+            progressContainer.style.display = 'none'; 
+            resetPositionsToBase();
+          };
+        } else {
+          progressContainer.style.display = 'none'; 
+          resetPositionsToBase();
+        }
+      };
+
+      mediaRecorder.start();
+      const startTime = performance.now(), durationMs = totalMaxDuration * 1000;
+      const updateProgress = () => {
+        const elapsed = performance.now() - startTime;
+        const percent = Math.min((elapsed / durationMs) * 100, 100);
+        progressBar.style.width = percent + '%'; progressText.innerText = Math.round(percent) + '%';
+        if (elapsed < durationMs) { requestAnimationFrame(updateProgress); } else { if(mediaRecorder.state !== 'inactive') mediaRecorder.stop(); }
+      };
+      requestAnimationFrame(updateProgress);
+    }
+
     function handleImageFiles(files) {
       if(!files.length) return;
       for (let i = 0; i < files.length; i++) {
@@ -871,12 +825,12 @@ async function exportCanvasToVideoAnimation() {
       }
     }
 
-    function applyFilterPreset(type) {
+    window.applyFilterPreset = function(type) {
       let active = canvas.getActiveObject(); if (!active || active.type !== 'image') active = uploadedImages[0];
       if (active) applyLocalNativeStyleFilters(active, 0, 0, 0, type);
     }
 
-    function applyManualAdjustments() {
+    window.applyManualAdjustments = function() {
       let active = canvas.getActiveObject(); if (!active || active.type !== 'image') active = uploadedImages[0];
       if (active) {
         const bri = parseInt(document.getElementById('filterBrightness').value);
@@ -886,9 +840,9 @@ async function exportCanvasToVideoAnimation() {
       }
     }
 
-    function bringToFrontSelected() { const a = canvas.getActiveObject(); if(a) { canvas.bringToFront(a); canvas.renderAll(); } }
+    window.bringToFrontSelected = function() { const a = canvas.getActiveObject(); if(a) { canvas.bringToFront(a); canvas.renderAll(); } }
     
-    function deleteSelectedObject() {
+    window.deleteSelectedObject = function() {
       const activeObject = canvas.getActiveObject();
       if (!activeObject) {
         document.getElementById('statusLog').innerText = "⚠️ Please select a photo or emoji on the canvas to delete.";
@@ -908,18 +862,16 @@ async function exportCanvasToVideoAnimation() {
       document.getElementById('statusLog').innerText = "🗑️ Selected item deleted successfully.";
     }
 
-    function clearAllImages() {
+    window.clearAllImages = function() {
       canvas.clear(); uploadedImages = []; themeDecorations = []; textGroupBanner = null; animationEffect = 'none';
       canvas.setBackgroundColor('#ffffff', canvas.renderAll.bind(canvas));
     }
-
-
 
     document.getElementById('menuToggle').addEventListener('click', function() {
         document.getElementById('navLinks').classList.toggle('active');
     });
 
-    function activateOwlEffect() {
+    window.activateOwlEffect = function() {
       const container = document.getElementById('owl-container');
       const audio = document.getElementById('owl-audio');
       if (container.classList.contains('active-effect')) return;
