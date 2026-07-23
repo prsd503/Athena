@@ -31,7 +31,6 @@
 .nav-logo { font-family: 'Caveat', cursive; color: #5d4037; font-size: 1.5rem; font-weight: bold; }
 .nav-links { display: flex; gap: 15px; }
 .nav-links a { text-decoration: none; color: #5d4037; font-weight: bold; font-family: 'Caveat', cursive; font-size: 1.3rem; }
-
     
 /* Mobile Menu Button */
 .menu-btn { display: none; background: #8d6e63; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-family: 'Caveat', cursive; font-size: 1.1rem; }
@@ -52,7 +51,6 @@
     .nav-links.active { display: flex; }
 }
 
-    
     :root {
       --brand-dark: #1D3557;
       --brand-light: #F1FAEE;
@@ -91,7 +89,7 @@
 
     .app-header {
       background: white;
-      margin-top: 50px; /* Pushes the title down past the Dynamic Island */
+      margin-top: 50px;
       padding: 10px 15px;
       text-align: center;
       width: 100%;
@@ -257,46 +255,53 @@
     .progress-bar-track { width: 100%; background: #444; height: 6px; margin-top: 8px; border-radius: 4px; overflow: hidden; }
     .progress-bar-fill { width: 0%; background: linear-gradient(90deg, var(--brand-teal), var(--brand-brown)); height: 100%; }
 
-    /* Brown themed styles for Back to HOME button */
-    .admin-btn {
-      display: block;
-      background-color: var(--brand-brown);
-      color: white;
-      text-decoration: none;
-      padding: 12px 15px;
-      border-radius: 10px;
-      font-weight: bold;
-      text-align: center;
-      margin: 15px auto 30px auto;
-      max-width: 500px;
-      width: calc(100% - 30px);
-      box-sizing: border-box;
-      font-size: 0.9rem;
-      transition: opacity 0.2s ease;
+    #owl-container {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      z-index: 9999;
     }
-    .admin-btn:active, .admin-btn:hover {
-      opacity: 0.9;
+
+    #owl-icon {
+      font-size: 60px;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.3s ease;
+      filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+    }
+
+    #owl-icon:hover {
+      transform: scale(1.15);
+    }
+
+    @keyframes enlargeAndShrinkTwice {
+      0% { transform: scale(1); }
+      25% { transform: scale(1.6); }
+      50% { transform: scale(1); }
+      75% { transform: scale(1.6); }
+      100% { transform: scale(1); }
+    }
+
+    .active-effect {
+      animation: enlargeAndShrinkTwice 2s ease-in-out forwards;
     }
   </style>
 </head>
 <body>
 
-
-   <div class="fixed-header-canvas-view">
+  <div class="fixed-header-canvas-view">
     <div class="app-header">
-<!-- Consistent Mobile-Responsive Nav -->
-<nav class="main-nav">
-    <div class="nav-logo">Owl Watcher 🦉</div>
-    <button class="menu-btn" id="menuToggle">☰</button>
-    <div class="nav-links" id="navLinks">
-        <a href="index.html">Home</a>
-        <a href="admin.html">Admin Portal</a>
-        <a href="guard.html">Security Guard Portal</a>
-        <a href="studio.html" style="background-color: yellow;">Photo Studio Portal</a>
-        <a id="dynamicContactLink" href="https://wa.me/919033406816" target="_blank">Contact Us</a>
-    </div>
-</nav>
-
+      <nav class="main-nav">
+          <div class="nav-logo">Owl Watcher 🦉</div>
+          <button class="menu-btn" id="menuToggle">☰</button>
+          <div class="nav-links" id="navLinks">
+              <a href="index.html">Home</a>
+              <a href="admin.html">Admin Portal</a>
+              <a href="guard.html">Security Guard Portal</a>
+              <a href="studio.html" style="background-color: yellow;">Photo Studio Portal</a>
+              <a id="dynamicContactLink" href="https://wa.me/919033406816" target="_blank">Contact Us</a>
+          </div>
+      </nav>
     </div>
     <div class="canvas-section">
       <div class="canvas-container-wrapper">
@@ -306,7 +311,6 @@
   </div>
 
   <div class="scrollable-controls-container">
-    
     <div class="card">
       <h3>📸 Media Import & Layout</h3>
       <div class="grid-buttons">
@@ -435,7 +439,6 @@
 
       <div class="status-log" id="statusLog">Studio loaded. Ready to build collage compositions.</div>
     </div>
-
   </div>
 
   <div class="rendering-progress-container" id="videoProgressContainer">
@@ -443,64 +446,12 @@
     <div class="progress-bar-track"><div class="progress-bar-fill" id="renderProgressBarFill"></div></div>
   </div>
 
+  <div id="owl-container">
+    <div id="owl-icon" onclick="activateOwlEffect()">🦉</div>
+    <audio id="owl-audio" src="theme.mp3" preload="auto"></audio>
+  </div>
+
   <script>
-
-import { Camera } from '@capacitor/camera';
-
-const captureMediaWithPermissions = async () => {
-  try {
-    // 1. Check current permission status
-    let status = await Camera.checkPermissions();
-
-    // 2. If not granted, request permission
-    if (status.camera !== 'granted' || status.photos !== 'granted') {
-      status = await Camera.requestPermissions();
-    }
-
-    // 3. Proceed if granted
-    if (status.camera === 'granted') {
-      const image = await Camera.getPhoto({
-        quality: 90,
-        allowEditing: false,
-        resultType: 'uri'
-      });
-      console.log('Image captured:', image.webPath);
-    } else {
-      console.error('Camera permission was denied by the user.');
-    }
-  } catch (error) {
-    console.error('Error requesting camera permissions:', error);
-  }
-};
-
-    import { Filesystem, Directory } from '@capacitor/filesystem';
-
-const saveFileWithPermissions = async () => {
-  try {
-    // Check permissions for external storage/documents directories
-    let permStatus = await Filesystem.checkPermissions();
-
-    if (permStatus.publicStorage !== 'granted') {
-      permStatus = await Filesystem.requestPermissions();
-    }
-
-    if (permStatus.publicStorage === 'granted') {
-      await Filesystem.writeFile({
-        path: 'text.txt',
-        data: 'Hello World!',
-        directory: Directory.Documents,
-        encoding: 'utf8',
-      });
-      console.log('File saved successfully!');
-    } else {
-      console.error('Storage permission denied.');
-    }
-  } catch (e) {
-    console.error('Error handling filesystem permissions:', e);
-  }
-};
-
-    
     // --- Firebase Dynamic Contact Integration ---
     const firebaseConfig = {
       apiKey: "YOUR_FIREBASE_API_KEY",
@@ -516,7 +467,6 @@ const saveFileWithPermissions = async () => {
     }
     const db = firebase.firestore();
 
-    // Fetch dynamic contact target (e.g. WhatsApp URL or contact link) from Firestore
     async function loadDynamicContact() {
       try {
         const docRef = await db.collection("settings").doc("contact").get();
@@ -541,7 +491,6 @@ const saveFileWithPermissions = async () => {
     let animationEffect = 'none', animationFrameId = null, timelineCounter = 0, isUserInteracting = false; 
 
     window.addEventListener('load', () => {
-      // Load Firestore dynamic contact configuration on startup
       loadDynamicContact();
 
       canvas = new fabric.Canvas('collageCanvas', {
@@ -561,10 +510,8 @@ const saveFileWithPermissions = async () => {
       document.getElementById('galleryLoader').addEventListener('change', (e) => handleImageFiles(e.target.files));
       document.getElementById('cameraInput').addEventListener('change', (e) => handleImageFiles(e.target.files));
       
-      // Physical key binding to delete selections as well
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Delete' || e.key === 'Backspace') {
-          // If the user is typing in the input box, don't trigger deletion
           if (document.activeElement.tagName !== 'INPUT') {
             deleteSelectedObject();
           }
@@ -590,7 +537,6 @@ const saveFileWithPermissions = async () => {
       }
     }
 
-    // Appends the absolute brand watermark in official Owl Watcher Brown hex metrics
     function addBrandWatermark() {
       const brandText = new fabric.Text("Owl Watcher", {
         fontFamily: 'Caveat', fontSize: 20, fontWeight: 'bold', fill: '#8d6e63',
@@ -658,12 +604,10 @@ const saveFileWithPermissions = async () => {
 
       if (theme === 'birthday') { bannerText = "🎉 HAPPY BIRTHDAY 🎉"; bgColor = "#8B4513"; canvas.setBackgroundColor('#f3e5f5', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('🎂', 50, 50); addThemeDecorationSticker('🎈', 310, 60); }
       if (theme === 'wedding') { bannerText = "💞 JUST MARRIED 💞"; bgColor = "#8B4513"; fontType = "Caveat"; canvas.setBackgroundColor('#fce4ec', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('💍', 60, 60); }
-      
       if (theme === 'anniversary') { bannerText = "💖 HAPPY ANNIVERSARY 💖"; bgColor = "#c2185b"; fontType = "Dancing Script"; canvas.setBackgroundColor('#fdf2f4', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('💑', 60, 60); addThemeDecorationSticker('✨', 300, 70); }
       if (theme === 'graduation') { bannerText = "🎓 CONGRATS GRADUATE 🎓"; bgColor = "#1a237e"; fontType = "Cinzel"; canvas.setBackgroundColor('#e8eaf6', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('📜', 50, 50); addThemeDecorationSticker('⭐', 310, 60); }
       if (theme === 'game') { bannerText = "🏆 VICTORY ROYALE 🏆"; bgColor = "#e65100"; fontType = "Bangers"; canvas.setBackgroundColor('#263238', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('🎮', 60, 60); addThemeDecorationSticker('🔥', 300, 60); }
       if (theme === 'newyear') { bannerText = "🎆 HAPPY NEW YEAR 🎆"; bgColor = "#311b92"; fontType = "Montserrat"; canvas.setBackgroundColor('#1a0c2e', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('🍾', 60, 60); addThemeDecorationSticker('🥳', 300, 60); }
-      
       if (theme === 'travel') { bannerText = "🌍 WANDERLUST EXPLORER"; bgColor = "#8B4513"; fontType = "Montserrat"; canvas.setBackgroundColor('#e0f7fa', canvas.renderAll.bind(canvas)); addThemeDecorationSticker('✈️', 50, 50); }
       if (theme === 'party') { bannerText = "🔥 EDM NIGHTS PRO 🔥"; bgColor = "#8B4513"; fontType = "Bangers"; canvas.setBackgroundColor('#121212', canvas.renderAll.bind(canvas)); }
 
@@ -797,7 +741,7 @@ const saveFileWithPermissions = async () => {
             const left = 40 + (index * 25) % 150, top = 40 + (index * 25) % 150;
             fabricImg.set({ left: left, top: top, cornerColor: '#8B4513', transparentCorners: false, cornerSize: 10 });
             fabricImg.scaleToWidth(140);
-            fabricImg._baseProps = { left: left, top: top, scaleX: fabricImg.scaleX, scaleY: fabricImg.scaleY, angle: 0 };
+            fabricImg._baseProps = { left: left, top: left, scaleX: fabricImg.scaleX, scaleY: fabricImg.scaleY, angle: 0 };
             fabricImg._originalElementRef = fabricImg._element;
             canvas.add(fabricImg); uploadedImages.push(fabricImg); canvas.setActiveObject(fabricImg); canvas.renderAll();
           });
@@ -883,77 +827,20 @@ const saveFileWithPermissions = async () => {
     document.getElementById('menuToggle').addEventListener('click', function() {
         document.getElementById('navLinks').classList.toggle('active');
     });
-    
+
+    function activateOwlEffect() {
+      const container = document.getElementById('owl-container');
+      const audio = document.getElementById('owl-audio');
+      if (container.classList.contains('active-effect')) return;
+      audio.currentTime = 0;
+      audio.play().catch(error => {
+        console.log("Audio playback blocked or file not found:", error);
+      });
+      container.classList.add('active-effect');
+      setTimeout(() => {
+        container.classList.remove('active-effect');
+      }, 2000);
+    }
   </script>
-
-  <!-- Paste this anywhere in your HTML file (preferably just before the closing </body> tag) -->
-
-<div id="owl-container">
-  <!-- Owl Icon Container -->
-  <div id="owl-icon" onclick="activateOwlEffect()">
-    🦉
-  </div>
-  <!-- Audio element playing theme.mp3 -->
-  <audio id="owl-audio" src="theme.mp3" preload="auto"></audio>
-</div>
-
-<style>
-  #owl-container {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    z-index: 9999;
-  }
-
-  #owl-icon {
-    font-size: 60px;
-    cursor: pointer;
-    user-select: none;
-    transition: transform 0.3s ease;
-    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
-  }
-
-  #owl-icon:hover {
-    transform: scale(1.15);
-  }
-
-  /* Animation for Enlarging and Shrinking 2 Times */
-  @keyframes enlargeAndShrinkTwice {
-    0% { transform: scale(1); }
-    25% { transform: scale(1.6); }
-    50% { transform: scale(1); }
-    75% { transform: scale(1.6); }
-    100% { transform: scale(1); }
-  }
-
-  .active-effect {
-    animation: enlargeAndShrinkTwice 2s ease-in-out forwards;
-  }
-</style>
-
-<script>
-  function activateOwlEffect() {
-    const container = document.getElementById('owl-container');
-    const audio = document.getElementById('owl-audio');
-
-    // Prevent spam clicking while animation is active
-    if (container.classList.contains('active-effect')) return;
-
-    // Play the theme audio
-    audio.currentTime = 0;
-    audio.play().catch(error => {
-      console.log("Audio playback blocked or file not found:", error);
-    });
-
-    // Trigger the enlarge and shrink animation (lasts 2 seconds)
-    container.classList.add('active-effect');
-
-    // Reset after the animation finishes
-    setTimeout(() => {
-      container.classList.remove('active-effect');
-    }, 2000);
-  }
-</script>
-
 </body>
 </html>
