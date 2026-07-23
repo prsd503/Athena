@@ -155,9 +155,29 @@ body { padding-top: 80px; }
 </head>
 <body>
 
-    <div id="startOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#fdf6e3; z-index:10000; display:flex; justify-content:center; align-items:center; flex-direction:column;">
-        <h1 id="overlayWelcomeText" style="font-family: 'Caveat', cursive; color: #5d4037; margin-bottom: 20px; white-space: pre-line;">Welcome <br>to <br>Owl Watcher🦉</h1>
-        <button id="startButton" style="font-family: 'Caveat', cursive; font-size: 1.8rem; padding: 15px 30px; cursor:pointer; background: #8d6e63; color: white; border: none; border-radius: 15px; box-shadow: 4px 4px 0px #5d4037;"> Enter</button>
+<div id="startOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#fdf6e3; z-index:10000; display:flex; justify-content:center; align-items:center; flex-direction:column; padding: 20px; box-sizing: border-box;">
+        <div style="max-width: 500px; width: 100%; padding: 30px; background: #ffffff; border: 2px solid #8d6e63; border-radius: 20px; box-shadow: 6px 6px 0px #5d4037; text-align: center;">
+            <h1 id="overlayWelcomeText" style="font-family: 'Caveat', cursive; color: #5d4037; margin-bottom: 5px; font-size: 2.8rem; line-height: 1.1; white-space: pre-line;">Welcome <br>to <br>Owl Watcher 🦉</h1>
+            
+            <!-- Commercial Subtitle / Tagline -->
+            <p style="font-family: sans-serif; color: #795548; font-size: 0.95rem; margin-bottom: 25px; font-weight: 600; letter-spacing: 0.5px;">
+                Smart Society Vehicle Tracking & Management System
+            </p>
+
+            <!-- Trust / Feature Indicators -->
+            <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; font-family: sans-serif; font-size: 0.8rem; color: #8d6e63;">
+                <span style="background: #fdf6e3; padding: 5px 10px; border-radius: 8px; border: 1px solid #d7ccc8;">🛡️ Secure Access</span>
+                <span style="background: #fdf6e3; padding: 5px 10px; border-radius: 8px; border: 1px solid #d7ccc8;">⚡ Instant Search</span>
+                <span style="background: #fdf6e3; padding: 5px 10px; border-radius: 8px; border: 1px solid #d7ccc8;">🏢 Multi-Society</span>
+            </div>
+
+            <button id="startButton" style="font-family: 'Caveat', cursive; font-size: 1.8rem; padding: 12px 35px; cursor:pointer; background: #8d6e63; color: white; border: none; border-radius: 12px; box-shadow: 3px 3px 0px #5d4037; width: 100%; transition: transform 0.1s;">Enter Portal</button>
+
+            <!-- Commercial Inquiry Link -->
+            <div style="margin-top: 20px; font-family: sans-serif; font-size: 0.85rem;">
+                <a id="registerSocietyBtn" href="https://wa.me/919033406816?text=Hi,%20I%20want%20to%20register%20my%20society/organisation%20in%20Owl%20Watcher%20app" target="_blank" style="color: #8d6e63; text-decoration: underline; font-weight: bold;">Want to register your society? Contact Us</a>
+            </div>
+        </div>
     </div>
 
     <div class="card">
