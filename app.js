@@ -5,7 +5,6 @@ import {
     indexedDBLocalPersistence, 
     browserLocalPersistence 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 
 // FIXED: Cleaned up authDomain to remove protocols/slashes and pointed to the correct handler
 const firebaseConfig = {
@@ -34,66 +33,54 @@ if (window.location.href.includes("capacitor://")) {
 }
 export const auth = authInstance;
 
-// --- CAPACITOR FILESYSTEM HELPERS (Directory.Data) ---
+// --- LOCAL STORAGE HELPERS (Fallback for Web / GitHub Pages) ---
 
 /**
- * Write/Save data to a file in Directory.Data
- * @param {string} fileName - Name of the file (e.g., 'my-app-data.json')
+ * Write/Save data to localStorage
+ * @param {string} fileName - Key name for storage
  * @param {Object|string} data - Data to write
  */
 export async function writePrivateData(fileName, data) {
     try {
         const jsonData = typeof data === 'object' ? JSON.stringify(data) : data;
-        await Filesystem.writeFile({
-            path: fileName,
-            data: jsonData,
-            directory: Directory.Data,
-            encoding: Encoding.UTF8,
-        });
-        console.log('File written successfully');
+        localStorage.setItem(fileName, jsonData);
+        console.log('Data saved successfully');
     } catch (error) {
-        console.error('Error writing file:', error);
+        console.error('Error saving data:', error);
     }
 }
 
 /**
- * Read data from a file in Directory.Data
- * @param {string} fileName - Name of the file to read
+ * Read data from localStorage
+ * @param {string} fileName - Key name to read
  * @returns {Promise<Object|string|null>} - Parsed JSON or string contents
  */
 export async function readPrivateData(fileName) {
     try {
-        const contents = await Filesystem.readFile({
-            path: fileName,
-            directory: Directory.Data,
-            encoding: Encoding.UTF8,
-        });
+        const contents = localStorage.getItem(fileName);
+        if (!contents) return null;
         
-        // Try parsing as JSON if possible, otherwise return raw data
         try {
-            return JSON.parse(contents.data);
+            return JSON.parse(contents);
         } catch {
-            return contents.data;
+            return contents;
         }
     } catch (error) {
-        console.error('Error reading file:', error);
+        console.error('Error reading data:', error);
         return null;
     }
 }
 
 /**
- * Delete a file from Directory.Data
- * @param {string} fileName - Name of the file to delete
+ * Delete data from localStorage
+ * @param {string} fileName - Key name to delete
  */
 export async function deletePrivateData(fileName = 'my-app-data.json') {
   try {
-    await Filesystem.deleteFile({
-      path: fileName,
-      directory: Directory.Data,
-    });
-    console.log('File deleted successfully');
+    localStorage.removeItem(fileName);
+    console.log('Data deleted successfully');
   } catch (error) {
-    console.error('Error deleting file:', error);
+    console.error('Error deleting data:', error);
   }
 }
 
@@ -119,7 +106,7 @@ if (findBtn) {
                     Society: <b>${data.societyName || "N/A"}</b>
                 `;
                 
-                // Example usage: Save search history locally using Directory.Data
+                // Example usage: Save search history locally using localStorage wrapper
                 await writePrivateData('last-search.json', data);
             });
         } else {
